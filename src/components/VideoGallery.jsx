@@ -14,12 +14,15 @@ export default function VideoGallery() {
   const loadVideos = async () => {
     try {
       const res = await api.get('/videos');
-      console.log('VideoGallery response:', res);
-      console.log('VideoGallery response.data:', res.data);
-      if (res.data.success) setVideos(res.data.videos || []);
-      else console.error('API returned success=false:', res.data);
+      if (res.data && res.data.success) {
+        setVideos(Array.isArray(res.data.videos) ? res.data.videos : []);
+      } else {
+        console.error('API returned success=false:', res.data);
+        setVideos([]);
+      }
     } catch (err) {
       console.error('Failed to load videos:', err);
+      setVideos([]);
     }
   };
 
