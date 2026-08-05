@@ -1,9 +1,11 @@
 import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import { useToast } from './ToastContext.jsx';
 
 const CartContext = createContext(null);
 const STORAGE_KEY = 'gnf_cart';
 
 export function CartProvider({ children }) {
+  const showToast = useToast();
   const [items, setItems] = useState(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -21,8 +23,10 @@ export function CartProvider({ children }) {
     setItems((prev) => {
       const existing = prev.find((i) => i.id === product.id);
       if (existing) {
+        showToast('Item quantity updated in cart');
         return prev.map((i) => (i.id === product.id ? { ...i, qty: i.qty + 1 } : i));
       }
+      showToast(`${product.name} added to cart`);
       return [
         ...prev,
         {
@@ -37,7 +41,7 @@ export function CartProvider({ children }) {
         }
       ];
     });
-  }, []);
+  }, [showToast]);
 
   const removeItem = useCallback((id) => {
     setItems((prev) => prev.filter((i) => i.id !== id));

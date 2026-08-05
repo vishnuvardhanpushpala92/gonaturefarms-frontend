@@ -15,7 +15,6 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
 
   const handleAdd = () => {
     addItem(product);
-    showToast(`${product.name} added to cart`);
   };
 
   const handleWishlist = async () => {
