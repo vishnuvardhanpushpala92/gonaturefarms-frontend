@@ -99,7 +99,7 @@ export default function AdminProductsTab() {
       <div className="admin-card">
         <h3 style={{ marginBottom: 12 }}>Categories</h3>
         <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-          <input placeholder="New category name" value={newCat} onChange={(e) => setNewCat(e.target.value)} style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--border)', borderRadius: 6 }} />
+          <input placeholder="New category name" value={newCat} onChange={(e) => setNewCat(e.target.value)} style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--border)', borderRadius: 6, background: '#fff' }} />
           <button className="btn btn-secondary" onClick={addCategory}>Add</button>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

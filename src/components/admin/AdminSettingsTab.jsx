@@ -82,14 +82,14 @@ export default function AdminSettingsTab() {
                       type="color"
                       value={form[key] || '#000000'}
                       onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                      style={{ width: '100%', height: '100%', padding: 0, border: 'none', borderRadius: 8, cursor: 'pointer' }}
+                      style={{ width: '100%', height: '100%', padding: 0, border: 'none', borderRadius: 8, cursor: 'pointer', background: '#fff' }}
                     />
                   </div>
                   <input
                     value={form[key] || ''}
                     onChange={(e) => setForm({ ...form, [key]: e.target.value })}
                     placeholder="#000000"
-                    style={{ flex: 1, fontFamily: 'monospace', textTransform: 'uppercase' }}
+                    style={{ flex: 1, fontFamily: 'monospace', textTransform: 'uppercase', background: '#fff' }}
                   />
                 </div>
               ) : key === 'hdr_font_size' || key === 'ftr_font_size' ? (
