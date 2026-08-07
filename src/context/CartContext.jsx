@@ -23,10 +23,13 @@ export function CartProvider({ children }) {
     setItems((prev) => {
       const existing = prev.find((i) => i.id === product.id);
       if (existing) {
-        showToast('Item quantity updated in cart');
-        return prev.map((i) => (i.id === product.id ? { ...i, qty: i.qty + 1 } : i));
+        const newQty = existing.qty + 1;
+        const totalItems = prev.reduce((sum, i) => sum + (i.id === product.id ? newQty : i.qty), 0);
+        showToast(`${product.name} quantity updated in cart. Cart items: ${totalItems}`);
+        return prev.map((i) => (i.id === product.id ? { ...i, qty: newQty } : i));
       }
-      showToast(`${product.name} added to cart`);
+      const totalItems = prev.reduce((sum, i) => sum + i.qty, 0) + 1;
+      showToast(`${product.name} added to cart. Cart items: ${totalItems}`);
       return [
         ...prev,
         {

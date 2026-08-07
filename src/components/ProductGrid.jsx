@@ -32,6 +32,20 @@ export default function ProductGrid({ search, onOpenReviews }) {
   const current = products.filter((p) => p.status !== 'future');
   const future = products.filter((p) => p.status === 'future');
 
+  // Remove duplicate products by ID and name
+  const uniqueProducts = (list) => {
+    const seen = new Set();
+    return list.filter((p) => {
+      const key = `${p.id}-${p.name}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
+  const uniqueCurrent = uniqueProducts(current);
+  const uniqueFuture = uniqueProducts(future);
+
   return (
     <div className="section first-section">
       <div className="section-head reveal">
@@ -49,21 +63,21 @@ export default function ProductGrid({ search, onOpenReviews }) {
       </div>
 
       <div className="pgrid">
-        {!loading && current.length === 0 && (
+        {!loading && uniqueCurrent.length === 0 && (
           <div className="empty-grid"><p>No products found</p></div>
         )}
-        {current.map((p) => (
+        {uniqueCurrent.map((p) => (
           <ProductCard key={p.id} product={p} onOpenReviews={onOpenReviews} />
         ))}
       </div>
 
-      {future.length > 0 && (
+      {uniqueFuture.length > 0 && (
         <div style={{ marginTop: 56 }}>
           <div className="section-head reveal">
             <h2 style={{ color: 'var(--earth)' }}>Coming Soon <span style={{ background: 'var(--earth)' }}></span></h2>
           </div>
           <div className="pgrid">
-            {future.map((p) => (
+            {uniqueFuture.map((p) => (
               <ProductCard key={p.id} product={p} onOpenReviews={onOpenReviews} />
             ))}
           </div>

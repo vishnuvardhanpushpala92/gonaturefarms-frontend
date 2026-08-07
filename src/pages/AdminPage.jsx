@@ -42,9 +42,15 @@ export default function AdminPage() {
       setBusy(true);
       try {
         const data = await adminLogin(form.username, form.password);
-        if (!data.success) showToast(data.message);
+        if (data && data.success) {
+          showToast('Login successful! Redirecting to dashboard...');
+        } else {
+          showToast(data?.message || 'Invalid credentials');
+        }
       } catch (err) {
-        showToast(err?.response?.data?.message || 'Login failed');
+        console.error('Admin login error:', err);
+        const errorMsg = err?.response?.data?.message || err?.message || 'Login failed. Please try again.';
+        showToast(errorMsg);
       } finally {
         setBusy(false);
       }
@@ -58,11 +64,11 @@ export default function AdminPage() {
           <form onSubmit={handleLogin}>
             <div className="fg">
               <label>Username</label>
-              <input required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+              <input required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="Enter username" />
             </div>
             <div className="fg">
               <label>Password</label>
-              <input required type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+              <input required type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Enter password" />
             </div>
             <button className="btn btn-primary btn-block" disabled={busy}>{busy ? 'Please wait...' : 'Login'}</button>
           </form>

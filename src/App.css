@@ -171,7 +171,10 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:900;b
 .hbtn.primary{background:var(--p);color:#fff;border-color:var(--p);}
 .hbtn.primary:hover{background:var(--p2);}
 .cart-btn{position:relative;}
-.cart-count{position:absolute;top:-6px;right:-6px;background:var(--accent);color:#fff;font-size:.6rem;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.cart-btn svg{width:18px;height:18px;transition:transform .2s;}
+.cart-btn:hover svg{transform:scale(1.1);}
+.cart-count{position:absolute;top:-6px;right:-6px;background:var(--accent);color:#fff;font-size:.65rem;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;animation:popIn .3s ease;}
+@keyframes popIn{0%{transform:scale(0)}80%{transform:scale(1.2)}100%{transform:scale(1)}}
 
 /* ── AGRICULTURE CAROUSEL ─────────────────────────────────────── */
 .agriculture-carousel{position:relative;width:100%;height:400px;overflow:hidden;background:#1a2e17;}
@@ -255,6 +258,15 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:900;b
 .btn-d:hover{opacity:.8;}
 .empty-grid{grid-column:1/-1;text-align:center;padding:60px 20px;color:#d1d5db;}
 .empty-grid svg{width:48px;height:48px;stroke:#d1d5db;display:block;margin:0 auto 12px;}
+
+/* ── FORM INPUTS ───────────────────────────────────────────── */
+.fg{margin-bottom:14px;}
+.fg label{display:block;font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:6px;}
+.fg input,.fg select,.fg textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:.85rem;outline:none;background:#fff;transition:all .2s;font-family:'Inter',sans-serif;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,195,74,.1);}
+.fg textarea{resize:vertical;min-height:80px;}
+.frow{display:flex;gap:12px;}
+.frow .fg{flex:1;}
 
 /* ── ADMIN (React app additions) ───────────────────────────── */
 .admin-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);}
@@ -648,18 +660,59 @@ footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition
 
 /* ── RESPONSIVE ─────────────────────────────────────────────── */
 @media(max-width:768px){
-  header{padding:0 4%;}
-  .search-wrap input{width:120px;}.search-wrap input:focus{width:150px;}
+  header{padding:0 4%;height:auto;padding:12px 4%;}
+  .brand-text h1{font-size:1.2rem;}
+  .brand-text span{font-size:.55rem;}
+  .search-wrap{display:none;}
+  .nav-right{gap:6px;}
+  .hbtn{padding:6px 10px;}
   .cart-drawer{width:100%;right:-100%;}
   .slide-content h2{font-size:1.8rem;}
   .slider-wrap{height:min(420px,50vh);min-height:280px;}
-  .footer-main{grid-template-columns:1fr;}
-  .frow{grid-template-columns:1fr;}
+  .footer-main{grid-template-columns:1fr;gap:24px;}
+  .frow{flex-direction:column;gap:8px;}
   .section{padding:40px 16px;}
   .hbtn span{display:none;}
   .trust-grid{grid-template-columns:repeat(2,1fr);}
   .chat-window{width:calc(100vw - 32px);right:16px;}
   #futureGrid{grid-template-columns:1fr!important;}
+  .pgrid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;}
+  .pcard-img{height:160px;}
+  .pcard-name{font-size:.88rem;}
+  .pcard-desc{font-size:.72rem;}
+  .filter-row{gap:6px;}
+  .fbtn{padding:5px 12px;font-size:.72rem;}
+  .btn-buy{padding:8px;font-size:.78rem;}
+  .admin-card{padding:14px;}
+  .data-table{font-size:.76rem;}
+  .data-table th,.data-table td{padding:8px 10px;}
+  .stat-cards{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:480px){
+  header{padding:10px 3%;}
+  .brand{gap:8px;}
+  #main-logo{width:36px;height:36px;}
+  .brand-text h1{font-size:1rem;}
+  .brand-text span{font-size:.5rem;}
+  .nav-right{gap:4px;}
+  .hbtn{padding:5px 8px;}
+  .hbtn svg{width:14px;height:14px;}
+  .pgrid{grid-template-columns:1fr;gap:12px;}
+  .pcard-img{height:180px;}
+  .section{padding:32px 12px;}
+  .section-head h2{font-size:1.4rem;}
+  .filter-row{gap:4px;}
+  .fbtn{padding:4px 10px;font-size:.7rem;}
+  .btn-buy{padding:10px;font-size:.8rem;}
+  .cart-drawer{width:100%;}
+  .drawer-ftr{padding:12px 16px;}
+  .cart-summary{padding:10px;}
+  .btn-checkout{padding:10px;font-size:.82rem;}
+  .stat-cards{grid-template-columns:1fr;}
+  .admin-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:10px;}
+  .admin-tabs::-webkit-scrollbar{height:4px;}
+  .admin-tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .frow .fg{width:100%;}
 }
 
 /* ── NEW: WISHLIST BTN ────────────────────────────────────── */
