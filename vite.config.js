@@ -9,11 +9,11 @@ export default defineConfig(({ mode }) => {
   // (plain process.env.VITE_API_PROXY_TARGET would otherwise only pick up an
   // actual shell-exported variable, silently ignoring the .env file).
   const env = loadEnv(mode, process.cwd(), '');
-  // Spring Boot backend listens on 8081 (see server.port in application.properties).
+  // Spring Boot backend listens on 8080 (see server.port in application.properties).
   // Previously this defaulted to 5000, which nothing was listening on — every /api
   // call hit ECONNREFUSED at the proxy layer and Vite returned a generic 500 to the
   // browser before the request ever reached Spring Boot.
-  const proxyTarget = env.VITE_API_PROXY_TARGET || 'http://localhost:8081';
+  const proxyTarget = env.VITE_API_PROXY_TARGET || 'http://localhost:8080';
 
   return {
     plugins: [react()],
