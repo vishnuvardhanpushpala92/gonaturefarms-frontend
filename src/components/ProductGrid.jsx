@@ -32,13 +32,12 @@ export default function ProductGrid({ search, onOpenReviews }) {
   const current = products.filter((p) => p.status !== 'future');
   const future = products.filter((p) => p.status === 'future');
 
-  // Remove duplicate products by ID and name
+  // Remove duplicate products by ID (defensive deduplication)
   const uniqueProducts = (list) => {
     const seen = new Set();
     return list.filter((p) => {
-      const key = `${p.id}-${p.name}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
+      if (seen.has(p.id)) return false;
+      seen.add(p.id);
       return true;
     });
   };
