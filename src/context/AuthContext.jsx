@@ -1,9 +1,7 @@
 import React from 'react';
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import api from '../api/client';
-
 const AuthContext = createContext(null);
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     const stored = sessionStorage.getItem('gnf_user');
