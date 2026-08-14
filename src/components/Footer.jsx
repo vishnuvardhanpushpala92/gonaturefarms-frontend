@@ -1,3 +1,4 @@
+import React from 'react';
 import { useSite } from '../context/SiteContext.jsx';
 import { useLocation } from 'react-router-dom';
 

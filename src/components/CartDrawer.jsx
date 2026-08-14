@@ -1,3 +1,4 @@
+import React from 'react';
 import { useCart } from '../context/CartContext.jsx';
 
 export default function CartDrawer({ open, onClose, onCheckout }) {

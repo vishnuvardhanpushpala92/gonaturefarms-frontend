@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from 'react';
 import Modal from './Modal.jsx';
 import { useSite } from '../context/SiteContext.jsx';

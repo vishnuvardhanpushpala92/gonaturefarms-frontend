@@ -1,3 +1,4 @@
+import React from 'react';
 import { useEffect, useState } from 'react';
 import Modal from './Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';

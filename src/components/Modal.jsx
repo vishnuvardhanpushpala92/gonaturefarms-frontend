@@ -1,3 +1,4 @@
+import React from 'react';
 export default function Modal({ open, onClose, title, subtitle, wide, narrow, children, footer }) {
   if (!open) return null;
   return (

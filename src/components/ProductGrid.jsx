@@ -1,3 +1,4 @@
+import React from 'react';
 import { useEffect, useState, useCallback } from 'react';
 import api from '../api/client';
 import ProductCard from './ProductCard.jsx';

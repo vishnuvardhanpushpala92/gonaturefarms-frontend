@@ -1,3 +1,4 @@
+import React from 'react';
 import { useSite } from '../context/SiteContext.jsx';
 
 const DEFAULT_MSGS = [
