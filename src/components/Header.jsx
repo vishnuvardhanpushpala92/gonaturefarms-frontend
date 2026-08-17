@@ -14,10 +14,28 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
 
   const headerFontSize = settings.hdr_font_size || '16';
 
+  // Helper function to get image URL with proper backend prefix
+  const getImageUrl = (imgUrl) => {
+    if (!imgUrl) return '';
+    // If it's already a full URL (Cloudinary), return as-is
+    if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) {
+      return imgUrl;
+    }
+    // If it's a local path, prefix with backend API URL
+    // Handle double slashes by removing leading slash from imgUrl if backend URL ends with /
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const cleanImgUrl = imgUrl.startsWith('/') ? imgUrl : `/${imgUrl}`;
+    const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+    return `${cleanApiUrl}${cleanImgUrl}`;
+  };
+
+  // Use logo from settings if available, otherwise fallback to default
+  const logoUrl = settings.logo || '/logo.png';
+
   return (
     <header style={{ backgroundColor: isAdminPage ? undefined : (settings.hdr_bg || undefined), fontSize: `${headerFontSize}px` }}>
       <div className="brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', textDecoration: 'none' }}>
-        <img src="/logo.png" alt="Go Nature Farms" style={{ height: '50px', objectFit: 'contain' }} />
+        <img src={getImageUrl(logoUrl)} alt="Go Nature Farms" style={{ height: '50px', objectFit: 'contain' }} />
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
           <span style={{ fontSize: '1.3rem', fontWeight: '700', color: '#2d5a27', fontFamily: 'Georgia, serif' }}>
             Go Nature Farms

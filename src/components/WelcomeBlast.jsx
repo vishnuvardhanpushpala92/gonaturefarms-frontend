@@ -38,6 +38,21 @@ export default function WelcomeBlast() {
     handleClose();
   };
 
+  // Helper function to get image URL with proper backend prefix
+  const getImageUrl = (imgUrl) => {
+    if (!imgUrl) return '';
+    // If it's already a full URL (Cloudinary), return as-is
+    if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) {
+      return imgUrl;
+    }
+    // If it's a local path, prefix with backend API URL
+    // Handle double slashes by removing leading slash from imgUrl if backend URL ends with /
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const cleanImgUrl = imgUrl.startsWith('/') ? imgUrl : `/${imgUrl}`;
+    const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+    return `${cleanApiUrl}${cleanImgUrl}`;
+  };
+
   if (!blastEnabled || dismissed || !visible) return null;
 
   const getAnimationClass = () => {
@@ -52,7 +67,7 @@ export default function WelcomeBlast() {
   const renderContent = () => (
     <div className={`blast-content ${getAnimationClass()}`}>
       {blastImage && (
-        <img src={blastImage} alt="Welcome" className="blast-image" />
+        <img src={getImageUrl(blastImage)} alt="Welcome" className="blast-image" />
       )}
       <div className="blast-text">
         <h2>{blastTitle}</h2>

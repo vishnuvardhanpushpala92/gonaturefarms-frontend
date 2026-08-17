@@ -35,7 +35,11 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
       return imgUrl;
     }
     // If it's a local path, prefix with backend API URL
-    return `${import.meta.env.VITE_API_URL}${imgUrl}`;
+    // Handle double slashes by removing leading slash from imgUrl if backend URL ends with /
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const cleanImgUrl = imgUrl.startsWith('/') ? imgUrl : `/${imgUrl}`;
+    const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+    return `${cleanApiUrl}${cleanImgUrl}`;
   };
 
   return (
