@@ -43,6 +43,13 @@ export default function VideoGallery() {
     setSelectedVideo(video);
   };
 
+  // Add cache-buster to video URLs to prevent Cloudinary 404s
+  const getVideoUrl = (filePath) => {
+    if (!filePath) return '';
+    // Add cache-buster parameter
+    return `${filePath}?v=${Date.now()}`;
+  };
+
   const closeVideo = () => {
     if (videoRef.current) {
       videoRef.current.pause();
@@ -83,7 +90,7 @@ export default function VideoGallery() {
                   playsInline
                   preload="metadata"
                   poster=""
-                  src={video.filePath}
+                  src={getVideoUrl(video.filePath)}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
                 <div className="video-play-overlay">
@@ -110,7 +117,7 @@ export default function VideoGallery() {
               ref={videoRef}
               controls
               autoPlay
-              src={selectedVideo.filePath}
+              src={getVideoUrl(selectedVideo.filePath)}
               style={{ width: '100%', maxHeight: '80vh', borderRadius: '12px' }}
             />
             <div className="video-modal-title">
