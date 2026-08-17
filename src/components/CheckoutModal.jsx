@@ -22,12 +22,32 @@ export default function CheckoutModal({ open, onClose }) {
   const [discount, setDiscount] = useState(0);
   const [placing, setPlacing] = useState(false);
   const [placedOrder, setPlacedOrder] = useState(null);
+  const [pincodeError, setPincodeError] = useState('');
 
   const freeDeliveryAbove = parseFloat(settings.free_delivery_above || 500);
   const deliveryChargeBelow = parseFloat(settings.delivery_charge_below || 50);
   const subtotalWithGst = totals.subtotal + totals.gstAmount;
   const deliveryCharge = subtotalWithGst >= freeDeliveryAbove ? 0 : deliveryChargeBelow;
   const grandTotal = Math.max(0, subtotalWithGst + deliveryCharge - discount);
+
+  const validatePincode = async (pincode) => {
+    if (!pincode || pincode.length < 6) {
+      setPincodeError('Please enter a valid 6-digit pincode');
+      return false;
+    }
+    try {
+      const { data } = await api.get(`/admin/zones/validate?pincode=${pincode}`);
+      if (!data.success) {
+        setPincodeError(data.message || 'Invalid pincode. Delivery not available in your area.');
+        return false;
+      }
+      setPincodeError('');
+      return true;
+    } catch (err) {
+      setPincodeError('Invalid pincode. Delivery not available in your area.');
+      return false;
+    }
+  };
 
   const applyCoupon = async () => {
     if (!coupon.trim()) return;
@@ -125,7 +145,16 @@ export default function CheckoutModal({ open, onClose }) {
             <div className="fg"><label>State</label>
               <input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} /></div>
             <div className="fg"><label>Pincode</label>
-              <input required value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} /></div>
+              <input 
+                required 
+                value={form.pincode} 
+                onChange={(e) => {
+                  setForm({ ...form, pincode: e.target.value });
+                  validatePincode(e.target.value);
+                }} 
+              />
+              {pincodeError && <div style={{ color: '#dc2626', fontSize: '.7rem', marginTop: 4 }}>{pincodeError}</div>}
+            </div>
           </div>
           <button className="btn btn-primary btn-block">Continue to Payment</button>
         </form>
@@ -145,7 +174,6 @@ export default function CheckoutModal({ open, onClose }) {
             <label>Payment Method</label>
             <select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}>
               <option value="UPI">UPI</option>
-              <option value="COD">Cash on Delivery</option>
             </select>
           </div>
 
