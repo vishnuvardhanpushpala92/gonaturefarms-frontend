@@ -41,10 +41,10 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
         <img src={getImageUrl(logoUrl)} alt="Go Nature Farms" style={{ height: '50px', objectFit: 'contain' }} />
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
           <span style={{ fontSize: '1.3rem', fontWeight: '700', color: '#2d5a27', fontFamily: 'Georgia, serif' }}>
-            Go Nature Farms & Forever
+            Go Nature Farms
           </span>
           <span style={{ fontSize: '0.7rem', fontWeight: '500', color: '#4a7c4f', letterSpacing: '1px', textTransform: 'uppercase' }}>
-            Nature is Our future
+            Nature is Our future & Forever
           </span>
         </div>
       </div>
