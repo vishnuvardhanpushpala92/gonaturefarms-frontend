@@ -17,13 +17,7 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
   return (
     <header style={{ backgroundColor: isAdminPage ? undefined : (settings.hdr_bg || undefined), fontSize: `${headerFontSize}px` }}>
       <div className="brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-        {settings.logo_url ? (
-          <img id="main-logo" src={settings.logo_url} alt="Logo" />
-        ) : null}
-        <div className="brand-text">
-          <h1 style={{ color: isAdminPage ? undefined : (settings.hdr_text || undefined) }}>{settings.site_name || 'Go Nature Farms'}</h1>
-          <span style={{ color: isAdminPage ? undefined : (settings.hdr_text || undefined) }}>{settings.tagline || 'Nature is Our Future'}</span>
-        </div>
+        <img src="/logo.png" alt="Go Nature Farms" style={{ height: '50px', objectFit: 'contain' }} />
       </div>
       <div className="nav-right">
         <div className="search-wrap">

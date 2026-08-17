@@ -7,7 +7,7 @@ import { useToast } from '../../context/ToastContext.jsx';
 const FIELDS = [
   ['site_name', 'Site Name'], ['tagline', 'Tagline'], ['footer_text', 'Footer Text'],
   ['upi_id', 'UPI ID'], ['store_location', 'Store Location'], ['qr_code', 'QR Code Image URL'],
-  ['logo_url', 'Logo URL'], ['hdr_bg', 'Header Background'], ['hdr_text', 'Header Text Color'],
+  ['hdr_bg', 'Header Background'], ['hdr_text', 'Header Text Color'],
   ['hdr_font_size', 'Header Font Size (px)'], ['ftr_bg', 'Footer Background'], ['ftr_text', 'Footer Text Color'],
   ['ftr_font_size', 'Footer Font Size (px)'],
   ['banner_msgs', 'Banner Messages (| separated)'], ['free_delivery_above', 'Free Delivery Above (₹)'],
@@ -105,7 +105,7 @@ export default function AdminSettingsTab() {
               ) : (
                 <input value={form[key] || ''} onChange={(e) => setForm({ ...form, [key]: e.target.value })} />
               )}
-              {(key === 'qr_code' || key === 'logo_url' || key === 'footer_bg_image') && (
+              {(key === 'qr_code' || key === 'footer_bg_image') && (
                 <input type="file" accept="image/*" disabled={uploading} onChange={(e) => uploadImage(e, key)} style={{ marginTop: 6 }} />
               )}
             </div>
