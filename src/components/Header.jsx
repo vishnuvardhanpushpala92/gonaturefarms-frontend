@@ -21,8 +21,11 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
     if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) {
       return imgUrl;
     }
-    // If it's a local path, prefix with backend API URL
-    // Handle double slashes by removing leading slash from imgUrl if backend URL ends with /
+    // 🛑 FIX: If it's the default static frontend logo, load it from Vercel (don't prefix backend URL)
+    if (imgUrl === '/logo.png' || imgUrl === '/brand-logo.png') {
+      return imgUrl; 
+    }
+    // If it's a local backend path (e.g., uploaded via Admin), prefix with backend API URL
     const apiUrl = import.meta.env.VITE_API_URL || '';
     const cleanImgUrl = imgUrl.startsWith('/') ? imgUrl : `/${imgUrl}`;
     const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
