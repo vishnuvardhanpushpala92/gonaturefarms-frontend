@@ -77,18 +77,15 @@ export default function VideoGallery() {
             <div key={video.id} className="video-card" onClick={() => openVideo(video)}>
               <div className="video-card-wrapper">
                 <video
+                  crossOrigin="anonymous"
                   muted
                   loop
                   playsInline
                   preload="metadata"
                   poster=""
+                  src={video.filePath}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                >
-                  <source src={video.filePath} type="video/mp4" />
-                  <source src={video.filePath} type="video/webm" />
-                  <source src={video.filePath} type="video/ogg" />
-                  Your browser does not support the video tag.
-                </video>
+                />
                 <div className="video-play-overlay">
                   <span className="play-icon">▶</span>
                 </div>
@@ -109,16 +106,13 @@ export default function VideoGallery() {
           <div className="video-modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="video-modal-close" onClick={closeVideo}>×</button>
             <video
+              crossOrigin="anonymous"
               ref={videoRef}
               controls
               autoPlay
+              src={selectedVideo.filePath}
               style={{ width: '100%', maxHeight: '80vh', borderRadius: '12px' }}
-            >
-              <source src={selectedVideo.filePath} type="video/mp4" />
-              <source src={selectedVideo.filePath} type="video/webm" />
-              <source src={selectedVideo.filePath} type="video/ogg" />
-              Your browser does not support the video tag.
-            </video>
+            />
             <div className="video-modal-title">
               <h3>{selectedVideo.title}</h3>
             </div>

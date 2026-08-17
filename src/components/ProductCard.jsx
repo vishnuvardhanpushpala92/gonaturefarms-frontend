@@ -27,10 +27,21 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
     }
   };
 
+  // Prefix local image paths with backend API URL
+  const getImageUrl = (imgUrl) => {
+    if (!imgUrl) return '';
+    // If it's already a full URL (Cloudinary), return as-is
+    if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) {
+      return imgUrl;
+    }
+    // If it's a local path, prefix with backend API URL
+    return `${import.meta.env.VITE_API_URL}${imgUrl}`;
+  };
+
   return (
     <div className={`pcard${isFuture ? ' pcard-future' : ''}`}>
       <div className="pcard-img">
-        <img src={product.imgUrl} alt={product.name} />
+        <img src={getImageUrl(product.imgUrl)} alt={product.name} />
       </div>
       <div className="pcard-body">
         <span className="pcard-cat">{product.cat}</span>
