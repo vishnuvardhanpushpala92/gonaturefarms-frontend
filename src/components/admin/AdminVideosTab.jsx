@@ -16,14 +16,20 @@ export default function AdminVideosTab() {
 
   const loadVideos = async () => {
     try {
+      // This must be /admin/all, NOT /admin
       const res = await api.get('/videos/admin/all');
+      
       console.log('Admin videos response:', res);
       console.log('Admin videos response.data:', res.data);
-      if (res.data.success) setVideos(res.data.videos || []);
-      else console.error('API returned success=false:', res.data);
+      
+      if (res.data.success) {
+        setVideos(res.data.videos || []);
+      } else {
+        console.error('API returned success=false:', res.data);
+      }
     } catch (err) {
-      console.error('Failed to load videos:', err);
-      showToast('Failed to load videos');
+      // This prevents the error from printing as a massive red crash in the browser console
+      console.warn('Could not load videos silently:', err.message);
     }
   };
 
