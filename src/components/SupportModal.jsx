@@ -45,10 +45,12 @@ export default function SupportModal({ open, onClose }) {
             <label>{f.label}{f.required && ' *'}</label>
             {f.type === 'textarea' ? (
               <textarea required={f.required} value={fields[f.key] || ''}
-                        onChange={(e) => setFields({ ...fields, [f.key]: e.target.value })} />
+                        onChange={(e) => setFields({ ...fields, [f.key]: e.target.value })}
+                        style={{ backgroundColor: '#ffffff', color: '#333333' }} />
             ) : f.type === 'select' ? (
               <select required={f.required} value={fields[f.key] || ''}
-                      onChange={(e) => setFields({ ...fields, [f.key]: e.target.value })}>
+                      onChange={(e) => setFields({ ...fields, [f.key]: e.target.value })}
+                      style={{ backgroundColor: '#ffffff', color: '#333333' }}>
                 <option value="">Select...</option>
                 {(f.options || []).map((opt) => <option key={opt} value={opt}>{opt}</option>)}
               </select>
