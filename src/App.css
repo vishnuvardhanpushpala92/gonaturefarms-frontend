@@ -789,3 +789,37 @@ footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition
 .sc-block{margin:0 5%;margin-bottom:20px;border-radius:var(--r);padding:22px 28px;border:1.5px solid;}
 .sc-block-title{font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
 .sc-block-content{font-size:.88rem;line-height:1.7;}
+
+/* ── FORCE WHITE FORM FIELDS ─────────────────────────────── */
+/* Force all inputs, textareas, and selects to be white */
+input, textarea, select {
+  background-color: #ffffff !important;
+  color: #333333 !important;
+  border-color: #e2e8f0 !important; /* Change to a light gray border */
+  border-radius: 6px;
+  padding: 10px;
+}
+
+/* Ensure dropdown options are also white */
+select option {
+  background-color: #ffffff !important;
+  color: #333333 !important;
+}
+
+/* Override dark theme form inputs to always be white */
+[data-theme='dark'] .fg input,
+[data-theme='dark'] .fg select,
+[data-theme='dark'] .fg textarea,
+[data-theme='dark'] input,
+[data-theme='dark'] textarea,
+[data-theme='dark'] select {
+  background-color: #ffffff !important;
+  color: #333333 !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme='dark'] .chat-input-row input {
+  background-color: #ffffff !important;
+  color: #333333 !important;
+  border-color: #e2e8f0 !important;
+}
