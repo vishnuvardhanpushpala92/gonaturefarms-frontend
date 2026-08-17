@@ -16,8 +16,16 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
 
   return (
     <header style={{ backgroundColor: isAdminPage ? undefined : (settings.hdr_bg || undefined), fontSize: `${headerFontSize}px` }}>
-      <div className="brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+      <div className="brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', textDecoration: 'none' }}>
         <img src="/logo.png" alt="Go Nature Farms" style={{ height: '50px', objectFit: 'contain' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+          <span style={{ fontSize: '1.3rem', fontWeight: '700', color: '#2d5a27', fontFamily: 'Georgia, serif' }}>
+            Go Nature Farms
+          </span>
+          <span style={{ fontSize: '0.7rem', fontWeight: '500', color: '#4a7c4f', letterSpacing: '1px', textTransform: 'uppercase' }}>
+            Nature is Our future
+          </span>
+        </div>
       </div>
       <div className="nav-right">
         <div className="search-wrap">
