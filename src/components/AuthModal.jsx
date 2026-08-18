@@ -5,6 +5,16 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import api from '../api/client';
 
+const SECURITY_QUESTIONS = [
+  "What is your mother's maiden name?",
+  "What was the name of your first pet?",
+  "What was the name of your first school?",
+  "What is your favorite food?",
+  "What city were you born in?",
+  "What is your favorite movie?",
+  "What is your dream job?"
+];
+
 export default function AuthModal({ open, onClose }) {
   const { user, login, register, logout } = useAuth();
   const showToast = useToast();
@@ -12,8 +22,14 @@ export default function AuthModal({ open, onClose }) {
   const [busy, setBusy] = useState(false);
 
   const [loginForm, setLoginForm] = useState({ identifier: '', password: '' });
-  const [regForm, setRegForm] = useState({ name: '', phone: '', email: '', pincode: '', password: '', puzzleAnswer: '' });
-  const [forgotForm, setForgotForm] = useState({ identifier: '', code: '', newPassword: '' });
+  const [regForm, setRegForm] = useState({ 
+    name: '', phone: '', email: '', pincode: '', password: '', confirmPassword: '', 
+    securityQuestion: '', securityAnswer: '', puzzleAnswer: '' 
+  });
+  const [forgotForm, setForgotForm] = useState({ 
+    identifier: '', securityQuestion: '', securityAnswer: '', 
+    newPassword: '', confirmPassword: '', forgotStep: 1 
+  });
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -33,6 +49,11 @@ export default function AuthModal({ open, onClose }) {
     e.preventDefault();
     setBusy(true);
     try {
+      if (regForm.password !== regForm.confirmPassword) {
+        showToast('Passwords do not match');
+        setBusy(false);
+        return;
+      }
       const data = await register(regForm);
       showToast(data.message || (data.success ? 'Welcome!' : 'Registration failed'));
       if (data.success) onClose();
@@ -47,31 +68,29 @@ export default function AuthModal({ open, onClose }) {
     e.preventDefault();
     setBusy(true);
     try {
-      const { data } = await api.post('/auth/forgot-password', { identifier: forgotForm.identifier });
-      showToast(data.message || 'If account exists, reset code sent');
-    } catch (err) {
-      showToast(err?.response?.data?.message || 'Request failed');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    setBusy(true);
-    try {
-      const { data } = await api.post('/auth/reset-password', {
-        identifier: forgotForm.identifier,
-        code: forgotForm.code,
-        newPassword: forgotForm.newPassword
-      });
-      showToast(data.message || 'Password reset successful');
-      if (data.success) {
-        setTab('login');
-        setForgotForm({ identifier: '', code: '', newPassword: '' });
+      if (forgotForm.forgotStep === 1) {
+        // Step 1: Verify security question
+        const { data } = await api.post('/auth/forgot-password/verify', { identifier: forgotForm.identifier });
+        if (data.success) {
+          setForgotForm({ ...forgotForm, securityQuestion: data.securityQuestion, forgotStep: 2 });
+          showToast('Security question found. Please answer it.');
+        }
+      } else if (forgotForm.forgotStep === 2) {
+        // Step 2: Verify answer and reset password
+        const { data } = await api.post('/auth/reset-password/security-question', {
+          identifier: forgotForm.identifier,
+          securityAnswer: forgotForm.securityAnswer,
+          newPassword: forgotForm.newPassword,
+          confirmPassword: forgotForm.confirmPassword
+        });
+        showToast(data.message || 'Password reset successful');
+        if (data.success) {
+          setTab('login');
+          setForgotForm({ identifier: '', securityQuestion: '', securityAnswer: '', newPassword: '', confirmPassword: '', forgotStep: 1 });
+        }
       }
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Reset failed');
+      showToast(err?.response?.data?.message || 'Request failed');
     } finally {
       setBusy(false);
     }
@@ -113,29 +132,44 @@ export default function AuthModal({ open, onClose }) {
           <button className="btn btn-primary btn-block" disabled={busy}>{busy ? 'Please wait...' : 'Login'}</button>
         </form>
       ) : tab === 'forgot' ? (
-        <form onSubmit={forgotForm.code ? handleResetPassword : handleForgotPassword}>
-          <div className="fg">
-            <label>Phone or Email</label>
-            <input required value={forgotForm.identifier}
-                   onChange={(e) => setForgotForm({ ...forgotForm, identifier: e.target.value })} />
-          </div>
-          {!forgotForm.code ? (
+        <form onSubmit={handleForgotPassword}>
+          {forgotForm.forgotStep === 1 ? (
             <>
-              <button className="btn btn-primary btn-block" disabled={busy}>{busy ? 'Sending...' : 'Send Reset Code'}</button>
+              <div className="fg">
+                <label>Phone or Email</label>
+                <input required value={forgotForm.identifier}
+                       onChange={(e) => setForgotForm({ ...forgotForm, identifier: e.target.value })} />
+              </div>
+              <button className="btn btn-primary btn-block" disabled={busy}>{busy ? 'Verifying...' : 'Find Account'}</button>
             </>
           ) : (
             <>
               <div className="fg">
-                <label>Reset Code</label>
-                <input required value={forgotForm.code}
-                       onChange={(e) => setForgotForm({ ...forgotForm, code: e.target.value })} />
+                <label>Security Question</label>
+                <div style={{ padding: '10px', background: '#f9fafb', borderRadius: '8px', marginBottom: '8px' }}>
+                  {forgotForm.securityQuestion}
+                </div>
+              </div>
+              <div className="fg">
+                <label>Your Answer</label>
+                <input required value={forgotForm.securityAnswer}
+                       onChange={(e) => setForgotForm({ ...forgotForm, securityAnswer: e.target.value })} />
               </div>
               <div className="fg">
                 <label>New Password (min 6 chars)</label>
                 <input required type="password" minLength={6} value={forgotForm.newPassword}
                        onChange={(e) => setForgotForm({ ...forgotForm, newPassword: e.target.value })} />
               </div>
+              <div className="fg">
+                <label>Confirm New Password</label>
+                <input required type="password" minLength={6} value={forgotForm.confirmPassword}
+                       onChange={(e) => setForgotForm({ ...forgotForm, confirmPassword: e.target.value })} />
+              </div>
               <button className="btn btn-primary btn-block" disabled={busy}>{busy ? 'Resetting...' : 'Reset Password'}</button>
+              <button type="button" className="btn btn-secondary btn-block" style={{ marginTop: '8px' }} 
+                      onClick={() => setForgotForm({ ...forgotForm, forgotStep: 1 })}>
+                Back
+              </button>
             </>
           )}
         </form>
@@ -162,6 +196,26 @@ export default function AuthModal({ open, onClose }) {
             <label>Password (min 6 chars)</label>
             <input required type="password" minLength={6} value={regForm.password}
                    onChange={(e) => setRegForm({ ...regForm, password: e.target.value })} />
+          </div>
+          <div className="fg">
+            <label>Confirm Password</label>
+            <input required type="password" minLength={6} value={regForm.confirmPassword}
+                   onChange={(e) => setRegForm({ ...regForm, confirmPassword: e.target.value })} />
+          </div>
+          <div className="fg">
+            <label>Security Question</label>
+            <select required value={regForm.securityQuestion}
+                    onChange={(e) => setRegForm({ ...regForm, securityQuestion: e.target.value })}>
+              <option value="">Select a security question</option>
+              {SECURITY_QUESTIONS.map((q, i) => (
+                <option key={i} value={q}>{q}</option>
+              ))}
+            </select>
+          </div>
+          <div className="fg">
+            <label>Security Answer</label>
+            <input required value={regForm.securityAnswer}
+                   onChange={(e) => setRegForm({ ...regForm, securityAnswer: e.target.value })} />
           </div>
           <div className="fg">
             <label>What is 2 + 3? (human check)</label>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from './Modal.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -14,9 +14,16 @@ export default function CheckoutModal({ open, onClose }) {
   const showToast = useToast();
 
   const [step, setStep] = useState(1);
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false
+  });
   const [form, setForm] = useState({
     customerName: user?.name || '', phone: user?.phone || '', email: user?.email || '',
-    address: '', area: '', city: '', state: '', pincode: '', paymentMethod: 'UPI'
+    address: '', area: '', city: '', state: '', pincode: '', paymentMethod: 'UPI',
+    paymentUtr: '', paymentScreenshot: null
   });
   const [coupon, setCoupon] = useState('');
   const [discount, setDiscount] = useState(0);
@@ -29,6 +36,70 @@ export default function CheckoutModal({ open, onClose }) {
   const subtotalWithGst = totals.subtotal + totals.gstAmount;
   const deliveryCharge = subtotalWithGst >= freeDeliveryAbove ? 0 : deliveryChargeBelow;
   const grandTotal = Math.max(0, subtotalWithGst + deliveryCharge - discount);
+
+  // Load user addresses
+  useEffect(() => {
+    if (user && open) {
+      loadAddresses();
+    }
+  }, [user, open]);
+
+  const loadAddresses = async () => {
+    try {
+      const { data } = await api.get('/addresses');
+      if (data.success) {
+        setAddresses(data.addresses || []);
+        // Select default address if available
+        const defaultAddr = data.addresses?.find(a => a.isDefault);
+        if (defaultAddr) {
+          setSelectedAddressId(defaultAddr.id);
+          setForm({
+            ...form,
+            customerName: defaultAddr.name,
+            phone: defaultAddr.phone,
+            address: defaultAddr.addressLine,
+            city: defaultAddr.city,
+            state: defaultAddr.state,
+            pincode: defaultAddr.pincode
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load addresses:', err);
+    }
+  };
+
+  const selectAddress = (address) => {
+    setSelectedAddressId(address.id);
+    setForm({
+      ...form,
+      customerName: address.name,
+      phone: address.phone,
+      address: address.addressLine,
+      city: address.city,
+      state: address.state,
+      pincode: address.pincode
+    });
+  };
+
+  const saveAddress = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...addressForm,
+        isDefault: addresses.length === 0 // Make first address default
+      };
+      const { data } = await api.post('/addresses', payload);
+      if (data.success) {
+        showToast('Address saved successfully');
+        setShowAddressForm(false);
+        setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
+        loadAddresses();
+      }
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to save address');
+    }
+  };
 
   const validatePincode = async (pincode) => {
     if (!pincode || pincode.length < 6) {
@@ -67,20 +138,44 @@ export default function CheckoutModal({ open, onClose }) {
   const placeOrder = async () => {
     setPlacing(true);
     try {
-      const payload = {
-        ...form,
-        items: items.map((i) => ({ id: i.id, name: i.name, img: i.img, price: i.price, gst: i.gst, qty: i.qty })),
-        subtotal: totals.subtotal,
-        gstAmount: totals.gstAmount,
-        deliveryCharge,
-        discount,
-        total: grandTotal,
-        couponCode: coupon || undefined,
-        userId: user?.id
-      };
-      const { data } = await api.post('/orders', payload);
+      const formData = new FormData();
+      formData.append('customerName', form.customerName);
+      formData.append('phone', form.phone);
+      formData.append('email', form.email);
+      formData.append('address', form.address);
+      formData.append('area', form.area);
+      formData.append('city', form.city);
+      formData.append('state', form.state);
+      formData.append('pincode', form.pincode);
+      formData.append('paymentMethod', form.paymentMethod);
+      formData.append('paymentUtr', form.paymentUtr);
+      if (form.paymentScreenshot) {
+        formData.append('paymentScreenshot', form.paymentScreenshot);
+      }
+      formData.append('subtotal', totals.subtotal);
+      formData.append('gstAmount', totals.gstAmount);
+      formData.append('deliveryCharge', deliveryCharge);
+      formData.append('discount', discount);
+      formData.append('total', grandTotal);
+      if (coupon) formData.append('couponCode', coupon);
+      if (user?.id) formData.append('userId', user.id);
+
+      // Add items
+      items.forEach((item, index) => {
+        formData.append(`items[${index}].id`, item.id);
+        formData.append(`items[${index}].name`, item.name);
+        formData.append(`items[${index}].img`, item.img);
+        formData.append(`items[${index}].price`, item.price);
+        formData.append(`items[${index}].gst`, item.gst);
+        formData.append(`items[${index}].qty`, item.qty);
+      });
+
+      const { data } = await api.post('/orders', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
       if (data.success) {
-        setPlacedOrder({ orderId: data.orderId, ...payload });
+        setPlacedOrder({ orderId: data.orderId });
         clearCart();
         setStep(3);
       } else {
@@ -125,14 +220,91 @@ export default function CheckoutModal({ open, onClose }) {
 
       {step === 1 && (
         <form onSubmit={(e) => { e.preventDefault(); setStep(2); }}>
+          {/* Saved Addresses Section */}
+          {addresses.length > 0 && (
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ fontWeight: 600, marginBottom: 8, display: 'block' }}>Saved Addresses</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {addresses.map((addr) => (
+                  <div 
+                    key={addr.id}
+                    onClick={() => selectAddress(addr)}
+                    style={{
+                      padding: 12,
+                      border: `2px solid ${selectedAddressId === addr.id ? 'var(--p)' : 'var(--border)'}`,
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      background: selectedAddressId === addr.id ? '#f0fdf4' : '#fff'
+                    }}
+                  >
+                    <div style={{ fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
+                      <span>{addr.name}</span>
+                      <span style={{ fontSize: '.7rem', background: 'var(--accent)', padding: '2px 8px', borderRadius: 4 }}>{addr.addressType}</span>
+                    </div>
+                    <div style={{ fontSize: '.8rem', color: 'var(--muted)' }}>{addr.addressLine}</div>
+                    <div style={{ fontSize: '.8rem', color: 'var(--muted)' }}>{addr.city}, {addr.state} - {addr.pincode}</div>
+                    <div style={{ fontSize: '.8rem', color: 'var(--muted)' }}>{addr.phone}</div>
+                  </div>
+                ))}
+              </div>
+              <button 
+                type="button" 
+                className="btn btn-secondary" 
+                style={{ marginTop: 8, width: '100%' }}
+                onClick={() => setShowAddressForm(true)}
+              >
+                + Add New Address
+              </button>
+            </div>
+          )}
+
+          {/* Address Form */}
+          {showAddressForm && (
+            <div style={{ marginBottom: 20, padding: 16, background: '#f9fafb', borderRadius: 8 }}>
+              <h4 style={{ marginBottom: 12 }}>Add New Address</h4>
+              <div className="fg">
+                <label>Address Type</label>
+                <select value={addressForm.addressType} onChange={(e) => setAddressForm({ ...addressForm, addressType: e.target.value })}>
+                  <option value="Home">Home</option>
+                  <option value="Office">Office</option>
+                </select>
+              </div>
+              <div className="fg">
+                <label>Name</label>
+                <input required value={addressForm.name} onChange={(e) => setAddressForm({ ...addressForm, name: e.target.value })} />
+              </div>
+              <div className="fg">
+                <label>Address Line</label>
+                <textarea required value={addressForm.addressLine} onChange={(e) => setAddressForm({ ...addressForm, addressLine: e.target.value })} />
+              </div>
+              <div className="frow">
+                <div className="fg"><label>City</label>
+                  <input required value={addressForm.city} onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} /></div>
+                <div className="fg"><label>State</label>
+                  <input required value={addressForm.state} onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })} /></div>
+              </div>
+              <div className="frow">
+                <div className="fg"><label>Pincode</label>
+                  <input required value={addressForm.pincode} onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value })} /></div>
+                <div className="fg"><label>Phone</label>
+                  <input required value={addressForm.phone} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} /></div>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="button" className="btn btn-primary" onClick={saveAddress}>Save Address</button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowAddressForm(false)}>Cancel</button>
+              </div>
+            </div>
+          )}
+
+          {/* Manual Address Entry */}
           <div className="frow">
             <div className="fg"><label>Name</label>
               <input required value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} /></div>
             <div className="fg"><label>Phone</label>
               <input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
           </div>
-          <div className="fg"><label>Email (optional)</label>
-            <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+          <div className="fg"><label>Email (required)</label>
+            <input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
           <div className="fg"><label>Address</label>
             <textarea required value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
           <div className="frow">
@@ -177,11 +349,39 @@ export default function CheckoutModal({ open, onClose }) {
             </select>
           </div>
 
-          {form.paymentMethod === 'UPI' && settings.qr_code && (
-            <div className="qr-box"><img src={getImageUrl(settings.qr_code)} alt="Payment QR" /></div>
-          )}
-          {form.paymentMethod === 'UPI' && settings.upi_id && (
-            <div className="upi-box"><span className="upi-id">{settings.upi_id}</span></div>
+          {form.paymentMethod === 'UPI' && (
+            <>
+              {settings.qr_code && (
+                <div className="qr-box"><img src={getImageUrl(settings.qr_code)} alt="Payment QR" /></div>
+              )}
+              {!settings.qr_code && (
+                <div className="qr-box" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb' }}>
+                  <img src="/qr-placeholder.png" alt="Payment QR" style={{ maxWidth: 200 }} onError={(e) => e.target.style.display = 'none'} />
+                  <span style={{ color: 'var(--muted)' }}>QR Code Placeholder</span>
+                </div>
+              )}
+              {settings.upi_id && (
+                <div className="upi-box"><span className="upi-id">{settings.upi_id}</span></div>
+              )}
+              <div className="fg">
+                <label>Transaction ID / UTR (required)</label>
+                <input 
+                  required 
+                  value={form.paymentUtr} 
+                  onChange={(e) => setForm({ ...form, paymentUtr: e.target.value })} 
+                  placeholder="Enter your UTR number"
+                />
+              </div>
+              <div className="fg">
+                <label>Payment Screenshot (required)</label>
+                <input 
+                  required 
+                  type="file" 
+                  accept="image/*"
+                  onChange={(e) => setForm({ ...form, paymentScreenshot: e.target.files[0] })} 
+                />
+              </div>
+            </>
           )}
           {settings.payment_instructions && (
             <p style={{ fontSize: '.75rem', color: 'var(--muted)', whiteSpace: 'pre-line', marginBottom: 12 }}>
