@@ -23,7 +23,7 @@ export default function CheckoutModal({ open, onClose }) {
   const [form, setForm] = useState({
     customerName: user?.name || '', phone: user?.phone || '', email: user?.email || '',
     address: '', area: '', city: '', state: '', pincode: '', paymentMethod: 'UPI',
-    paymentUtr: '', paymentScreenshot: null
+    paymentUtr: ''
   });
   const [coupon, setCoupon] = useState('');
   const [discount, setDiscount] = useState(0);
@@ -138,41 +138,35 @@ export default function CheckoutModal({ open, onClose }) {
   const placeOrder = async () => {
     setPlacing(true);
     try {
-      const formData = new FormData();
-      // Append all fields as individual parts
-      formData.append('customerName', form.customerName);
-      formData.append('phone', form.phone);
-      formData.append('email', form.email);
-      formData.append('address', form.address);
-      formData.append('area', form.area);
-      formData.append('city', form.city);
-      formData.append('state', form.state);
-      formData.append('pincode', form.pincode);
-      formData.append('paymentMethod', form.paymentMethod);
-      formData.append('paymentUtr', form.paymentUtr);
-      if (form.paymentScreenshot) {
-        formData.append('screenshot', form.paymentScreenshot); // key must match @RequestPart("screenshot")
-      }
-      formData.append('subtotal', totals.subtotal);
-      formData.append('gstAmount', totals.gstAmount);
-      formData.append('deliveryCharge', deliveryCharge);
-      formData.append('discount', discount);
-      formData.append('total', grandTotal);
-      if (coupon) formData.append('couponCode', coupon);
-      if (user?.id) formData.append('userId', user.id);
-
-      // Add items
-      items.forEach((item, index) => {
-        formData.append(`items[${index}].id`, item.id);
-        formData.append(`items[${index}].name`, item.name);
-        formData.append(`items[${index}].img`, item.img);
-        formData.append(`items[${index}].price`, item.price);
-        formData.append(`items[${index}].gst`, item.gst);
-        formData.append(`items[${index}].qty`, item.qty);
-      });
-
-      // Do NOT set the Content-Type header; axios will set it automatically for FormData.
-      const { data } = await api.post('/orders', formData);
+      const payload = {
+        customerName: form.customerName,
+        phone: form.phone,
+        email: form.email,
+        address: form.address,
+        area: form.area,
+        city: form.city,
+        state: form.state,
+        pincode: form.pincode,
+        paymentMethod: form.paymentMethod,
+        paymentUtr: form.paymentUtr,
+        subtotal: totals.subtotal,
+        gstAmount: totals.gstAmount,
+        deliveryCharge,
+        discount,
+        total: grandTotal,
+        couponCode: coupon || undefined,
+        userId: user?.id,
+        items: items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          img: item.img,
+          price: item.price,
+          gst: item.gst,
+          qty: item.qty
+        }))
+      };
+      
+      const { data } = await api.post('/orders', payload);
       
       if (data.success) {
         setPlacedOrder({ orderId: data.orderId });
@@ -367,15 +361,6 @@ export default function CheckoutModal({ open, onClose }) {
                   value={form.paymentUtr} 
                   onChange={(e) => setForm({ ...form, paymentUtr: e.target.value })} 
                   placeholder="Enter your UTR number"
-                />
-              </div>
-              <div className="fg">
-                <label>Payment Screenshot (required)</label>
-                <input 
-                  required 
-                  type="file" 
-                  accept="image/*"
-                  onChange={(e) => setForm({ ...form, paymentScreenshot: e.target.files[0] })} 
                 />
               </div>
             </>
