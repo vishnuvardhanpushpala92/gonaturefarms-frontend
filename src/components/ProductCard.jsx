@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
@@ -9,13 +9,41 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
   const { addItem } = useCart();
   const showToast = useToast();
   const isFuture = product.status === 'future';
+  
+  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [displayPrice, setDisplayPrice] = useState(product.price);
 
-  const discountPct = product.mrp && product.mrp > product.price
-    ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
+  const hasVariants = product.variants && product.variants.length > 0;
+  
+  // Initialize with first variant if available
+  React.useEffect(() => {
+    if (hasVariants && product.variants.length > 0) {
+      setSelectedVariant(product.variants[0]);
+      setDisplayPrice(product.variants[0].price);
+    }
+  }, [product, hasVariants]);
+
+  const handleVariantChange = (e) => {
+    const variantId = parseInt(e.target.value);
+    const variant = product.variants.find(v => v.id === variantId);
+    if (variant) {
+      setSelectedVariant(variant);
+      setDisplayPrice(variant.price);
+    }
+  };
+
+  const discountPct = product.mrp && product.mrp > displayPrice
+    ? Math.round(((product.mrp - displayPrice) / product.mrp) * 100)
     : 0;
 
   const handleAdd = () => {
-    addItem(product);
+    const productToAdd = {
+      ...product,
+      price: displayPrice,
+      variantId: selectedVariant ? selectedVariant.id : null,
+      variantName: selectedVariant ? selectedVariant.variantName : null
+    };
+    addItem(productToAdd);
   };
 
   const handleWishlist = async () => {
@@ -51,9 +79,33 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
         <span className="pcard-cat">{product.cat}</span>
         <div className="pcard-name">{product.name}</div>
         <div className="pcard-desc">{product.description}</div>
+        
+        {hasVariants && (
+          <div style={{ marginBottom: 8 }}>
+            <label style={{ fontSize: '.7rem', color: 'var(--muted)', marginBottom: 2, display: 'block' }}>Select Variant:</label>
+            <select 
+              value={selectedVariant ? selectedVariant.id : ''} 
+              onChange={handleVariantChange}
+              style={{ 
+                width: '100%', 
+                padding: '6px 8px', 
+                border: '1px solid var(--border)', 
+                borderRadius: 'var(--r-sm)',
+                fontSize: '.8rem'
+              }}
+            >
+              {product.variants.map(variant => (
+                <option key={variant.id} value={variant.id}>
+                  {variant.variantName} - ₹{variant.price}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        
         <div className="pcard-price-block">
-          <span className="price-final">₹{product.price}</span>
-          {product.mrp > product.price && <span className="price-mrp">₹{product.mrp}</span>}
+          <span className="price-final">₹{displayPrice}</span>
+          {product.mrp > displayPrice && <span className="price-mrp">₹{product.mrp}</span>}
           {discountPct > 0 && <span className="price-disc">{discountPct}% OFF</span>}
           {product.gst > 0 && <div className="gst-line"><strong>+{product.gst}% GST</strong></div>}
           {product.hsn && <div className="hsn-line">HSN: {product.hsn}</div>}

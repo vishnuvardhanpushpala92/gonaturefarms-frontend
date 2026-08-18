@@ -4,7 +4,19 @@ import Modal from './Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../api/client';
 
-const STATUS_STEPS = ['Pending', 'Confirmed', 'Shipped', 'Delivered'];
+const STATUS_STEPS = ['Placed', 'Confirmed', 'Processing', 'Packed', 'Shipped', 'OutForDelivery', 'Delivered'];
+
+const STATUS_LABELS = {
+  'Placed': 'Order Placed',
+  'Confirmed': 'Order Confirmed',
+  'Processing': 'Processing',
+  'Packed': 'Packed',
+  'Shipped': 'Shipped',
+  'OutForDelivery': 'Out for Delivery',
+  'Delivered': 'Delivered',
+  'PaymentVerificationPending': 'Payment Verification',
+  'Cancelled': 'Cancelled'
+};
 
 export default function OrdersModal({ open, onClose }) {
   const { user } = useAuth();
@@ -55,25 +67,90 @@ export default function OrdersModal({ open, onClose }) {
       {!loading && searched && orders.length === 0 && <p>No orders found.</p>}
 
       {orders.map((o) => {
-        const stepIdx = STATUS_STEPS.indexOf(o.status);
+        const normalizedStatus = o.status === 'Pending' ? 'Placed' : o.status;
+        const stepIdx = STATUS_STEPS.indexOf(normalizedStatus);
+        const isCancelled = o.status === 'Cancelled';
+        const isPaymentPending = o.status === 'PaymentVerificationPending';
+        
         return (
           <div key={o.orderId} className="bill" style={{ marginBottom: 14 }}>
             <div className="bill-hdr">
               <h3>{o.orderId}</h3>
-              <p>{new Date(o.createdAt).toLocaleDateString()} · {o.status}</p>
+              <p>{new Date(o.createdAt).toLocaleDateString()} · {STATUS_LABELS[o.status] || o.status}</p>
             </div>
             <div className="bill-body">
               <div className="bill-info">{o.itemsSummary}</div>
-              {o.status !== 'Cancelled' && (
-                <div className="steps" style={{ margin: '14px 0' }}>
-                  {STATUS_STEPS.map((s, i) => (
-                    <div className="step" key={s}>
-                      <div className={`step-num${i <= stepIdx ? ' done' : ''}${i === stepIdx ? ' active' : ''}`}>{i + 1}</div>
-                      <div className={`step-lbl${i === stepIdx ? ' active' : ''}`}>{s}</div>
-                    </div>
-                  ))}
+              
+              {isPaymentPending && (
+                <div style={{ 
+                  padding: '12px', 
+                  background: '#fffbeb', 
+                  border: '1px solid #fcd34d', 
+                  borderRadius: 8, 
+                  margin: '14px 0',
+                  fontSize: '.85rem',
+                  color: '#92400e'
+                }}>
+                  ⏳ Payment verification pending. Please wait for admin approval.
                 </div>
               )}
+              
+              {!isCancelled && !isPaymentPending && (
+                <div className="steps" style={{ margin: '14px 0' }}>
+                  {STATUS_STEPS.map((s, i) => {
+                    const isComplete = i <= stepIdx;
+                    const isCurrent = i === stepIdx;
+                    return (
+                      <div className="step" key={s} style={{ flex: 1 }}>
+                        <div 
+                          className={`step-num${isComplete ? ' done' : ''}${isCurrent ? ' active' : ''}`}
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '.75rem',
+                            fontWeight: 600,
+                            margin: '0 auto 4px',
+                            background: isComplete ? 'var(--p)' : (isCurrent ? 'var(--accent)' : '#e5e7eb'),
+                            color: isComplete ? '#fff' : (isCurrent ? 'var(--text)' : '#9ca3af')
+                          }}
+                        >
+                          {isComplete ? '✓' : i + 1}
+                        </div>
+                        <div 
+                          className={`step-lbl${isCurrent ? ' active' : ''}`}
+                          style={{
+                            fontSize: '.7rem',
+                            textAlign: 'center',
+                            color: isCurrent ? 'var(--p)' : (isComplete ? 'var(--text)' : '#9ca3af'),
+                            fontWeight: isCurrent ? 600 : 400
+                          }}
+                        >
+                          {STATUS_LABELS[s] || s}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              
+              {isCancelled && (
+                <div style={{ 
+                  padding: '12px', 
+                  background: '#fef2f2', 
+                  border: '1px solid #fecaca', 
+                  borderRadius: 8, 
+                  margin: '14px 0',
+                  fontSize: '.85rem',
+                  color: '#dc2626'
+                }}>
+                  ❌ Order cancelled
+                </div>
+              )}
+              
               {o.trackingLocation && <p style={{ fontSize: '.78rem', color: 'var(--muted)' }}>📍 {o.trackingLocation}</p>}
               <div className="bill-total"><span>Total</span><span>₹{o.total}</span></div>
             </div>

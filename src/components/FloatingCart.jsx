@@ -10,8 +10,8 @@ export default function FloatingCart({ onClick }) {
       onClick={onClick}
       style={{
         position: 'fixed',
-        bottom: 20,
-        right: 80,
+        bottom: 100,
+        right: 20,
         zIndex: 999,
         borderRadius: '50%',
         width: 54,

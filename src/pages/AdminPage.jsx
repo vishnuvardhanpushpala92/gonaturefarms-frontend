@@ -14,6 +14,7 @@ import AdminContentTab from '../components/admin/AdminContentTab.jsx';
 import AdminSettingsTab from '../components/admin/AdminSettingsTab.jsx';
 import AdminFooterTab from '../components/admin/AdminFooterTab.jsx';
 import AdminVideosTab from '../components/admin/AdminVideosTab.jsx';
+import AdminWhatsAppTab from '../components/admin/AdminWhatsAppTab.jsx';
 import FloatingCart from '../components/FloatingCart.jsx';
 import CartDrawer from '../components/CartDrawer.jsx';
 import CheckoutModal from '../components/CheckoutModal.jsx';
@@ -28,6 +29,7 @@ const TABS = [
   { key: 'users', label: 'Customers' },
   { key: 'content', label: 'Content' },
   { key: 'videos', label: 'Videos' },
+  { key: 'whatsapp', label: 'WhatsApp' },
   { key: 'footer', label: 'Footer' },
   { key: 'settings', label: 'Settings' }
 ];
@@ -114,6 +116,7 @@ export default function AdminPage() {
       {tab === 'users' && <AdminUsersTab />}
       {tab === 'content' && <AdminContentTab />}
       {tab === 'videos' && <AdminVideosTab />}
+      {tab === 'whatsapp' && <AdminWhatsAppTab />}
       {tab === 'footer' && <AdminFooterTab />}
       {tab === 'settings' && <AdminSettingsTab />}
 
