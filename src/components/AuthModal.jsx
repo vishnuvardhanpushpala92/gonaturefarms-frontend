@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Modal from './Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
@@ -18,6 +19,7 @@ const SECURITY_QUESTIONS = [
 export default function AuthModal({ open, onClose }) {
   const { user, login, register, logout } = useAuth();
   const showToast = useToast();
+  const navigate = useNavigate();
   const [tab, setTab] = useState('login');
   const [busy, setBusy] = useState(false);
 
@@ -37,7 +39,10 @@ export default function AuthModal({ open, onClose }) {
     try {
       const data = await login(loginForm.identifier, loginForm.password);
       showToast(data.message || (data.success ? 'Welcome back!' : 'Login failed'));
-      if (data.success) onClose();
+      if (data.success) {
+        onClose();
+        navigate('/dashboard');
+      }
     } catch (err) {
       showToast(err?.response?.data?.message || 'Login failed');
     } finally {
@@ -104,7 +109,10 @@ export default function AuthModal({ open, onClose }) {
           <strong>{user.name}</strong>
           <p style={{ color: 'var(--muted)', fontSize: '.8rem' }}>{user.phone}</p>
         </div>
-        <button className="btn btn-danger btn-block" onClick={() => { logout(); onClose(); }}>Logout</button>
+        <button className="btn btn-primary btn-block" style={{ marginBottom: 8 }} onClick={() => { onClose(); navigate('/dashboard'); }}>
+          Go to Dashboard
+        </button>
+        <button className="btn btn-danger btn-block" onClick={() => { logout(); onClose(); navigate('/'); }}>Logout</button>
       </Modal>
     );
   }
