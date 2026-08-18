@@ -2,8 +2,8 @@ import React from 'react';
 import { useCart } from '../context/CartContext.jsx';
 
 export default function FloatingCart({ onClick }) {
-  const { cart } = useCart();
-  const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const { cart: items } = useCart();
+  const count = (items || []).reduce((sum, item) => sum + (item.qty || item.quantity || 0), 0);
 
   return (
     <button

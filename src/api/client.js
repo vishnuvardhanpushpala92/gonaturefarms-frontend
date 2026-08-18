@@ -27,7 +27,7 @@ function snakeToCamel(str) {
 function transformKeys(data, converter) {
   if (Array.isArray(data)) return data.map((item) => transformKeys(item, converter));
   if (isPlainObject(data)) {
-    return Object.entries(data).reduce((acc, [key, value]) => {
+    return Object.entries(data || {}).reduce((acc, [key, value]) => {
       acc[converter(key)] = transformKeys(value, converter);
       return acc;
     }, {});

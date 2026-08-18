@@ -22,17 +22,18 @@ export function CartProvider({ children }) {
 
   const addItem = useCallback((product) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.id === product.id);
+      const prevArray = prev || [];
+      const existing = prevArray.find((i) => i.id === product.id);
       if (existing) {
         const newQty = existing.qty + 1;
-        const totalItems = prev.reduce((sum, i) => sum + (i.id === product.id ? newQty : i.qty), 0);
+        const totalItems = prevArray.reduce((sum, i) => sum + (i.id === product.id ? newQty : i.qty), 0);
         showToast(`${product.name} quantity updated in cart. Cart items: ${totalItems}`);
-        return prev.map((i) => (i.id === product.id ? { ...i, qty: newQty } : i));
+        return prevArray.map((i) => (i.id === product.id ? { ...i, qty: newQty } : i));
       }
-      const totalItems = prev.reduce((sum, i) => sum + i.qty, 0) + 1;
+      const totalItems = prevArray.reduce((sum, i) => sum + i.qty, 0) + 1;
       showToast(`${product.name} added to cart. Cart items: ${totalItems}`);
       return [
-        ...prev,
+        ...prevArray,
         {
           id: product.id,
           name: product.name,
@@ -48,28 +49,33 @@ export function CartProvider({ children }) {
   }, [showToast]);
 
   const removeItem = useCallback((id) => {
-    setItems((prev) => prev.filter((i) => i.id !== id));
+    setItems((prev) => (prev || []).filter((i) => i.id !== id));
   }, []);
 
   const updateQty = useCallback((id, qty) => {
     setItems((prev) => {
-      if (qty <= 0) return prev.filter((i) => i.id !== id);
-      return prev.map((i) => (i.id === id ? { ...i, qty } : i));
+      const prevArray = prev || [];
+      if (qty <= 0) return prevArray.filter((i) => i.id !== id);
+      return prevArray.map((i) => (i.id === id ? { ...i, qty } : i));
     });
   }, []);
 
   const clearCart = useCallback(() => setItems([]), []);
 
   const totals = useMemo(() => {
-    const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
-    const gstAmount = items.reduce((sum, i) => sum + (i.price * i.qty * (i.gst || 0)) / 100, 0);
+    const itemsArray = items || [];
+    const subtotal = itemsArray.reduce((sum, i) => sum + i.price * i.qty, 0);
+    const gstAmount = itemsArray.reduce((sum, i) => sum + (i.price * i.qty * (i.gst || 0)) / 100, 0);
     return { subtotal, gstAmount };
   }, [items]);
 
-  const count = useMemo(() => items.reduce((sum, i) => sum + i.qty, 0), [items]);
+  const count = useMemo(() => {
+    const itemsArray = items || [];
+    return itemsArray.reduce((sum, i) => sum + i.qty, 0);
+  }, [items]);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQty, clearCart, totals, count }}>
+    <CartContext.Provider value={{ items, cart: items, addItem, removeItem, updateQty, clearCart, totals, count }}>
       {children}
     </CartContext.Provider>
   );
