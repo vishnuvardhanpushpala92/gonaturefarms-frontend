@@ -1,13 +1,32 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import api from '../../api/client';
+import { useToast } from '../../context/ToastContext.jsx';
 
 export default function AdminAnalyticsTab() {
   const [data, setData] = useState(null);
+  const showToast = useToast();
 
   useEffect(() => {
     api.get('/admin/analytics').then(({ data }) => setData(data));
   }, []);
+
+  const clearDashboard = async () => {
+    if (!window.confirm('Are you sure you want to clear all analytics data? This cannot be undone.')) {
+      return;
+    }
+    try {
+      const { data } = await api.delete('/admin/analytics');
+      showToast(data.message);
+      if (data.success) {
+        setData(null);
+        // Reload analytics after clearing
+        api.get('/admin/analytics').then(({ data }) => setData(data));
+      }
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to clear dashboard');
+    }
+  };
 
   if (!data) return <p>Loading...</p>;
 
@@ -15,6 +34,9 @@ export default function AdminAnalyticsTab() {
 
   return (
     <div>
+      <div style={{ marginBottom: 16 }}>
+        <button className="btn btn-danger" onClick={clearDashboard}>Clear Dashboard</button>
+      </div>
       <div className="stat-cards">
         <div className="stat-card"><div className="stat-num">{totals.totalOrders}</div><div className="stat-lbl">Orders</div></div>
         <div className="stat-card"><div className="stat-num">₹{Number(totals.totalRevenue).toFixed(0)}</div><div className="stat-lbl">Revenue</div></div>

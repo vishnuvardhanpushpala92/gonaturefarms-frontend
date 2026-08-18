@@ -18,6 +18,7 @@ import SupportModal from '../components/SupportModal.jsx';
 import ReviewModal from '../components/ReviewModal.jsx';
 import FlowerBlast from '../components/FlowerBlast.jsx';
 import FloatingThemePanel from '../components/FloatingThemePanel.jsx';
+import FloatingCart from '../components/FloatingCart.jsx';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -36,7 +37,6 @@ export default function HomePage() {
       <Header
         search={search}
         onSearch={setSearch}
-        onOpenCart={() => setCartOpen(true)}
         onOpenOrders={() => setOrdersOpen(true)}
         onOpenAuth={() => setAuthOpen(true)}
         onOpenAdmin={() => navigate('/admin')}
@@ -57,6 +57,7 @@ export default function HomePage() {
       <SupportModal open={supportOpen} onClose={() => setSupportOpen(false)} />
       <ReviewModal product={reviewProduct} onClose={() => setReviewProduct(null)} />
 
+      <FloatingCart onClick={() => setCartOpen(true)} />
       <button
         className="btn-wa"
         style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 999, borderRadius: '50%', width: 54, height: 54 }}

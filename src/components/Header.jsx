@@ -68,14 +68,6 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
           </svg>
           <span>Orders</span>
         </button>
-        <button className="hbtn cart-btn" onClick={onOpenCart}>
-          <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <path d="M16 10a4 4 0 01-8 0" />
-          </svg>
-          <span className="cart-count">{count}</span>
-        </button>
         <button className="hbtn" onClick={onOpenAuth}>
           <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />

@@ -14,6 +14,9 @@ import AdminContentTab from '../components/admin/AdminContentTab.jsx';
 import AdminSettingsTab from '../components/admin/AdminSettingsTab.jsx';
 import AdminFooterTab from '../components/admin/AdminFooterTab.jsx';
 import AdminVideosTab from '../components/admin/AdminVideosTab.jsx';
+import FloatingCart from '../components/FloatingCart.jsx';
+import CartDrawer from '../components/CartDrawer.jsx';
+import CheckoutModal from '../components/CheckoutModal.jsx';
 
 const TABS = [
   { key: 'analytics', label: 'Dashboard' },
@@ -36,6 +39,8 @@ export default function AdminPage() {
   const [form, setForm] = useState({ username: '', password: '' });
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState('analytics');
+  const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   if (!isAdmin) {
     const handleLogin = async (e) => {
@@ -111,6 +116,10 @@ export default function AdminPage() {
       {tab === 'videos' && <AdminVideosTab />}
       {tab === 'footer' && <AdminFooterTab />}
       {tab === 'settings' && <AdminSettingsTab />}
+
+      <FloatingCart onClick={() => setCartOpen(true)} />
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }} />
+      <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
     </div>
   );
 }

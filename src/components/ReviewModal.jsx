@@ -63,7 +63,7 @@ export default function ReviewModal({ product, onClose }) {
       {reviews.length === 0 && <p style={{ color: 'var(--muted)' }}>No reviews yet. Be the first!</p>}
       {reviews.map((r) => (
         <div key={r.id} style={{ padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
-          <strong>{r.userName}</strong> — {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+          <strong>{r.user_name || r.userName}</strong> — {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
           <p style={{ fontSize: '.82rem', color: 'var(--muted)', marginTop: 4 }}>{r.comment}</p>
         </div>
       ))}
