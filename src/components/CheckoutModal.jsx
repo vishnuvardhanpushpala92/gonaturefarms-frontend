@@ -139,6 +139,7 @@ export default function CheckoutModal({ open, onClose }) {
     setPlacing(true);
     try {
       const formData = new FormData();
+      // Append all fields as individual parts
       formData.append('customerName', form.customerName);
       formData.append('phone', form.phone);
       formData.append('email', form.email);
@@ -150,7 +151,7 @@ export default function CheckoutModal({ open, onClose }) {
       formData.append('paymentMethod', form.paymentMethod);
       formData.append('paymentUtr', form.paymentUtr);
       if (form.paymentScreenshot) {
-        formData.append('paymentScreenshot', form.paymentScreenshot);
+        formData.append('screenshot', form.paymentScreenshot); // key must match @RequestPart("screenshot")
       }
       formData.append('subtotal', totals.subtotal);
       formData.append('gstAmount', totals.gstAmount);
@@ -170,9 +171,8 @@ export default function CheckoutModal({ open, onClose }) {
         formData.append(`items[${index}].qty`, item.qty);
       });
 
-      const { data } = await api.post('/orders', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      // Do NOT set the Content-Type header; axios will set it automatically for FormData.
+      const { data } = await api.post('/orders', formData);
       
       if (data.success) {
         setPlacedOrder({ orderId: data.orderId });
@@ -197,12 +197,9 @@ export default function CheckoutModal({ open, onClose }) {
   // Helper function to get image URL with proper backend prefix
   const getImageUrl = (imgUrl) => {
     if (!imgUrl) return '';
-    // If it's already a full URL (Cloudinary), return as-is
     if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) {
       return imgUrl;
     }
-    // If it's a local path, prefix with backend API URL
-    // Handle double slashes by removing leading slash from imgUrl if backend URL ends with /
     const apiUrl = import.meta.env.VITE_API_URL || '';
     const cleanImgUrl = imgUrl.startsWith('/') ? imgUrl : `/${imgUrl}`;
     const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
