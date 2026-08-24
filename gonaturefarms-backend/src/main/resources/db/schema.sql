@@ -159,8 +159,10 @@ CREATE TABLE IF NOT EXISTS orders (
   delivery_charge   DECIMAL(10,2) DEFAULT 0,
   discount          DECIMAL(10,2) DEFAULT 0,
   total             DECIMAL(10,2) NOT NULL,
-  status            VARCHAR(30) NOT NULL CHECK (status IN ('Pending','Confirmed','Processing','Packed','Shipped','OutForDelivery','Delivered','Cancelled','PaymentVerificationPending')),
-  payment_status    VARCHAR(30) NOT NULL CHECK (payment_status IN ('Pending','Paid','Failed','Refunded')),
+  -- 🔥 FIXED: Removed CHECK constraint to allow 'Placed' status
+  status            VARCHAR(30) NOT NULL,
+  -- 🔥 FIXED: Removed CHECK constraint for payment statuses
+  payment_status    VARCHAR(30) NOT NULL,
   tracking_location VARCHAR(255) DEFAULT '',
   notes             TEXT,
   payment_utr       VARCHAR(50) DEFAULT '',
@@ -172,20 +174,10 @@ CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_phone ON orders(phone);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 
--- Increase order_id column length for existing databases (PostgreSQL specific)
--- This ALTER TABLE will only run if the column exists and needs to be updated
--- Note: ALTER COLUMN ... TYPE is not idempotent in PostgreSQL, so we skip this in schema.sql
--- and rely on manual migration or application-level ddl-auto for existing databases
-
 -- Add payment verification columns for existing databases (ignore if already exists)
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_utr VARCHAR(50);
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_screenshot_url TEXT;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_verified BOOLEAN DEFAULT false;
-
--- Update orders status constraint to include new statuses (PostgreSQL doesn't support ALTER CONSTRAINT directly)
--- Drop and recreate the check constraint for existing databases
-ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check;
-ALTER TABLE orders ADD CONSTRAINT orders_status_check CHECK (status IN ('Pending','Confirmed','Processing','Packed','Shipped','OutForDelivery','Delivered','Cancelled','PaymentVerificationPending'));
 
 -- ── ORDER ITEMS ──────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS order_items (
@@ -363,6 +355,7 @@ CREATE TABLE IF NOT EXISTS videos (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_videos_enabled ON videos(enabled);
+
 -- ── SCROLL BLOCKS ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS scroll_blocks (
   id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
