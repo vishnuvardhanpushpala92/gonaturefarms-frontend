@@ -171,6 +171,9 @@ export default function CheckoutModal({ open, onClose }) {
       console.log('Order response:', data);
       
       if (data.success) {
+        // Capture the items BEFORE clearing the cart
+        const orderedItems = [...items];
+        
         setPlacedOrder({ 
           orderId: data.orderId,
           customerName: form.customerName,
@@ -178,7 +181,7 @@ export default function CheckoutModal({ open, onClose }) {
           city: form.city,
           pincode: form.pincode,
           phone: form.phone,
-          items: items
+          items: orderedItems
         });
         clearCart();
         setStep(3);
@@ -194,7 +197,6 @@ export default function CheckoutModal({ open, onClose }) {
       setPlacing(false);
     }
   };
-
   const close = () => {
     setStep(1);
     setPlacedOrder(null);
@@ -418,7 +420,7 @@ export default function CheckoutModal({ open, onClose }) {
               <table className="bill-table">
                 <thead><tr><th>Item</th><th>Qty</th><th>Price</th></tr></thead>
                 <tbody>
-                  {placedOrder.items.map((it, i) => (
+                  {(placedOrder.items || []).map((it, i) => (
                     <tr key={i}><td>{it.name}</td><td>{it.qty}</td><td>₹{(it.price * it.qty).toFixed(2)}</td></tr>
                   ))}
                 </tbody>
