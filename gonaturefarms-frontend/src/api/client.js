@@ -37,7 +37,8 @@ function transformKeys(data, converter) {
 
 // Requests with FormData (file uploads) are passed through untouched.
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem('gnf_token');
+  // ✅ Check sessionStorage first, then fall back to localStorage for backward compatibility
+  const token = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -62,8 +63,11 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response && error.response.status === 401) {
+      // ✅ Clear from both storage locations on unauthorized access
       sessionStorage.removeItem('gnf_token');
       sessionStorage.removeItem('gnf_user');
+      localStorage.removeItem('gnf_token');
+      localStorage.removeItem('gnf_user');
     }
     if (!error.config?.skipTransform && error.response && error.response.data && !(error.response.data instanceof Blob)) {
       error.response.data = transformKeys(error.response.data, snakeToCamel);

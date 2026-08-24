@@ -171,7 +171,7 @@ export default function CheckoutModal({ open, onClose }) {
       console.log('Order response:', data);
       
       if (data.success) {
-        // Capture the items BEFORE clearing the cart
+        // ⭐ Capture the items BEFORE clearing the cart (Prevents white screen crash)
         const orderedItems = [...items];
         
         setPlacedOrder({ 

@@ -1,17 +1,33 @@
 import React from 'react';
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import api from '../api/client';
+
 const AuthContext = createContext(null);
+
 export function AuthProvider({ children }) {
+  // ✅ Try to read from both storages for backward compatibility
   const [user, setUser] = useState(() => {
-    const stored = sessionStorage.getItem('gnf_user');
+    const stored = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
     return stored ? JSON.parse(stored) : null;
   });
-  const [token, setToken] = useState(() => sessionStorage.getItem('gnf_token'));
+  const [token, setToken] = useState(() => sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token'));
 
   const persist = (t, u) => {
-    if (t) sessionStorage.setItem('gnf_token', t); else sessionStorage.removeItem('gnf_token');
-    if (u) sessionStorage.setItem('gnf_user', JSON.stringify(u)); else sessionStorage.removeItem('gnf_user');
+    // ✅ Always save to sessionStorage, and also to localStorage for safety
+    if (t) {
+      sessionStorage.setItem('gnf_token', t);
+      localStorage.setItem('gnf_token', t);
+    } else {
+      sessionStorage.removeItem('gnf_token');
+      localStorage.removeItem('gnf_token');
+    }
+    if (u) {
+      sessionStorage.setItem('gnf_user', JSON.stringify(u));
+      localStorage.setItem('gnf_user', JSON.stringify(u));
+    } else {
+      sessionStorage.removeItem('gnf_user');
+      localStorage.removeItem('gnf_user');
+    }
     setToken(t);
     setUser(u);
   };
@@ -50,7 +66,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // Keep local state in sync if the interceptor clears storage on a 401 elsewhere.
     const onStorage = () => {
-      const t = sessionStorage.getItem('gnf_token');
+      const t = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
       if (!t && token) persist(null, null);
     };
     window.addEventListener('storage', onStorage);
