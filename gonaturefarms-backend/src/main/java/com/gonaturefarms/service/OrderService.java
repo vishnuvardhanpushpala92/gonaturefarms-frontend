@@ -103,5 +103,75 @@ public class OrderService {
                 .with("id", order.getId());
     }
 
-    // ... (rest of the methods unchanged: lookupByPhone, myOrders, getOrderDetail, updateStatus, deleteOrder, verifyPayment, nz, isBlank)
+    @Transactional(readOnly = true)
+    public ApiResponse lookupByPhone(String phone) {
+        if (isBlank(phone)) {
+            throw new ApiException("Phone required");
+        }
+        List<Order> orders = orderRepository.findByPhoneOrderByCreatedAtDesc(phone.trim());
+        return ApiResponse.ok().with("orders", orders);
+    }
+
+    @Transactional(readOnly = true)
+    public ApiResponse myOrders(Long userId) {
+        List<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        return ApiResponse.ok().with("orders", orders);
+    }
+
+    @Transactional(readOnly = true)
+    public ApiResponse getOrderDetail(String orderId) {
+        Order order = orderRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        return ApiResponse.ok().with("order", order);
+    }
+
+    @Transactional
+    public ApiResponse updateStatus(String orderId, OrderStatusUpdateRequest req) {
+        Order order = orderRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        if (!isBlank(req.getStatus())) {
+            order.setStatus(Order.OrderStatus.valueOf(req.getStatus()));
+        }
+        if (!isBlank(req.getPaymentStatus())) {
+            order.setPaymentStatus(Order.PaymentStatus.valueOf(req.getPaymentStatus()));
+        }
+        if (req.getTrackingLocation() != null) {
+            order.setTrackingLocation(req.getTrackingLocation());
+        }
+        orderRepository.save(order);
+        return ApiResponse.ok("Order updated");
+    }
+
+    @Transactional
+    public ApiResponse deleteOrder(String orderId) {
+        orderRepository.findByOrderId(orderId).ifPresent(orderRepository::delete);
+        return ApiResponse.ok("Order deleted");
+    }
+
+    @Transactional
+    public ApiResponse verifyPayment(String orderId, boolean approved) {
+        Order order = orderRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (approved) {
+            order.setPaymentVerified(true);
+            order.setPaymentStatus(Order.PaymentStatus.Paid);
+            order.setStatus(Order.OrderStatus.Confirmed);
+        } else {
+            order.setPaymentVerified(false);
+            order.setPaymentStatus(Order.PaymentStatus.Failed);
+            order.setStatus(Order.OrderStatus.Cancelled);
+        }
+
+        orderRepository.save(order);
+        return ApiResponse.ok(approved ? "Payment verified and order confirmed" : "Payment rejected and order cancelled");
+    }
+
+    private BigDecimal nz(BigDecimal v) {
+        return v == null ? BigDecimal.ZERO : v;
+    }
+
+    private boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
+    }
 }
