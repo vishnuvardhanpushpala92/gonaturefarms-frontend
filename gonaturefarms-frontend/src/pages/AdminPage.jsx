@@ -17,7 +17,7 @@ import AdminVideosTab from '../components/admin/AdminVideosTab.jsx';
 import AdminWhatsAppTab from '../components/admin/AdminWhatsAppTab.jsx';
 import FloatingCart from '../components/FloatingCart.jsx';
 import CartDrawer from '../components/CartDrawer.jsx';
-import CheckoutModal from '../components/CheckoutModal.jsx';
+import CheckoutModal from '../components/CheckoutModalNew.jsx';
 
 const TABS = [
   { key: 'analytics', label: 'Dashboard' },

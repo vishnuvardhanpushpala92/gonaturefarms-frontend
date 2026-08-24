@@ -11,7 +11,7 @@ import FaqSection from '../components/FaqSection.jsx';
 import Testimonials from '../components/Testimonials.jsx';
 import Footer from '../components/Footer.jsx';
 import CartDrawer from '../components/CartDrawer.jsx';
-import CheckoutModal from '../components/CheckoutModal.jsx';
+import CheckoutModal from '../components/CheckoutModalNew.jsx';
 import AuthModal from '../components/AuthModal.jsx';
 import OrdersModal from '../components/OrdersModal.jsx';
 import SupportModal from '../components/SupportModal.jsx';

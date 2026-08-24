@@ -1,4 +1,5 @@
-import React from 'react';          
+import React from 'react';
+import CheckoutModal from './components/CheckoutModalNew';          
 import { Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage.jsx';
 import AdminPage from './pages/AdminPage.jsx';

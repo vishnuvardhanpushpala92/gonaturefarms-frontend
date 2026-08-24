@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useSite } from '../context/SiteContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
-import api from '../api/client';
+import api from '../api/client.js';
 
 export default function CheckoutModal({ open, onClose }) {
   const { items, totals, clearCart } = useCart();

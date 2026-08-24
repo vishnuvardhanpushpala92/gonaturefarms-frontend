@@ -6,7 +6,7 @@ import api from '../api/client';
 import OrdersModal from '../components/OrdersModal.jsx';
 import FloatingCart from '../components/FloatingCart.jsx';
 import CartDrawer from '../components/CartDrawer.jsx';
-import CheckoutModal from '../components/CheckoutModal.jsx';
+import CheckoutModal from '../components/CheckoutModalNew.jsx';
 
 export default function CustomerDashboard() {
   const { user, logout } = useAuth();
