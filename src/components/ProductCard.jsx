@@ -57,15 +57,9 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
     }
   };
 
-  // Prefix local image paths with backend API URL
   const getImageUrl = (imgUrl) => {
     if (!imgUrl) return '';
-    // If it's already a full URL (Cloudinary), return as-is
-    if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) {
-      return imgUrl;
-    }
-    // If it's a local path, prefix with backend API URL
-    // Handle double slashes by removing leading slash from imgUrl if backend URL ends with /
+    if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) return imgUrl;
     const apiUrl = import.meta.env.VITE_API_URL || '';
     const cleanImgUrl = imgUrl.startsWith('/') ? imgUrl : `/${imgUrl}`;
     const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
@@ -73,7 +67,7 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
   };
 
   return (
-    <div className={`pcard${isFuture ? ' pcard-future' : ''}`}>
+    <div className={`pcard${isFuture ? ' pcard-future' : ''}`} style={{ overflow: 'visible', zIndex: 10 }}>
       <div className="pcard-img">
         <img src={getImageUrl(product.imgUrl)} alt={product.name} />
       </div>
@@ -93,7 +87,9 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
                 padding: '6px 8px', 
                 border: '1px solid var(--border)', 
                 borderRadius: 'var(--r-sm)',
-                fontSize: '.8rem'
+                fontSize: '.8rem',
+                position: 'relative',
+                zIndex: 100
               }}
             >
               {product.variants.map(variant => (

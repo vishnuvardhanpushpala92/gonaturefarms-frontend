@@ -38,7 +38,13 @@ export default function AdminProductsTab() {
     setVariants([]);
   };
 
+  // ✅ FIX: Restrict duplicate variant names
   const addVariant = () => {
+    const lastVariant = variants[variants.length - 1];
+    if (lastVariant && lastVariant.variantName && variants.some(v => v.variantName === lastVariant.variantName)) {
+      showToast("Duplicate variant name! Please use a unique name.");
+      return;
+    }
     setVariants([...variants, { variantName: '', price: '', mrp: '', stock: 100 }]);
   };
 
