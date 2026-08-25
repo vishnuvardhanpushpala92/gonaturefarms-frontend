@@ -23,12 +23,19 @@ export function CartProvider({ children }) {
   const addItem = useCallback((product) => {
     setItems((prev) => {
       const prevArray = prev || [];
-      const existing = prevArray.find((i) => i.id === product.id);
+      const cartKey = product.variantId ? `${product.id}-${product.variantId}` : `${product.id}`;
+      const existing = prevArray.find((i) => {
+        const itemKey = i.variantId ? `${i.id}-${i.variantId}` : `${i.id}`;
+        return itemKey === cartKey;
+      });
       if (existing) {
         const newQty = existing.qty + 1;
         const totalItems = prevArray.reduce((sum, i) => sum + (i.id === product.id ? newQty : i.qty), 0);
         showToast(`${product.name} quantity updated in cart. Cart items: ${totalItems}`);
-        return prevArray.map((i) => (i.id === product.id ? { ...i, qty: newQty } : i));
+        return prevArray.map((i) => {
+          const itemKey = i.variantId ? `${i.id}-${i.variantId}` : `${i.id}`;
+          return itemKey === cartKey ? { ...i, qty: newQty } : i;
+        });
       }
       const totalItems = prevArray.reduce((sum, i) => sum + i.qty, 0) + 1;
       showToast(`${product.name} added to cart. Cart items: ${totalItems}`);
@@ -42,6 +49,8 @@ export function CartProvider({ children }) {
           gst: parseFloat(product.gst || 0),
           hsn: product.hsn || '',
           img: product.imgUrl || '',
+          variantId: product.variantId || null,
+          variantName: product.variantName || null,
           qty: 1
         }
       ];

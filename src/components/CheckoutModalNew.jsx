@@ -162,7 +162,9 @@ export default function CheckoutModal({ open, onClose }) {
           img: item.img,
           price: item.price,
           gst: item.gst,
-          qty: item.qty
+          qty: item.qty,
+          variantId: item.variantId || null,
+          variantName: item.variantName || null
         }))
       };
       

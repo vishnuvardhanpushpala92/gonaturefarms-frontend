@@ -32,6 +32,8 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
     }
   };
 
+  const isOutOfStock = hasVariants && selectedVariant && selectedVariant.stock === 0;
+
   const discountPct = product.mrp && product.mrp > displayPrice
     ? Math.round(((product.mrp - displayPrice) / product.mrp) * 100)
     : 0;
@@ -113,6 +115,8 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
 
         {isFuture ? (
           <div className="coming-badge">🌱 Coming Soon</div>
+        ) : isOutOfStock ? (
+          <button className="btn-buy" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>Sold Out</button>
         ) : (
           <button className="btn-buy" onClick={handleAdd}>Add to Cart</button>
         )}
