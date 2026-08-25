@@ -39,7 +39,7 @@ export default function AdminProductsTab() {
   };
 
   const addVariant = () => {
-    setVariants([...variants, { variantName: '', mrp: '' }]);
+    setVariants([...variants, { variantName: '', price: '', mrp: '', stock: 100 }]);
   };
 
   const removeVariant = (index) => {
@@ -60,7 +60,9 @@ export default function AdminProductsTab() {
         variants: variants.filter(v => v.variantName)
           .map(v => ({
             variantName: v.variantName,
-            mrp: v.mrp ? parseFloat(v.mrp) : null
+            price: v.price ? parseFloat(v.price) : (v.mrp ? parseFloat(v.mrp) : 0),
+            mrp: v.mrp ? parseFloat(v.mrp) : (v.price ? parseFloat(v.price) : 0),
+            stock: v.stock ? parseInt(v.stock) : 100
           }))
       };
       const data = editing
@@ -145,13 +147,23 @@ export default function AdminProductsTab() {
                       />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: '.7rem', color: 'var(--muted)' }}>MRP</label>
+                      <label style={{ fontSize: '.7rem', color: 'var(--muted)' }}>Price</label>
                       <input
                         type="number"
                         step="0.01"
                         placeholder="₹"
-                        value={variant.mrp}
-                        onChange={(e) => updateVariant(index, 'mrp', e.target.value)}
+                        value={variant.price}
+                        onChange={(e) => updateVariant(index, 'price', e.target.value)}
+                        style={{ width: '100%', padding: '6px 8px', border: '1px solid var(--border)', borderRadius: 4 }}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontSize: '.7rem', color: 'var(--muted)' }}>Stock</label>
+                      <input
+                        type="number"
+                        placeholder="100"
+                        value={variant.stock}
+                        onChange={(e) => updateVariant(index, 'stock', e.target.value)}
                         style={{ width: '100%', padding: '6px 8px', border: '1px solid var(--border)', borderRadius: 4 }}
                       />
                     </div>
