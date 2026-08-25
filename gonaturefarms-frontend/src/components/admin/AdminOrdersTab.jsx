@@ -95,7 +95,19 @@ export default function AdminOrdersTab() {
                 <tr>
                   <td colSpan={6} style={{ background: '#f9fafb', padding: 16 }}>
                     <p><strong>Address:</strong> {o.address}, {o.area}, {o.city}, {o.state} - {o.pincode}</p>
-                    <p><strong>Items:</strong> {o.itemsList}</p>
+                    <p><strong>Items:</strong></p>
+                    <ul style={{ paddingLeft: 20, margin: 0 }}>
+                      {(o.itemsList || '').split('||').map((itemStr, i) => {
+                        if (!itemStr) return null;
+                        const [name, qty, img] = itemStr.split('|');
+                        return (
+                          <li key={i} style={{ marginBottom: 4 }}>
+                            {name} 
+                            <span style={{ color: 'var(--muted)', fontSize: '.8rem' }}>(Qty: {qty})</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
                     <div className="fg" style={{ maxWidth: 320, marginBottom: 12 }}>
                       <label>Tracking Location</label>
                       <input
