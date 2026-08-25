@@ -19,7 +19,9 @@ export default function AdminProductsTab() {
     api.get('/products/categories').then(({ data }) => setCategories(data.categories || []));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const startEdit = (p) => {
     setEditing(p.id);
@@ -27,21 +29,17 @@ export default function AdminProductsTab() {
       name: p.name, description: p.description || '', price: p.price, mrp: p.mrp, gst: p.gst,
       hsn: p.hsn || '', cat: p.cat || '', imgUrl: p.imgUrl || '', status: p.status
     });
-    // Load ONLY the clean list from the DB
+    // Load variants for editing
     setVariants(p.variants || []);
   };
 
   const resetForm = () => { 
-    setEditing(null); setForm(EMPTY); setVariants([]);
+    setEditing(null); 
+    setForm(EMPTY); 
+    setVariants([]);
   };
 
-  // ✅ HARD BLOCK: Prevent adding a duplicate variant
   const addVariant = () => {
-    // Check if any existing variant has an empty name (user is in the middle of typing)
-    if (variants.some(v => !v.variantName || v.variantName.trim() === '')) {
-      showToast("Please fill the previous variant name first!");
-      return;
-    }
     setVariants([...variants, { variantName: '', price: '', mrp: '', stock: 100 }]);
   };
 
@@ -58,26 +56,24 @@ export default function AdminProductsTab() {
   const save = async (e) => {
     e.preventDefault();
     try {
-      // ✅ STRICT FILTER: Remove duplicate names & empty rows before sending
+      // Remove duplicate variant names before sending
       const seen = new Set();
-      const filteredVariants = variants
-        .filter(v => v.variantName && v.variantName.trim() !== '')
-        .filter(v => {
-          if (seen.has(v.variantName.trim())) return false; // Duplicate found, skip!
-          seen.add(v.variantName.trim());
-          return true;
-        });
+      const filteredVariants = variants.filter(v => v.variantName).filter(v => {
+        if (seen.has(v.variantName)) return false;
+        seen.add(v.variantName);
+        return true;
+      });
 
       const payload = {
         ...form,
         variants: filteredVariants.map(v => ({
-          variantName: v.variantName.trim(),
+          variantName: v.variantName,
           price: v.price ? parseFloat(v.price) : (v.mrp ? parseFloat(v.mrp) : 0),
           mrp: v.mrp ? parseFloat(v.mrp) : (v.price ? parseFloat(v.price) : 0),
           stock: v.stock ? parseInt(v.stock) : 100
         }))
       };
-
+      
       const data = editing
         ? (await api.put(`/products/${editing}`, payload)).data
         : (await api.post('/products', payload)).data;
@@ -105,22 +101,47 @@ export default function AdminProductsTab() {
 
   return (
     <div>
+      {/* 1. Add / Edit Product Form */}
       <div className="admin-card">
         <h3 style={{ marginBottom: 12 }}>{editing ? 'Edit Product' : 'Add Product'}</h3>
         <form onSubmit={save}>
-          {/* ... (Keep your existing Name, Category, Description, Price, MRP, GST, HSN, Image, Status fields exactly as they are) ... */}
+          <div className="frow">
+            <div className="fg"><label>Name</label><input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+            <div className="fg"><label>Category</label>
+              <select value={form.cat} onChange={(e) => setForm({ ...form, cat: e.target.value })}>
+                <option value="">Select category</option>
+                {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="fg"><label>Description</label><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+          <div className="frow">
+            <div className="fg"><label>Price</label><input required type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></div>
+            <div className="fg"><label>MRP</label><input type="number" step="0.01" value={form.mrp} onChange={(e) => setForm({ ...form, mrp: e.target.value })} /></div>
+          </div>
+          <div className="frow">
+            <div className="fg"><label>GST %</label><input type="number" step="0.01" value={form.gst} onChange={(e) => setForm({ ...form, gst: e.target.value })} /></div>
+            <div className="fg"><label>HSN Code</label><input value={form.hsn} onChange={(e) => setForm({ ...form, hsn: e.target.value })} /></div>
+          </div>
+          <div className="fg"><label>Image URL</label><input value={form.imgUrl} onChange={(e) => setForm({ ...form, imgUrl: e.target.value })} /></div>
+          <div className="fg"><label>Status</label>
+            <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+              <option value="current">Current</option>
+              <option value="future">Coming Soon</option>
+            </select>
+          </div>
           
-          {/* Variants Section (100% Admin Controlled) */}
+          {/* Simple Variants Section */}
           <div style={{ marginTop: 16, padding: 16, background: '#f9fafb', borderRadius: 8 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <h4 style={{ margin: 0 }}>Product Variants (Only unique names allowed)</h4>
+              <h4 style={{ margin: 0 }}>Variants (Sizes/Quantities)</h4>
               <button type="button" className="btn btn-secondary" onClick={addVariant} style={{ fontSize: '.8rem', padding: '4px 8px' }}>
                 + Add Variant
               </button>
             </div>
             
             {variants.length === 0 ? (
-              <p style={{ color: 'var(--muted)', fontSize: '.8rem', margin: 0 }}>No variants added. Click "+ Add Variant".</p>
+              <p style={{ color: 'var(--muted)', fontSize: '.8rem', margin: 0 }}>No variants added</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {variants.map((variant, index) => (
@@ -156,13 +177,20 @@ export default function AdminProductsTab() {
                         style={{ width: '100%', padding: '6px 8px', border: '1px solid var(--border)', borderRadius: 4 }}
                       />
                     </div>
-                    <button type="button" className="btn-d" onClick={() => removeVariant(index)} style={{ padding: '6px 12px', fontSize: '.8rem' }}>✕</button>
+                    <button
+                      type="button"
+                      className="btn-d"
+                      onClick={() => removeVariant(index)}
+                      style={{ padding: '6px 12px', fontSize: '.8rem' }}
+                    >
+                      ✕
+                    </button>
                   </div>
                 ))}
               </div>
             )}
           </div>
-
+          
           <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
             <button className="btn btn-primary">{editing ? 'Update' : 'Add'} Product</button>
             {editing && <button type="button" className="btn btn-secondary" onClick={resetForm}>Cancel</button>}
@@ -170,7 +198,41 @@ export default function AdminProductsTab() {
         </form>
       </div>
 
-      {/* ... (Keep your Categories section and Product table exactly as they are) ... */}
+      {/* 2. Categories Section */}
+      <div className="admin-card">
+        <h3 style={{ marginBottom: 12 }}>Categories</h3>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+          <input placeholder="New category name" value={newCat} onChange={(e) => setNewCat(e.target.value)} style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--border)', borderRadius: 6, background: '#fff' }} />
+          <button className="btn btn-secondary" onClick={addCategory}>Add</button>
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {categories.map((c) => (
+            <span key={c} className="pcard-cat" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              {c}
+              <button
+                onClick={async () => { await api.delete(`/admin/categories/${encodeURIComponent(c)}`); load(); }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}
+              >✕</button>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* 3. All Products Table with Edit/Delete */}
+      <table className="data-table">
+        <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          {products.map((p) => (
+            <tr key={p.id}>
+              <td>{p.name}</td><td>{p.cat}</td><td>₹{p.price}</td><td>{p.status}</td>
+              <td>
+                <button className="btn-e" onClick={() => startEdit(p)}>Edit</button>{' '}
+                <button className="btn-d" onClick={() => remove(p)}>Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
