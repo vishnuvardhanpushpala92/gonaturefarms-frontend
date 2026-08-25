@@ -57,7 +57,13 @@ export default function AdminProductsTab() {
     try {
       const payload = {
         ...form,
-        variants: variants.filter(v => v.variantName && v.price)
+        variants: variants.filter(v => v.variantName && v.price && v.stock !== '' && v.stock !== undefined)
+          .map(v => ({
+            ...v,
+            price: parseFloat(v.price),
+            mrp: v.mrp ? parseFloat(v.mrp) : null,
+            stock: parseInt(v.stock)
+          }))
       };
       const data = editing
         ? (await api.put(`/products/${editing}`, payload)).data

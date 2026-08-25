@@ -231,17 +231,17 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:900;b
 .fbtn.active{background:var(--p);color:#fff;border-color:var(--p);box-shadow:var(--shadow-md);}
 
 /* ── PRODUCT GRID ───────────────────────────────────────────── */
-.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:24px;}
-.pcard{background:#fff;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border);transition:all .35s cubic-bezier(.4,0,.2,1);position:relative;box-shadow:var(--shadow);}
+.pgrid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))!important;gap:24px!important;width:100%!important;overflow-x:hidden!important;}
+.pcard{background:#fff;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border);transition:all .35s cubic-bezier(.4,0,.2,1);position:relative;box-shadow:var(--shadow);display:flex;flex-direction:column;}
 .pcard:hover{transform:translateY(-6px);box-shadow:var(--shadow-md);border-color:var(--accent);}
-.pcard-img{height:190px;overflow:hidden;background:#f3f4f6;}
+.pcard-img{height:190px;overflow:hidden;background:#f3f4f6;flex-shrink:0;}
 .pcard-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s;}
 .pcard:hover .pcard-img img{transform:scale(1.05);}
-.pcard-body{padding:16px;}
+.pcard-body{padding:16px;flex:1;display:flex;flex-direction:column;}
 .pcard-cat{font-size:.65rem;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:1px;background:rgba(139,195,74,.12);padding:4px 12px;border-radius:var(--r-pill);display:inline-block;}
 .pcard-name{font-size:.98rem;font-weight:600;color:var(--text);margin:7px 0 3px;line-height:1.35;}
 .pcard-desc{font-size:.76rem;color:var(--muted);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:10px;}
-.pcard-price-block{margin-bottom:12px;}
+.pcard-price-block{margin-bottom:12px;margin-top:auto;}
 .price-final{font-size:1.18rem;font-weight:700;color:var(--p);}
 .price-mrp{text-decoration:line-through;color:#bbb;font-size:.78rem;margin-left:6px;}
 .price-disc{background:#ecfdf5;color:#065f46;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:var(--r-pill);margin-left:5px;}

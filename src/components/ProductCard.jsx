@@ -106,9 +106,11 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
         )}
         
         <div className="pcard-price-block">
-          <span className="price-final">₹{displayPrice}</span>
-          {product.mrp > displayPrice && <span className="price-mrp">₹{product.mrp}</span>}
-          {discountPct > 0 && <span className="price-disc">{discountPct}% OFF</span>}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+            <span className="price-final">₹{displayPrice}</span>
+            {product.mrp > displayPrice && <span className="price-mrp">₹{product.mrp}</span>}
+            {discountPct > 0 && <span className="price-disc">{discountPct}% OFF</span>}
+          </div>
           {product.gst > 0 && <div className="gst-line"><strong>+{product.gst}% GST</strong></div>}
           {product.hsn && <div className="hsn-line">HSN: {product.hsn}</div>}
         </div>
