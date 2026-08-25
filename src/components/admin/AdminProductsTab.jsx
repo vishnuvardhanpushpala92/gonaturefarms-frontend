@@ -38,13 +38,7 @@ export default function AdminProductsTab() {
     setVariants([]);
   };
 
-  // ✅ FIX: Restrict duplicate variant names
   const addVariant = () => {
-    const lastVariant = variants[variants.length - 1];
-    if (lastVariant && lastVariant.variantName && variants.some(v => v.variantName === lastVariant.variantName)) {
-      showToast("Duplicate variant name! Please use a unique name.");
-      return;
-    }
     setVariants([...variants, { variantName: '', price: '', mrp: '', stock: 100 }]);
   };
 
@@ -61,16 +55,25 @@ export default function AdminProductsTab() {
   const save = async (e) => {
     e.preventDefault();
     try {
+      // ✅ FIX: Remove duplicate variant names before sending to backend
+      const seen = new Set();
+      const filteredVariants = variants.filter(v => v.variantName)
+        .filter(v => {
+          if (seen.has(v.variantName)) return false;
+          seen.add(v.variantName);
+          return true;
+        });
+
       const payload = {
         ...form,
-        variants: variants.filter(v => v.variantName)
-          .map(v => ({
-            variantName: v.variantName,
-            price: v.price ? parseFloat(v.price) : (v.mrp ? parseFloat(v.mrp) : 0),
-            mrp: v.mrp ? parseFloat(v.mrp) : (v.price ? parseFloat(v.price) : 0),
-            stock: v.stock ? parseInt(v.stock) : 100
-          }))
+        variants: filteredVariants.map(v => ({
+          variantName: v.variantName,
+          price: v.price ? parseFloat(v.price) : (v.mrp ? parseFloat(v.mrp) : 0),
+          mrp: v.mrp ? parseFloat(v.mrp) : (v.price ? parseFloat(v.price) : 0),
+          stock: v.stock ? parseInt(v.stock) : 100
+        }))
       };
+      
       const data = editing
         ? (await api.put(`/products/${editing}`, payload)).data
         : (await api.post('/products', payload)).data;
