@@ -1,16 +1,44 @@
-import React from 'react';
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import api from '../api/client';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  // ✅ Try to read from both storages for backward compatibility
+  // ✅ FIX: Initialize user as null if they are an admin (forces re-login on every page load)
   const [user, setUser] = useState(() => {
     const stored = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
-    return stored ? JSON.parse(stored) : null;
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed.role === 'admin') {
+          // Clear the admin token immediately to prevent unauthorized fetches!
+          sessionStorage.removeItem('gnf_token');
+          localStorage.removeItem('gnf_token');
+          sessionStorage.removeItem('gnf_user');
+          localStorage.removeItem('gnf_user');
+          return null;
+        }
+        return parsed;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
   });
-  const [token, setToken] = useState(() => sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token'));
+
+  const [token, setToken] = useState(() => {
+    const stored = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
+    const storedUser = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        if (parsed.role === 'admin') return null; // No token for admins on fresh load
+      } catch (e) {
+        return null;
+      }
+    }
+    return stored;
+  });
 
   const persist = (t, u) => {
     if (t) {
@@ -30,24 +58,6 @@ export function AuthProvider({ children }) {
     setToken(t);
     setUser(u);
   };
-
-  // ✅ FIX: Clear any stored admin session on page load to force re-login
-  useEffect(() => {
-    const storedUser = localStorage.getItem('gnf_user') || sessionStorage.getItem('gnf_user');
-    if (storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser);
-        if (parsed.role === 'admin') {
-          // Force logout for admin on every page load
-          persist(null, null);
-          console.log('Admin session cleared. Must log in again.');
-        }
-      } catch (e) {
-        persist(null, null);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const register = useCallback(async (payload) => {
     const { data } = await api.post('/auth/register', payload);
@@ -85,7 +95,7 @@ export function AuthProvider({ children }) {
       const { data } = await api.get('/auth/me');
       if (data.success) return data;
     } catch {
-      // token invalid/expired — interceptor already cleared storage on 401
+      return null;
     }
     return null;
   }, [token]);

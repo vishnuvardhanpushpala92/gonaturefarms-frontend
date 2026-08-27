@@ -1,17 +1,12 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE || '';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export const api = axios.create({
   baseURL: API_BASE ? `${API_BASE}/api` : '/api'
 });
 
-// ── camelCase <-> snake_case conversion ────────────────────────────
-// The Spring Boot backend uses a global snake_case JSON naming strategy (so the
-// original vanilla-JS frontend's field names like img_url/order_id/customer_name
-// keep working). React components in this app use idiomatic camelCase instead, so
-// we transparently convert object keys at the HTTP boundary rather than making
-// every component match the wire format.
+// Transform keys (if your backend uses snake_case)
 function isPlainObject(val) {
   return val !== null && typeof val === 'object' && !Array.isArray(val) && !(val instanceof File) && !(val instanceof Blob);
 }
@@ -35,9 +30,8 @@ function transformKeys(data, converter) {
   return data;
 }
 
-// Requests with FormData (file uploads) are passed through untouched.
+// Attach token to every request
 api.interceptors.request.use((config) => {
-  // ✅ Check sessionStorage first, then fall back to localStorage for backward compatibility
   const token = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -52,10 +46,10 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle 401 errors gracefully (prevent console spam and auto-logout)
 api.interceptors.response.use(
   (response) => {
     if (response.config?.skipTransform) return response;
-    // Leave file/blob downloads (CSV export etc.) untouched.
     if (response.data && !(response.data instanceof Blob)) {
       response.data = transformKeys(response.data, snakeToCamel);
     }
@@ -63,11 +57,18 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response && error.response.status === 401) {
-      // ✅ Clear from both storage locations on unauthorized access
+      // Clear tokens if unauthorized
       sessionStorage.removeItem('gnf_token');
       sessionStorage.removeItem('gnf_user');
       localStorage.removeItem('gnf_token');
       localStorage.removeItem('gnf_user');
+      
+      // Prevent infinite console spam
+      if (!error.config?.silent) {
+        console.warn('Unauthorized request. Redirecting to login...');
+        // Optional: Redirect to home or login
+        // window.location.href = '/';
+      }
     }
     if (!error.config?.skipTransform && error.response && error.response.data && !(error.response.data instanceof Blob)) {
       error.response.data = transformKeys(error.response.data, snakeToCamel);
