@@ -14,26 +14,27 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
 
   const headerFontSize = settings.hdr_font_size || '16';
 
-  // Helper function to get image URL with proper backend prefix
   const getImageUrl = (imgUrl) => {
     if (!imgUrl) return '';
-    // If it's already a full URL (Cloudinary), return as-is
     if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) {
       return imgUrl;
     }
-    // 🛑 FIX: If it's the default static frontend logo, load it from Vercel (don't prefix backend URL)
     if (imgUrl === '/logo.png' || imgUrl === '/brand-logo.png') {
-      return imgUrl; 
+      return imgUrl;
     }
-    // If it's a local backend path (e.g., uploaded via Admin), prefix with backend API URL
     const apiUrl = import.meta.env.VITE_API_URL || '';
     const cleanImgUrl = imgUrl.startsWith('/') ? imgUrl : `/${imgUrl}`;
     const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
     return `${cleanApiUrl}${cleanImgUrl}`;
   };
 
-  // Use logo from settings if available, otherwise fallback to default
   const logoUrl = settings.logo || '/logo.png';
+
+  // ✅ Fix: Fallback for Account button to avoid undefined function error
+  const handleOpenAuth = () => {
+    if (onOpenAuth) onOpenAuth();
+    else console.warn('onOpenAuth prop is not provided');
+  };
 
   return (
     <header style={{ backgroundColor: isAdminPage ? undefined : (settings.hdr_bg || undefined), fontSize: `${headerFontSize}px` }}>
@@ -68,7 +69,7 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
           </svg>
           <span>Orders</span>
         </button>
-        <button className="hbtn" onClick={onOpenAuth}>
+        <button className="hbtn" onClick={handleOpenAuth}>
           <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
             <circle cx="12" cy="7" r="4" />
