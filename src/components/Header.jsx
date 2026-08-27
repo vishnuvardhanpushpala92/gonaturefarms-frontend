@@ -24,6 +24,14 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
 
   const logoUrl = settings.logo || '/logo.png';
 
+  const handleOpenAuth = () => {
+    if (onOpenAuth) {
+      onOpenAuth();
+    } else {
+      console.warn('onOpenAuth prop is not provided');
+    }
+  };
+
   return (
     <header style={{ backgroundColor: isAdminPage ? undefined : (settings.hdr_bg || undefined), fontSize: `${headerFontSize}px` }}>
       <div className="brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', textDecoration: 'none' }}>
@@ -42,7 +50,7 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
           <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" /><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" /></svg>
           <span>Orders</span>
         </button>
-        <button className="hbtn" onClick={onOpenAuth}>
+        <button className="hbtn" onClick={handleOpenAuth}>
           <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
           <span>Account</span>
         </button>

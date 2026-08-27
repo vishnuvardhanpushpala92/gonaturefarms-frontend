@@ -37,7 +37,7 @@ export default function HomePage() {
       <Header
         search={search}
         onSearch={setSearch}
-        onOpenCart={() => setCartOpen(true)}       {/* ✅ Added missing prop */}
+        onOpenCart={() => setCartOpen(true)}
         onOpenOrders={() => setOrdersOpen(true)}
         onOpenAuth={() => setAuthOpen(true)}
         onOpenAdmin={() => navigate('/admin')}

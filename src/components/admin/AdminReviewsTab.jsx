@@ -10,11 +10,8 @@ export default function AdminReviewsTab() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [form, setForm] = useState({ productId: '', customerName: '', rating: 5, comment: '', featured: false });
 
-  // ✅ FIX: Correct URL is /reviews/admin/all
   const load = () => api.get('/reviews/admin/all').then(({ data }) => setReviews(data.reviews || []));
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   const act = async (id, action) => {
     const { data } = await api.put(`/reviews/${id}/${action}`);
@@ -54,7 +51,6 @@ export default function AdminReviewsTab() {
         const { data } = await api.put(`/reviews/${editingReview.id}`, form);
         showToast(data.message);
       } else {
-        // ✅ FIX: Correct URL for admin create
         const { data } = await api.post('/reviews/admin/create', form);
         showToast(data.message);
       }
@@ -75,9 +71,7 @@ export default function AdminReviewsTab() {
 
   return (
     <div>
-      <button className="btn btn-primary" onClick={() => setShowAddForm(true)} style={{ marginBottom: 16 }}>
-        Add New Review
-      </button>
+      <button className="btn btn-primary" onClick={() => setShowAddForm(true)} style={{ marginBottom: 16 }}>Add New Review</button>
 
       {showAddForm && (
         <div className="admin-card" style={{ marginBottom: 16 }}>
@@ -104,7 +98,9 @@ export default function AdminReviewsTab() {
               <td style={{ maxWidth: 240 }}>{r.comment}</td>
               <td>{r.status}{r.featured ? ' · featured' : ''}</td>
               <td style={{ whiteSpace: 'nowrap' }}>
-                {r.status === 'pending' ? <button className="btn-e" onClick={() => act(r.id, 'approve')}>Approve</button> : <button className="btn-e" onClick={() => act(r.id, 'unapprove')}>Hide</button>}{' '}
+                {r.status === 'pending'
+                  ? <button className="btn-e" onClick={() => act(r.id, 'approve')}>Approve</button>
+                  : <button className="btn-e" onClick={() => act(r.id, 'unapprove')}>Hide</button>}{' '}
                 <button className="btn-e" onClick={() => feature(r.id, !r.featured)}>{r.featured ? 'Unfeature' : 'Feature'}</button>{' '}
                 <button className="btn-e" onClick={() => startEdit(r)}>Edit</button>{' '}
                 <button className="btn-d" onClick={() => remove(r.id)}>Delete</button>
