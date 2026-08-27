@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 
 export default function AuthModal({ open, onClose }) {
-  const { login, register } = useAuth();
+  const { login, register, forgotPassword, resetPassword } = useAuth();
   const showToast = useToast();
   
   const [isLogin, setIsLogin] = useState(true);
@@ -93,7 +93,7 @@ export default function AuthModal({ open, onClose }) {
 }
 
 function ForgotPasswordForm({ onBack }) {
-  const { forgotPassword } = useAuth();
+  const { forgotPassword, resetPassword } = useAuth();
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [securityQuestion, setSecurityQuestion] = useState('');
@@ -124,8 +124,8 @@ function ForgotPasswordForm({ onBack }) {
       return;
     }
     try {
-      await resetPassword(email, answer, newPassword);
-      showToast('Password reset successfully');
+      const data = await resetPassword({ email, answer, newPassword });
+      showToast(data.message || 'Password reset successfully');
       onBack();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Error');

@@ -13,7 +13,6 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token'));
 
   const persist = (t, u) => {
-    // ✅ Always save to sessionStorage, and also to localStorage for safety
     if (t) {
       sessionStorage.setItem('gnf_token', t);
       localStorage.setItem('gnf_token', t);
@@ -31,6 +30,24 @@ export function AuthProvider({ children }) {
     setToken(t);
     setUser(u);
   };
+
+  // ✅ FIX: Clear any stored admin session on page load to force re-login
+  useEffect(() => {
+    const storedUser = localStorage.getItem('gnf_user') || sessionStorage.getItem('gnf_user');
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        if (parsed.role === 'admin') {
+          // Force logout for admin on every page load
+          persist(null, null);
+          console.log('Admin session cleared. Must log in again.');
+        }
+      } catch (e) {
+        persist(null, null);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const register = useCallback(async (payload) => {
     const { data } = await api.post('/auth/register', payload);
@@ -50,6 +67,16 @@ export function AuthProvider({ children }) {
     return data;
   }, []);
 
+  const forgotPassword = useCallback(async (identifier) => {
+    const { data } = await api.post('/auth/forgot-password/verify', { identifier });
+    return data;
+  }, []);
+
+  const resetPassword = useCallback(async (payload) => {
+    const { data } = await api.post('/auth/reset-password', payload);
+    return data;
+  }, []);
+
   const logout = useCallback(() => persist(null, null), []);
 
   const refreshMe = useCallback(async () => {
@@ -64,7 +91,6 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   useEffect(() => {
-    // Keep local state in sync if the interceptor clears storage on a 401 elsewhere.
     const onStorage = () => {
       const t = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
       if (!t && token) persist(null, null);
@@ -76,7 +102,7 @@ export function AuthProvider({ children }) {
   const isAdmin = user?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, token, isAdmin, register, login, adminLogin, logout, refreshMe }}>
+    <AuthContext.Provider value={{ user, token, isAdmin, register, login, adminLogin, logout, refreshMe, forgotPassword, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

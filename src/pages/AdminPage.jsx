@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
@@ -43,6 +42,13 @@ export default function AdminPage() {
   const [tab, setTab] = useState('analytics');
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+
+  // ✅ FIX: Force re-render when admin logs out
+  useEffect(() => {
+    if (!isAdmin) {
+      setTab('analytics');
+    }
+  }, [isAdmin]);
 
   if (!isAdmin) {
     const handleLogin = async (e) => {
