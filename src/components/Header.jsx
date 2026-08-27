@@ -25,11 +25,8 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
   const logoUrl = settings.logo || '/logo.png';
 
   const handleOpenAuth = () => {
-    if (onOpenAuth) {
-      onOpenAuth();
-    } else {
-      console.warn('onOpenAuth prop is not provided');
-    }
+    if (onOpenAuth) onOpenAuth();
+    else console.warn('onOpenAuth prop is not provided');
   };
 
   return (
