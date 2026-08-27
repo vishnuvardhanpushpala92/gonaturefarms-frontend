@@ -635,6 +635,7 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:900;b
 .confetti-piece{position:absolute;animation:confettiFall linear forwards;}
 @keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1;}100%{transform:translateY(120vh) rotate(720deg);opacity:0;}}
 
+
 .faq-rm{background:none;border:none;cursor:pointer;color:#dc2626;font-size:.72rem;float:right;padding:0;}
 
 /* ── TOAST ──────────────────────────────────────────────────── */
@@ -821,34 +822,4 @@ select option {
   background-color: #ffffff !important;
   color: #333333 !important;
   border-color: #e2e8f0 !important;
-}
-
-/* ── FINAL CLICK FIX (MUST BE AT THE BOTTOM) ───────────────── */
-/* Ensure Header and all buttons are above any decorative overlay */
-header,
-.nav-right,
-.hbtn {
-  position: relative;
-  z-index: 999999 !important;
-  pointer-events: auto !important;
-}
-
-/* Disable pointer events on all decorative/overlay elements so they don't block clicks */
-.flower-blast,
-.blast-overlay,
-.floating-theme-panel,
-.theme-fab,
-.theme-picker-pop,
-.confetti-overlay,
-#confettiCanvas,
-.chat-fab,
-.chat-window,
-.wa-float {
-  pointer-events: none !important;
-  z-index: 0 !important;
-}
-
-/* Ensure the AuthModal itself opens above everything */
-.modal-overlay {
-  z-index: 99999 !important;
 }
