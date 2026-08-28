@@ -60,7 +60,9 @@ export function AuthProvider({ children }) {
   };
 
   const register = useCallback(async (payload) => {
-    const { data } = await api.post('/auth/register', payload, { timeout: 60000 });
+    // Remove confirmPassword from payload as backend doesn't expect it
+    const { confirmPassword, ...registerPayload } = payload;
+    const { data } = await api.post('/auth/register', registerPayload, { timeout: 60000 });
     if (data.success) persist(data.token, data.user);
     return data;
   }, []);
