@@ -71,6 +71,28 @@ api.interceptors.response.use(
         // window.location.href = '/';
       }
     }
+    
+    // Enhanced error logging for debugging
+    if (error.response) {
+      console.error('API Error:', {
+        status: error.response.status,
+        data: error.response.data,
+        url: error.config?.url,
+        method: error.config?.method
+      });
+    } else if (error.request) {
+      console.error('Network Error:', {
+        message: error.message,
+        url: error.config?.url,
+        method: error.config?.method
+      });
+    } else {
+      console.error('Request Error:', {
+        message: error.message,
+        config: error.config
+      });
+    }
+    
     if (!error.config?.skipTransform && error.response && error.response.data && !(error.response.data instanceof Blob)) {
       error.response.data = transformKeys(error.response.data, snakeToCamel);
     }

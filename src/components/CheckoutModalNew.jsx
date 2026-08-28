@@ -131,6 +131,49 @@ export default function CheckoutModal({ open, onClose }) {
   };
 
   const placeOrder = async () => {
+    // Validate required fields before submission
+    if (!form.customerName?.trim()) {
+      showToast('Please enter your name');
+      return;
+    }
+    if (!form.phone?.trim()) {
+      showToast('Please enter your phone number');
+      return;
+    }
+    if (!form.email?.trim()) {
+      showToast('Please enter your email');
+      return;
+    }
+    if (!form.address?.trim()) {
+      showToast('Please enter your address');
+      return;
+    }
+    if (!form.city?.trim()) {
+      showToast('Please enter your city');
+      return;
+    }
+    // State is optional, so no validation needed
+    if (!form.pincode?.trim()) {
+      showToast('Please enter your pincode');
+      return;
+    }
+    if (pincodeError) {
+      showToast('Please fix the pincode error before placing order');
+      return;
+    }
+    if (!form.paymentMethod) {
+      showToast('Please select a payment method');
+      return;
+    }
+    if (form.paymentMethod === 'UPI' && !form.paymentUtr?.trim()) {
+      showToast('Please enter the transaction ID/UTR');
+      return;
+    }
+    if (items.length === 0) {
+      showToast('Your cart is empty');
+      return;
+    }
+
     setPlacing(true);
     try {
       const payload = {
@@ -138,7 +181,7 @@ export default function CheckoutModal({ open, onClose }) {
         phone: form.phone,
         email: form.email,
         address: form.address,
-        area: form.area,
+        area: form.area || null, // Send null instead of empty string
         city: form.city,
         state: form.state,
         pincode: form.pincode,
@@ -163,9 +206,7 @@ export default function CheckoutModal({ open, onClose }) {
         }))
       };
       
-      console.log('Placing order with payload:', payload);
       const { data } = await api.post('/orders', payload);
-      console.log('Order response:', data);
       
       if (data.success) {
         const orderedItems = [...items];
@@ -252,8 +293,8 @@ export default function CheckoutModal({ open, onClose }) {
           <div className="frow"><div className="fg"><label>Name</label><input required value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} /></div><div className="fg"><label>Phone</label><input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div></div>
           <div className="fg"><label>Email (required)</label><input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
           <div className="fg"><label>Address</label><textarea required value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
-          <div className="frow"><div className="fg"><label>Area</label><input value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} /></div><div className="fg"><label>City</label><input required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></div></div>
-          <div className="frow"><div className="fg"><label>State</label><input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} /></div><div className="fg"><label>Pincode</label><input required value={form.pincode} onChange={(e) => { setForm({ ...form, pincode: e.target.value }); validatePincode(e.target.value); }} />{pincodeError && <div style={{ color: '#dc2626', fontSize: '.7rem', marginTop: 4 }}>{pincodeError}</div>}</div></div>
+          <div className="frow"><div className="fg"><label>Area (optional)</label><input value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} /></div><div className="fg"><label>City</label><input required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></div></div>
+          <div className="frow"><div className="fg"><label>State (optional)</label><input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} /></div><div className="fg"><label>Pincode</label><input required value={form.pincode} onChange={(e) => { setForm({ ...form, pincode: e.target.value }); validatePincode(e.target.value); }} />{pincodeError && <div style={{ color: '#dc2626', fontSize: '.7rem', marginTop: 4 }}>{pincodeError}</div>}</div></div>
           <button className="btn btn-primary btn-block">Continue to Payment</button>
         </form>
       )}

@@ -4,15 +4,44 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 
 export default function AuthModal({ open, onClose }) {
-  const { login, register, forgotPassword, resetPassword } = useAuth();
+  const { login, register, forgotPassword, resetPasswordWithSecurityQuestion, user, isAuthenticated, logout } = useAuth();
   const showToast = useToast();
   
   const [isLogin, setIsLogin] = useState(true);
   const [forgotOpen, setForgotOpen] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
 
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+  const validatePhone = (phone) => {
+    const re = /^\d{10}$/;
+    return re.test(phone);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Email validation for registration
+    if (!isLogin && form.email && !validateEmail(form.email)) {
+      showToast('Please enter a valid email address');
+      return;
+    }
+    
+    // Phone validation for registration
+    if (!isLogin && form.phone && !validatePhone(form.phone)) {
+      showToast('Please enter a valid 10-digit phone number');
+      return;
+    }
+    
+    // Password confirmation for registration
+    if (!isLogin && form.password !== form.confirmPassword) {
+      showToast('Passwords do not match');
+      return;
+    }
+    
     try {
       if (isLogin) {
         await login(form.email || form.phone, form.password);
@@ -30,9 +59,25 @@ export default function AuthModal({ open, onClose }) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title={isLogin ? 'Login' : 'Register'}>
+    <Modal open={open} onClose={onClose} title={isAuthenticated ? 'My Account' : (isLogin ? 'Login' : 'Register')}>
       <div className="mbody">
-        {!forgotOpen ? (
+        {isAuthenticated && user ? (
+          <>
+            <div className="profile-card">
+              <div className="pa">{user.name?.charAt(0).toUpperCase()}</div>
+              <h3 style={{ textAlign: 'center', marginBottom: '8px' }}>{user.name}</h3>
+              <p style={{ textAlign: 'center', color: 'var(--muted)', marginBottom: '16px' }}>{user.email || user.phone}</p>
+            </div>
+            <button className="btn btn-danger btn-block" onClick={logout}>
+              Logout
+            </button>
+            <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.85rem', color: 'var(--muted)' }}>
+              <button type="button" onClick={() => setIsLogin(true)} style={{ background: 'none', border: 'none', color: 'var(--p)', cursor: 'pointer', fontWeight: '600' }}>
+                Switch Account
+              </button>
+            </p>
+          </>
+        ) : !forgotOpen ? (
           <>
             <form onSubmit={handleSubmit}>
               {!isLogin && (
