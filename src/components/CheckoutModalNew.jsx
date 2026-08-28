@@ -232,7 +232,7 @@ export default function CheckoutModal({ open, onClose }) {
     setPlacing(true);
     try {
       const payload = {
-        customerName: form.customerName,
+        customer_name: form.customerName,
         phone: form.phone,
         email: form.email || '',
         address: form.address,
@@ -240,24 +240,22 @@ export default function CheckoutModal({ open, onClose }) {
         city: form.city,
         state: form.state || '',
         pincode: form.pincode,
-        paymentMethod: form.paymentMethod,
-        paymentUtr: form.paymentUtr || '',
+        payment_method: form.paymentMethod,
+        payment_utr: form.paymentUtr || '',
         subtotal: totals.subtotal,
-        gstAmount: totals.gstAmount,
-        deliveryCharge,
-        discount,
+        gst_amount: totals.gstAmount,
+        delivery_charge: deliveryCharge,
+        discount: discount,
         total: grandTotal,
-        couponCode: coupon || undefined,
-        userId: user?.id,
+        coupon_code: coupon || undefined,
+        user_id: user?.id,
         items: items.map((item) => ({
           id: item.id,
           name: item.name,
           img: item.img || '',
-          price: item.price,
-          gst: item.gst || 0,
-          qty: item.qty,
-          variantId: item.variantId || null,
-          variantName: item.variantName || null
+          price: Number(item.price),
+          gst: item.gst ? Number(item.gst) : 0,
+          qty: Number(item.qty)
         }))
       };
       
@@ -276,7 +274,7 @@ export default function CheckoutModal({ open, onClose }) {
       console.log('User ID:', payload.userId);
       console.log('Total:', payload.total);
       
-      const { data } = await api.post('/orders', payload, { skipTransform: true });
+      const { data } = await api.post('/orders', payload);
       
       if (data.success) {
         const orderedItems = [...items];
@@ -297,7 +295,9 @@ export default function CheckoutModal({ open, onClose }) {
       }
     } catch (err) {
       console.error('Order placement error:', err);
-      const errorMsg = err?.userMessage || err?.response?.data?.message || err?.message || 'Could not place order';
+      console.error('Error response data:', err?.response?.data);
+      console.error('Error status:', err?.response?.status);
+      const errorMsg = err?.response?.data?.message || err?.userMessage || err?.message || 'Could not place order';
       showToast(errorMsg);
     } finally {
       setPlacing(false);
