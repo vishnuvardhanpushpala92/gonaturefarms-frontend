@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Modal from './Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 
@@ -27,16 +28,11 @@ export default function AuthModal({ open, onClose }) {
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <button className="modal-close" onClick={onClose}>×</button>
-        
+    <Modal open={open} onClose={onClose} title={isLogin ? 'Login' : 'Register'}>
+      <div className="mbody">
         {!forgotOpen ? (
           <>
-            <h2>{isLogin ? 'Login' : 'Register'}</h2>
             <form onSubmit={handleSubmit}>
               {!isLogin && (
                 <div className="fg">
@@ -67,7 +63,7 @@ export default function AuthModal({ open, onClose }) {
               
               {/* Forgot Password link directly below password box */}
               {isLogin && (
-                <button type="button" className="forgot-password-link" onClick={() => setForgotOpen(true)}>
+                <button type="button" className="btn-link" onClick={() => setForgotOpen(true)}>
                   Forgot Password?
                 </button>
               )}
@@ -77,9 +73,9 @@ export default function AuthModal({ open, onClose }) {
               </button>
             </form>
             
-            <p className="auth-switch">
+            <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.85rem' }}>
               {isLogin ? "Don't have an account?" : "Already have an account?"}
-              <button type="button" onClick={() => setIsLogin(!isLogin)}>
+              <button type="button" onClick={() => setIsLogin(!isLogin)} style={{ background: 'none', border: 'none', color: 'var(--p)', cursor: 'pointer', fontWeight: '600', marginLeft: '4px' }}>
                 {isLogin ? 'Register' : 'Login'}
               </button>
             </p>
@@ -88,7 +84,7 @@ export default function AuthModal({ open, onClose }) {
           <ForgotPasswordForm onBack={() => setForgotOpen(false)} />
         )}
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -133,8 +129,8 @@ function ForgotPasswordForm({ onBack }) {
   };
 
   return (
-    <div>
-      <h2>Forgot Password</h2>
+    <>
+      <h3>Forgot Password</h3>
       {step === 1 && (
         <form onSubmit={handleVerify}>
           <div className="fg">
@@ -167,6 +163,6 @@ function ForgotPasswordForm({ onBack }) {
           <button type="button" className="btn btn-secondary btn-block" onClick={onBack}>Back to Login</button>
         </form>
       )}
-    </div>
+    </>
   );
 }

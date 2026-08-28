@@ -347,6 +347,8 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:900;b
 .btn-accent{background:var(--accent);color:#fff;}
 .btn-accent:hover{background:#7cb342;}
 .btn-block{width:100%;}
+.btn-link{background:none;border:none;color:var(--p);cursor:pointer;font-size:.8rem;padding:4px 0;text-decoration:underline;}
+.btn-link:hover{color:var(--p2);}
 .btn-wa{background:#25d366;color:#fff;padding:9px 14px;border:none;border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:600;transition:opacity .2s;font-family:'Inter',sans-serif;}
 .btn-wa:hover{opacity:.85;}
 
