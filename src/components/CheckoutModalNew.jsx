@@ -173,20 +173,30 @@ export default function CheckoutModal({ open, onClose }) {
       showToast('Your cart is empty');
       return;
     }
+    
+    // Validate items array structure
+    const invalidItems = items.filter(item => 
+      !item.id || !item.name || !item.price || !item.qty || item.qty <= 0
+    );
+    if (invalidItems.length > 0) {
+      showToast('Some items in your cart have invalid data. Please remove them and try again.');
+      console.error('Invalid items:', invalidItems);
+      return;
+    }
 
     setPlacing(true);
     try {
       const payload = {
         customerName: form.customerName,
         phone: form.phone,
-        email: form.email,
+        email: form.email || '',
         address: form.address,
-        area: form.area || null, // Send null instead of empty string
+        area: form.area || '', // Send empty string instead of null
         city: form.city,
-        state: form.state,
+        state: form.state || '', // Send empty string instead of null
         pincode: form.pincode,
         paymentMethod: form.paymentMethod,
-        paymentUtr: form.paymentUtr,
+        paymentUtr: form.paymentUtr || '',
         subtotal: totals.subtotal,
         gstAmount: totals.gstAmount,
         deliveryCharge,
@@ -197,9 +207,9 @@ export default function CheckoutModal({ open, onClose }) {
         items: items.map((item) => ({
           id: item.id,
           name: item.name,
-          img: item.img,
+          img: item.img || '',
           price: item.price,
-          gst: item.gst,
+          gst: item.gst || 0,
           qty: item.qty,
           variantId: item.variantId || null,
           variantName: item.variantName || null
