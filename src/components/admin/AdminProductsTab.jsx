@@ -13,6 +13,7 @@ export default function AdminProductsTab() {
   const [form, setForm] = useState(EMPTY);
   const [newCat, setNewCat] = useState('');
   const [variants, setVariants] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   const load = () => {
     api.get('/products').then(({ data }) => setProducts(data.products || []));
@@ -51,6 +52,33 @@ export default function AdminProductsTab() {
     const updated = [...variants];
     updated[index][field] = value;
     setVariants(updated);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const { data } = await api.post('/admin/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        skipTransform: true
+      });
+
+      if (data.success && data.url) {
+        setForm({ ...form, imgUrl: data.url });
+        showToast('Image uploaded successfully');
+      } else {
+        showToast(data.message || 'Failed to upload image');
+      }
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to upload image');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const save = async (e) => {
@@ -142,7 +170,35 @@ export default function AdminProductsTab() {
             <div className="fg"><label>GST %</label><input type="number" step="0.01" value={form.gst} onChange={(e) => setForm({ ...form, gst: e.target.value })} /></div>
             <div className="fg"><label>HSN Code</label><input value={form.hsn} onChange={(e) => setForm({ ...form, hsn: e.target.value })} /></div>
           </div>
-          <div className="fg"><label>Image URL</label><input value={form.imgUrl} onChange={(e) => setForm({ ...form, imgUrl: e.target.value })} /></div>
+          <div className="fg">
+            <label>Product Image</label>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploading}
+                style={{ flex: 1 }}
+              />
+              <span style={{ fontSize: '.7rem', color: 'var(--muted)' }}>OR</span>
+              <input
+                placeholder="Image URL"
+                value={form.imgUrl}
+                onChange={(e) => setForm({ ...form, imgUrl: e.target.value })}
+                style={{ flex: 1 }}
+              />
+            </div>
+            {uploading && <span style={{ fontSize: '.7rem', color: 'var(--accent)' }}>Uploading...</span>}
+            {form.imgUrl && (
+              <div style={{ marginTop: 8 }}>
+                <img
+                  src={form.imgUrl}
+                  alt="Product preview"
+                  style={{ maxWidth: 100, maxHeight: 100, objectFit: 'contain', borderRadius: 8 }}
+                />
+              </div>
+            )}
+          </div>
           <div className="fg"><label>Status</label>
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
               <option value="current">Current</option>

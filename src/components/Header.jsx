@@ -4,7 +4,7 @@ import { useSite } from '../context/SiteContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
 
-export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onOpenAuth, onOpenAdmin }) {
+export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onOpenAuth, onOpenAdmin, blinkLogin, blinkCart }) {
   const { settings } = useSite();
   const { count } = useCart();
   const { darkMode, toggleDarkMode } = useTheme();
@@ -50,7 +50,7 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
           <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" /><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" /></svg>
           <span>Orders</span>
         </button>
-        <button className="hbtn" onClick={handleOpenAuth}>
+        <button className={`hbtn ${blinkLogin ? 'blink-alert' : ''}`} onClick={handleOpenAuth}>
           <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
           <span>Account</span>
         </button>

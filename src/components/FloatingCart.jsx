@@ -1,13 +1,14 @@
 import React from 'react';
 import { useCart } from '../context/CartContext.jsx';
 
-export default function FloatingCart({ onClick }) {
+export default function FloatingCart({ onClick, blinkCart }) {
   const { cart: items } = useCart();
   const count = (items || []).reduce((sum, item) => sum + (item.qty || item.quantity || 0), 0);
 
   return (
     <button
       onClick={onClick}
+      className={blinkCart ? 'blink-alert' : ''}
       style={{
         position: 'fixed',
         bottom: 100,

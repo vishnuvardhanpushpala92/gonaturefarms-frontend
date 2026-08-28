@@ -30,13 +30,17 @@ export default function HomePage() {
   const [ordersOpen, setOrdersOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
   const [reviewProduct, setReviewProduct] = useState(false);
+  const [blinkLogin, setBlinkLogin] = useState(false);
+  const [blinkCart, setBlinkCart] = useState(false);
 
   // Show auth modal on first visit if not authenticated
   useEffect(() => {
     const hasVisited = localStorage.getItem('gnf_visited');
     if (!hasVisited && !isAuthenticated) {
       setAuthOpen(true);
+      setBlinkLogin(true);
       localStorage.setItem('gnf_visited', 'true');
+      setTimeout(() => setBlinkLogin(false), 3000);
     }
   }, [isAuthenticated]);
 
@@ -50,6 +54,8 @@ export default function HomePage() {
         onOpenCart={() => {
           if (!isAuthenticated) {
             setAuthOpen(true);
+            setBlinkCart(true);
+            setTimeout(() => setBlinkCart(false), 3000);
             return;
           }
           setCartOpen(true);
@@ -57,6 +63,8 @@ export default function HomePage() {
         onOpenOrders={() => setOrdersOpen(true)}
         onOpenAuth={() => setAuthOpen(true)}
         onOpenAdmin={() => navigate('/admin')}
+        blinkLogin={blinkLogin}
+        blinkCart={blinkCart}
       />
       <HeroSlider />
       <PromoStrip />
@@ -77,10 +85,12 @@ export default function HomePage() {
       <FloatingCart onClick={() => {
         if (!isAuthenticated) {
           setAuthOpen(true);
+          setBlinkCart(true);
+          setTimeout(() => setBlinkCart(false), 3000);
           return;
         }
         setCartOpen(true);
-      }} />
+      }} blinkCart={blinkCart} />
       <button
         className="btn-wa"
         style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 999, borderRadius: '50%', width: 54, height: 54 }}

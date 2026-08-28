@@ -50,6 +50,29 @@ export default function AdminPage() {
     }
   }, [isAdmin]);
 
+  // Force logout when admin closes the window or navigates away
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (isAdmin) {
+        logout();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden && isAdmin) {
+        logout();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isAdmin, logout]);
+
   if (!isAdmin) {
     const handleLogin = async (e) => {
       e.preventDefault();

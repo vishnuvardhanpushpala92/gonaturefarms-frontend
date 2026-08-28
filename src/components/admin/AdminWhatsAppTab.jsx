@@ -8,21 +8,24 @@ export default function AdminWhatsAppTab() {
   const showToast = useToast();
   const [reminders, setReminders] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  
+
   const [form, setForm] = useState({
     reminderType: 'Custom',
     message: '',
     scheduledAt: '',
-    customerIds: []
+    customerIds: [],
+    productId: ''
   });
-  
+
   const [showPreview, setShowPreview] = useState(false);
   const [selectedCustomers, setSelectedCustomers] = useState([]);
 
   useEffect(() => {
     loadReminders();
     loadCustomers();
+    loadProducts();
   }, []);
 
   const loadReminders = async () => {
@@ -40,9 +43,27 @@ export default function AdminWhatsAppTab() {
   const loadCustomers = async () => {
     try {
       const { data } = await api.get('/admin/users');
-      if (data.success) setCustomers(data.users?.filter(u => u.role === 'customer') || []);
+      if (data.success) {
+        const sortedCustomers = (data.users?.filter(u => u.role === 'customer') || [])
+          .sort((a, b) => a.name.localeCompare(b.name));
+        setCustomers(sortedCustomers);
+      }
     } catch (err) {
       console.error('Failed to load customers:', err);
+    }
+  };
+
+  const loadProducts = async () => {
+    try {
+      const { data } = await api.get('/products');
+      if (data.success) {
+        const sortedProducts = (data.products || [])
+          .filter(p => p.status === 'active')
+          .sort((a, b) => a.name.localeCompare(b.name));
+        setProducts(sortedProducts);
+      }
+    } catch (err) {
+      console.error('Failed to load products:', err);
     }
   };
 
@@ -123,6 +144,22 @@ export default function AdminWhatsAppTab() {
             <label>Reminder Type</label>
             <select value={form.reminderType} onChange={(e) => setForm({ ...form, reminderType: e.target.value })}>
               {REMINDER_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+            </select>
+          </div>
+          <div className="fg">
+            <label>Product (optional)</label>
+            <select value={form.productId} onChange={(e) => {
+              const selectedProduct = products.find(p => p.id === parseInt(e.target.value));
+              setForm({ ...form, productId: e.target.value });
+              if (selectedProduct) {
+                const productInfo = `\n\n📦 Product: ${selectedProduct.name}\n💰 Price: ₹${selectedProduct.price}\n${selectedProduct.description ? `📝 ${selectedProduct.description}` : ''}`;
+                setForm(prev => ({ ...prev, message: prev.message + productInfo }));
+              }
+            }}>
+              <option value="">Select a product...</option>
+              {products.map(product => (
+                <option key={product.id} value={product.id}>{product.name} - ₹{product.price}</option>
+              ))}
             </select>
           </div>
           <div className="fg">
