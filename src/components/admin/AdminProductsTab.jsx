@@ -139,7 +139,7 @@ export default function AdminProductsTab() {
 
       const payload = {
         ...form,
-        additional_images: JSON.stringify(form.additionalImages || []),
+        additionalImages: JSON.stringify(form.additionalImages || []),
         variants: finalVariants.map(v => ({
           variantName: v.variantName,
           price: v.price ? parseFloat(v.price) : (v.mrp ? parseFloat(v.mrp) : 0),
