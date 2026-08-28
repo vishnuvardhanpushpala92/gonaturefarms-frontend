@@ -19,10 +19,12 @@ import FlowerBlast from '../components/FlowerBlast.jsx';
 import FloatingThemePanel from '../components/FloatingThemePanel.jsx';
 import FloatingCart from '../components/FloatingCart.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from '../context/ToastContext.jsx';
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const showToast = useToast();
   const [search, setSearch] = useState('');
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -43,6 +45,17 @@ export default function HomePage() {
       setTimeout(() => setBlinkLogin(false), 3000);
     }
   }, [isAuthenticated]);
+
+  // Show welcome message after successful login
+  useEffect(() => {
+    if (isAuthenticated) {
+      const hasShownWelcome = sessionStorage.getItem('gnf_welcome_shown');
+      if (!hasShownWelcome) {
+        showToast(`Welcome ${user?.name || 'back'}! Thank you for registering.`);
+        sessionStorage.setItem('gnf_welcome_shown', 'true');
+      }
+    }
+  }, [isAuthenticated, user]);
 
   return (
     <>

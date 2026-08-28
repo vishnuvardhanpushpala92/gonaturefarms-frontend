@@ -152,7 +152,7 @@ export default function AdminWhatsAppTab() {
               const selectedProduct = products.find(p => p.id === parseInt(e.target.value));
               setForm({ ...form, productId: e.target.value });
               if (selectedProduct) {
-                const productInfo = `\n\n📦 Product: ${selectedProduct.name}\n💰 Price: ₹${selectedProduct.price}\n${selectedProduct.description ? `📝 ${selectedProduct.description}` : ''}`;
+                const productInfo = `\n\n📦 Product: ${selectedProduct.name}\n💰 Price: ₹${selectedProduct.price}\n${selectedProduct.description ? `📝 ${selectedProduct.description}` : ''}${selectedProduct.imgUrl ? `\n🖼 Image: ${selectedProduct.imgUrl}` : ''}`;
                 setForm(prev => ({ ...prev, message: prev.message + productInfo }));
               }
             }}>
@@ -161,6 +161,19 @@ export default function AdminWhatsAppTab() {
                 <option key={product.id} value={product.id}>{product.name} - ₹{product.price}</option>
               ))}
             </select>
+            {form.productId && (() => {
+              const selectedProduct = products.find(p => p.id === parseInt(form.productId));
+              return selectedProduct && selectedProduct.imgUrl ? (
+                <div style={{ marginTop: 8 }}>
+                  <img
+                    src={selectedProduct.imgUrl}
+                    alt={selectedProduct.name}
+                    style={{ maxWidth: 100, maxHeight: 100, objectFit: 'contain', borderRadius: 8 }}
+                  />
+                  <span style={{ fontSize: '.7rem', color: 'var(--muted)', marginLeft: 8 }}>Product image will be included in message</span>
+                </div>
+              ) : null;
+            })()}
           </div>
           <div className="fg">
             <label>Message</label>

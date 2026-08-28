@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import api from '../../api/client';
 import { useToast } from '../../context/ToastContext.jsx';
 
-const EMPTY = { name: '', description: '', price: '', mrp: '', gst: '', hsn: '', cat: '', imgUrl: '', status: 'current' };
+const EMPTY = { name: '', description: '', price: '', mrp: '', gst: '', hsn: '', cat: '', imgUrl: '', additionalImages: [], status: 'current' };
 
 export default function AdminProductsTab() {
   const showToast = useToast();
@@ -28,7 +28,8 @@ export default function AdminProductsTab() {
     setEditing(p.id);
     setForm({
       name: p.name, description: p.description || '', price: p.price, mrp: p.mrp, gst: p.gst,
-      hsn: p.hsn || '', cat: p.cat || '', imgUrl: p.imgUrl || '', status: p.status
+      hsn: p.hsn || '', cat: p.cat || '', imgUrl: p.imgUrl || '', status: p.status,
+      additionalImages: p.additionalImages || []
     });
     // Load variants for editing
     setVariants(p.variants || []);
@@ -81,6 +82,37 @@ export default function AdminProductsTab() {
     }
   };
 
+  const handleAdditionalImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const { data } = await api.post('/admin/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        skipTransform: true
+      });
+
+      if (data.success && data.url) {
+        setForm({ ...form, additionalImages: [...form.additionalImages, data.url] });
+        showToast('Additional image uploaded successfully');
+      } else {
+        showToast(data.message || 'Failed to upload image');
+      }
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to upload image');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeAdditionalImage = (index) => {
+    setForm({ ...form, additionalImages: form.additionalImages.filter((_, i) => i !== index) });
+  };
+
   const save = async (e) => {
     e.preventDefault();
     try {
@@ -105,6 +137,7 @@ export default function AdminProductsTab() {
 
       const payload = {
         ...form,
+        additional_images: JSON.stringify(form.additionalImages || []),
         variants: finalVariants.map(v => ({
           variantName: v.variantName,
           price: v.price ? parseFloat(v.price) : (v.mrp ? parseFloat(v.mrp) : 0),
@@ -198,6 +231,54 @@ export default function AdminProductsTab() {
                 />
               </div>
             )}
+          </div>
+          <div className="fg">
+            <label>Additional Images (optional)</label>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAdditionalImageUpload}
+                disabled={uploading}
+                style={{ flex: 1 }}
+              />
+              <button type="button" className="btn btn-secondary" onClick={handleAdditionalImageUpload} disabled={uploading}>
+                {uploading ? 'Uploading...' : 'Add Image'}
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+              {form.additionalImages.map((imgUrl, index) => (
+                <div key={index} style={{ position: 'relative' }}>
+                  <img
+                    src={imgUrl}
+                    alt={`Additional ${index + 1}`}
+                    style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeAdditionalImage(index)}
+                    style={{
+                      position: 'absolute',
+                      top: -8,
+                      right: -8,
+                      background: '#ef4444',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: 20,
+                      height: 20,
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="fg"><label>Status</label>
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>

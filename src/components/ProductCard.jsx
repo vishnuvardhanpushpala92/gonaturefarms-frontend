@@ -9,9 +9,17 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
   const { addItem } = useCart();
   const showToast = useToast();
   const isFuture = product.status === 'future';
-  
+
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [displayPrice, setDisplayPrice] = useState(product.price);
+  const [showGallery, setShowGallery] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Parse additional images from JSON string if needed
+  const additionalImages = product.additionalImages
+    ? (typeof product.additionalImages === 'string' ? JSON.parse(product.additionalImages) : product.additionalImages)
+    : [];
+  const allImages = [product.imgUrl, ...additionalImages].filter(Boolean);
 
   const hasVariants = product.variants && product.variants.length > 0;
   
@@ -72,8 +80,22 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
 
   return (
     <div className={`pcard${isFuture ? ' pcard-future' : ''}`} style={{ overflow: 'visible', zIndex: 10 }}>
-      <div className="pcard-img">
+      <div className="pcard-img" onClick={() => allImages.length > 1 && setShowGallery(true)} style={{ cursor: allImages.length > 1 ? 'pointer' : 'default' }}>
         <img src={getImageUrl(product.imgUrl)} alt={product.name} />
+        {allImages.length > 1 && (
+          <div style={{
+            position: 'absolute',
+            bottom: 8,
+            right: 8,
+            background: 'rgba(0,0,0,0.6)',
+            color: '#fff',
+            padding: '2px 8px',
+            borderRadius: 12,
+            fontSize: '0.7rem'
+          }}>
+            {allImages.length} photos
+          </div>
+        )}
       </div>
       <div className="pcard-body">
         <span className="pcard-cat">{product.cat}</span>
@@ -137,6 +159,98 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
           </div>
         )}
       </div>
+
+      {/* Image Gallery Modal */}
+      {showGallery && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.9)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }} onClick={() => setShowGallery(false)}>
+          <div style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }} onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setShowGallery(false)}
+              style={{
+                position: 'absolute',
+                top: -40,
+                right: 0,
+                background: '#fff',
+                color: '#000',
+                border: 'none',
+                borderRadius: '50%',
+                width: 32,
+                height: 32,
+                cursor: 'pointer',
+                fontSize: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              ×
+            </button>
+            <img
+              src={getImageUrl(allImages[currentImageIndex])}
+              alt={`${product.name} - Image ${currentImageIndex + 1}`}
+              style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
+              {allImages.map((_, index) => (
+                <div
+                  key={index}
+                  onClick={() => setCurrentImageIndex(index)}
+                  style={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: '50%',
+                    background: index === currentImageIndex ? '#fff' : 'rgba(255,255,255,0.5)',
+                    cursor: 'pointer'
+                  }}
+                />
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
+              <button
+                onClick={() => setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : allImages.length - 1))}
+                disabled={allImages.length <= 1}
+                style={{
+                  background: '#fff',
+                  color: '#000',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: 4,
+                  cursor: allImages.length > 1 ? 'pointer' : 'not-allowed',
+                  opacity: allImages.length > 1 ? 1 : 0.5
+                }}
+              >
+                ← Previous
+              </button>
+              <button
+                onClick={() => setCurrentImageIndex((prev) => (prev < allImages.length - 1 ? prev + 1 : 0))}
+                disabled={allImages.length <= 1}
+                style={{
+                  background: '#fff',
+                  color: '#000',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: 4,
+                  cursor: allImages.length > 1 ? 'pointer' : 'not-allowed',
+                  opacity: allImages.length > 1 ? 1 : 0.5
+                }}
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

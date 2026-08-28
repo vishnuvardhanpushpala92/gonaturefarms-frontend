@@ -221,6 +221,14 @@ export default function CheckoutModal({ open, onClose }) {
       showToast('Please enter the transaction ID/UTR');
       return;
     }
+    if (form.paymentMethod === 'UPI' && form.paymentUtr?.trim()) {
+      // Validate transaction ID format (should be 12 digits for UPI)
+      const utrPattern = /^\d{12}$/;
+      if (!utrPattern.test(form.paymentUtr.trim())) {
+        showToast('Transaction ID must be exactly 12 digits');
+        return;
+      }
+    }
     if (items.length === 0) {
       showToast('Your cart is empty');
       return;
