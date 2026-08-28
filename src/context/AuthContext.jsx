@@ -67,7 +67,9 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (identifier, password) => {
     const { data } = await api.post('/auth/login', { identifier, password }, { timeout: 60000 });
-    if (data.success) persist(data.token, data.user);
+    if (data.success) {
+      persist(data.token, data.user);
+    }
     return data;
   }, []);
 
@@ -79,6 +81,11 @@ export function AuthProvider({ children }) {
 
   const forgotPassword = useCallback(async (identifier) => {
     const { data } = await api.post('/auth/forgot-password/verify', { identifier }, { timeout: 60000 });
+    return data;
+  }, []);
+
+  const resetPasswordWithSecurityQuestion = useCallback(async (payload) => {
+    const { data } = await api.post('/auth/reset-password/security-question', payload, { timeout: 60000 });
     return data;
   }, []);
 
@@ -112,7 +119,7 @@ export function AuthProvider({ children }) {
   const isAdmin = user?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, token, isAdmin, register, login, adminLogin, logout, refreshMe, forgotPassword, resetPassword }}>
+    <AuthContext.Provider value={{ user, token, isAdmin, register, login, adminLogin, logout, refreshMe, forgotPassword, resetPassword, resetPasswordWithSecurityQuestion }}>
       {children}
     </AuthContext.Provider>
   );

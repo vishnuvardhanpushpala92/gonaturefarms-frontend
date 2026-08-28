@@ -25,7 +25,6 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
   const logoUrl = settings.logo || '/logo.png';
 
   const handleOpenAuth = () => {
-    console.log("CLICKED FROM HEADER!"); // <-- Debug log
     if (onOpenAuth) {
       onOpenAuth();
     } else {

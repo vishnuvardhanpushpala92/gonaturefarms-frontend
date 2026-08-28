@@ -9,7 +9,7 @@ export default function AuthModal({ open, onClose }) {
   
   const [isLogin, setIsLogin] = useState(true);
   const [forgotOpen, setForgotOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,6 +21,7 @@ export default function AuthModal({ open, onClose }) {
       } else {
         await register(form);
         showToast('Registration successful');
+        setForm({ name: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
         onClose();
       }
     } catch (err) {
@@ -49,6 +50,28 @@ export default function AuthModal({ open, onClose }) {
                   <label>Phone</label>
                   <input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                 </div>
+              )}
+              {!isLogin && (
+                <>
+                  <div className="fg">
+                    <label>Security Question</label>
+                    <select 
+                      required 
+                      value={form.securityQuestion} 
+                      onChange={(e) => setForm({ ...form, securityQuestion: e.target.value })}
+                    >
+                      <option value="">Select a security question</option>
+                      <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                      <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                      <option value="What city were you born in?">What city were you born in?</option>
+                      <option value="What is your favorite color?">What is your favorite color?</option>
+                    </select>
+                  </div>
+                  <div className="fg">
+                    <label>Security Answer</label>
+                    <input required value={form.securityAnswer} onChange={(e) => setForm({ ...form, securityAnswer: e.target.value })} />
+                  </div>
+                </>
               )}
               <div className="fg">
                 <label>Password</label>
@@ -89,9 +112,9 @@ export default function AuthModal({ open, onClose }) {
 }
 
 function ForgotPasswordForm({ onBack }) {
-  const { forgotPassword, resetPassword } = useAuth();
+  const { forgotPassword, resetPasswordWithSecurityQuestion } = useAuth();
   const [step, setStep] = useState(1);
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [securityQuestion, setSecurityQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -101,7 +124,7 @@ function ForgotPasswordForm({ onBack }) {
   const handleVerify = async (e) => {
     e.preventDefault();
     try {
-      const data = await forgotPassword(email);
+      const data = await forgotPassword(identifier);
       if (data.success) {
         setSecurityQuestion(data.securityQuestion);
         setStep(2);
@@ -120,7 +143,7 @@ function ForgotPasswordForm({ onBack }) {
       return;
     }
     try {
-      const data = await resetPassword({ email, answer, newPassword });
+      const data = await resetPasswordWithSecurityQuestion({ email: identifier, answer, newPassword });
       showToast(data.message || 'Password reset successfully');
       onBack();
     } catch (err) {
@@ -135,7 +158,7 @@ function ForgotPasswordForm({ onBack }) {
         <form onSubmit={handleVerify}>
           <div className="fg">
             <label>Email or Phone</label>
-            <input required value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input required value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
           </div>
           <button type="submit" className="btn btn-primary btn-block">Verify Account</button>
           <button type="button" className="btn btn-secondary btn-block" onClick={onBack}>Back to Login</button>
