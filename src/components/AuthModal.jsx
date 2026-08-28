@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from './Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
@@ -11,8 +11,28 @@ export default function AuthModal({ open, onClose }) {
   const [isLogin, setIsLogin] = useState(true);
   const [forgotOpen, setForgotOpen] = useState(false);
   const [showAddressSetup, setShowAddressSetup] = useState(false);
+  const [showAddressManagement, setShowAddressManagement] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
   const [addressForm, setAddressForm] = useState({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
+  const [addresses, setAddresses] = useState([]);
+  const [editingAddressId, setEditingAddressId] = useState(null);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      loadAddresses();
+    }
+  }, [isAuthenticated, user]);
+
+  const loadAddresses = async () => {
+    try {
+      const { data } = await api.get('/addresses', { timeout: 60000 });
+      if (data.success) {
+        setAddresses(data.addresses || []);
+      }
+    } catch (err) {
+      console.error('Failed to load addresses:', err);
+    }
+  };
 
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -125,6 +145,7 @@ export default function AuthModal({ open, onClose }) {
         showToast('Address saved successfully');
         setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
         setShowAddressSetup(false);
+        loadAddresses();
         onClose();
       }
     } catch (err) {
@@ -132,8 +153,77 @@ export default function AuthModal({ open, onClose }) {
     }
   };
 
+  const saveAddress = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...addressForm,
+        isDefault: addresses.length === 0 ? true : addressForm.isDefault
+      };
+      
+      let data;
+      if (editingAddressId) {
+        data = await api.put(`/addresses/${editingAddressId}`, payload);
+      } else {
+        data = await api.post('/addresses', payload);
+      }
+      
+      if (data.data.success) {
+        showToast(editingAddressId ? 'Address updated successfully' : 'Address saved successfully');
+        setShowAddressManagement(false);
+        setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
+        setEditingAddressId(null);
+        loadAddresses();
+      }
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to save address');
+    }
+  };
+
+  const editAddress = (address) => {
+    setAddressForm({
+      addressType: address.addressType,
+      name: address.name,
+      addressLine: address.addressLine,
+      city: address.city,
+      state: address.state,
+      pincode: address.pincode,
+      phone: address.phone,
+      isDefault: address.isDefault
+    });
+    setEditingAddressId(address.id);
+    setShowAddressManagement(true);
+  };
+
+  const deleteAddress = async (id) => {
+    if (!window.confirm('Delete this address?')) return;
+    try {
+      const { data } = await api.delete(`/addresses/${id}`);
+      showToast(data.message || 'Address deleted successfully');
+      loadAddresses();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to delete address');
+    }
+  };
+
+  const setDefaultAddress = async (id) => {
+    try {
+      const { data } = await api.put(`/addresses/${id}/default`);
+      showToast(data.message || 'Default address updated');
+      loadAddresses();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to set default address');
+    }
+  };
+
+  const cancelAddressForm = () => {
+    setShowAddressManagement(false);
+    setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
+    setEditingAddressId(null);
+  };
+
   return (
-    <Modal open={open} onClose={onClose} title={showAddressSetup ? 'Setup Your Address' : (isAuthenticated ? 'My Account' : (isLogin ? 'Login' : 'Register'))}>
+    <Modal open={open} onClose={onClose} title={showAddressSetup ? 'Setup Your Address' : (showAddressManagement ? 'Manage Addresses' : (isAuthenticated ? 'My Account' : (isLogin ? 'Login' : 'Register')))}>
       <div className="mbody">
         {showAddressSetup ? (
           <>
@@ -185,6 +275,182 @@ export default function AuthModal({ open, onClose }) {
               </div>
             </form>
           </>
+        ) : showAddressManagement ? (
+          <>
+            <div style={{ marginBottom: 20 }}>
+              <button className="btn btn-secondary" onClick={() => setShowAddressManagement(false)} style={{ marginBottom: 12 }}>
+                ← Back to Account
+              </button>
+              <button className="btn btn-primary" onClick={() => { setEditingAddressId(null); setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false }); }} style={{ float: 'right' }}>
+                + Add New Address
+              </button>
+            </div>
+
+            {editingAddressId !== null || addressForm.name ? (
+              <div style={{ marginBottom: 20, padding: 16, background: '#f9fafb', borderRadius: 8 }}>
+                <h4 style={{ marginBottom: 12 }}>{editingAddressId ? 'Edit Address' : 'Add New Address'}</h4>
+                <form onSubmit={saveAddress}>
+                  <div className="fg">
+                    <label>Address Type</label>
+                    <select 
+                      value={addressForm.addressType} 
+                      onChange={(e) => setAddressForm({ ...addressForm, addressType: e.target.value })}
+                    >
+                      <option value="Home">Home</option>
+                      <option value="Office">Office</option>
+                    </select>
+                  </div>
+                  <div className="fg">
+                    <label>Name</label>
+                    <input 
+                      required 
+                      value={addressForm.name} 
+                      onChange={(e) => setAddressForm({ ...addressForm, name: e.target.value })} 
+                    />
+                  </div>
+                  <div className="fg">
+                    <label>Address Line</label>
+                    <textarea 
+                      required 
+                      value={addressForm.addressLine} 
+                      onChange={(e) => setAddressForm({ ...addressForm, addressLine: e.target.value })} 
+                    />
+                  </div>
+                  <div className="frow">
+                    <div className="fg">
+                      <label>City</label>
+                      <input 
+                        required 
+                        value={addressForm.city} 
+                        onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} 
+                      />
+                    </div>
+                    <div className="fg">
+                      <label>State</label>
+                      <input 
+                        required 
+                        value={addressForm.state} 
+                        onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })} 
+                      />
+                    </div>
+                  </div>
+                  <div className="frow">
+                    <div className="fg">
+                      <label>Pincode</label>
+                      <input 
+                        required 
+                        value={addressForm.pincode} 
+                        onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value })} 
+                      />
+                    </div>
+                    <div className="fg">
+                      <label>Phone</label>
+                      <input 
+                        required 
+                        value={addressForm.phone} 
+                        onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} 
+                      />
+                    </div>
+                  </div>
+                  <div className="fg">
+                    <label>
+                      <input 
+                        type="checkbox"
+                        checked={addressForm.isDefault}
+                        onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })}
+                        style={{ marginRight: 8 }}
+                      />
+                      Set as default address
+                    </label>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button type="submit" className="btn btn-primary">
+                      {editingAddressId ? 'Update Address' : 'Save Address'}
+                    </button>
+                    <button type="button" className="btn btn-secondary" onClick={cancelAddressForm}>
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            ) : null}
+
+            {addresses.length === 0 ? (
+              <p style={{ color: 'var(--muted)', textAlign: 'center', padding: 40 }}>
+                No saved addresses. Click "Add New Address" above.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {addresses.map((addr) => (
+                  <div 
+                    key={addr.id}
+                    style={{ 
+                      padding: 16, 
+                      border: `2px solid ${addr.isDefault ? 'var(--p)' : 'var(--border)'}`, 
+                      borderRadius: 8,
+                      background: addr.isDefault ? '#f0fdf4' : '#fff'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                      <div>
+                        <span style={{ 
+                          fontSize: '.7rem', 
+                          background: 'var(--accent)', 
+                          padding: '2px 8px', 
+                          borderRadius: 4,
+                          marginRight: 8
+                        }}>
+                          {addr.addressType}
+                        </span>
+                        {addr.isDefault && (
+                          <span style={{ 
+                            fontSize: '.7rem', 
+                            background: '#16a34a', 
+                            color: '#fff',
+                            padding: '2px 8px', 
+                            borderRadius: 4 
+                          }}>
+                            Default
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        {!addr.isDefault && (
+                          <button 
+                            className="btn-e" 
+                            onClick={() => setDefaultAddress(addr.id)}
+                            style={{ fontSize: '.7rem', padding: '4px 8px' }}
+                          >
+                            Set Default
+                          </button>
+                        )}
+                        <button 
+                          className="btn-e" 
+                          onClick={() => editAddress(addr)}
+                          style={{ fontSize: '.7rem', padding: '4px 8px' }}
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          className="btn-d" 
+                          onClick={() => deleteAddress(addr.id)}
+                          style={{ fontSize: '.7rem', padding: '4px 8px' }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                    <div style={{ fontWeight: 600 }}>{addr.name}</div>
+                    <div style={{ fontSize: '.85rem', color: 'var(--muted)' }}>{addr.addressLine}</div>
+                    <div style={{ fontSize: '.85rem', color: 'var(--muted)' }}>
+                      {addr.city}, {addr.state} - {addr.pincode}
+                    </div>
+                    <div style={{ fontSize: '.85rem', color: 'var(--muted)' }}>{addr.phone}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         ) : isAuthenticated && user ? (
           <>
             <div className="profile-card">
@@ -192,6 +458,9 @@ export default function AuthModal({ open, onClose }) {
               <h3 style={{ textAlign: 'center', marginBottom: '8px' }}>{user.name}</h3>
               <p style={{ textAlign: 'center', color: 'var(--muted)', marginBottom: '16px' }}>{user.email || user.phone}</p>
             </div>
+            <button className="btn btn-primary btn-block" onClick={() => setShowAddressManagement(true)} style={{ marginBottom: 8 }}>
+              📍 Manage Addresses
+            </button>
             <button className="btn btn-danger btn-block" onClick={logout}>
               Logout
             </button>
