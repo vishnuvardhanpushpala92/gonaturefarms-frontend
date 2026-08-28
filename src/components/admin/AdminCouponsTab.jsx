@@ -19,7 +19,7 @@ export default function AdminCouponsTab() {
     e.preventDefault();
     try {
       const { data } = await api.post('/coupons', { ...form, expiresAt: form.expiresAt || undefined });
-      showToast(data.message);
+      showToast(data.message || 'Coupon created successfully');
       if (data.success) { setForm(EMPTY); load(); }
     } catch (err) {
       showToast(err?.response?.data?.message || 'Could not create coupon');
@@ -27,16 +27,24 @@ export default function AdminCouponsTab() {
   };
 
   const toggle = async (id) => {
-    const { data } = await api.put(`/coupons/${id}/toggle`);
-    showToast(data.message);
-    load();
+    try {
+      const { data } = await api.put(`/coupons/${id}/toggle`);
+      showToast(data.message || 'Coupon status updated');
+      load();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to toggle coupon');
+    }
   };
 
   const remove = async (id) => {
     if (!window.confirm('Delete this coupon?')) return;
-    const { data } = await api.delete(`/coupons/${id}`);
-    showToast(data.message);
-    load();
+    try {
+      const { data } = await api.delete(`/coupons/${id}`);
+      showToast(data.message || 'Coupon deleted successfully');
+      load();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to delete coupon');
+    }
   };
 
   return (

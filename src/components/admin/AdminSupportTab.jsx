@@ -15,16 +15,24 @@ export default function AdminSupportTab() {
   }, []);
 
   const updateStatus = async (id, status) => {
-    const { data } = await api.put(`/support/${id}`, { status });
-    showToast(data.message);
-    load();
+    try {
+      const { data } = await api.put(`/support/${id}`, { status });
+      showToast(data.message || 'Ticket status updated');
+      load();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to update ticket status');
+    }
   };
 
   const remove = async (id) => {
     if (!window.confirm('Delete this ticket?')) return;
-    const { data } = await api.delete(`/support/${id}`);
-    showToast(data.message);
-    load();
+    try {
+      const { data } = await api.delete(`/support/${id}`);
+      showToast(data.message || 'Ticket deleted successfully');
+      load();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to delete ticket');
+    }
   };
 
   return (

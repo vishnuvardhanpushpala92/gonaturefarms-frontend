@@ -34,15 +34,19 @@ export default function AdminOrdersTab() {
   }, [statusFilter]);
 
   const updateOrder = async (orderId, patch) => {
-    const { data } = await api.put(`/orders/${orderId}`, patch);
-    showToast(data.message);
-    load();
+    try {
+      const { data } = await api.put(`/orders/${orderId}`, patch);
+      showToast(data.message || 'Order updated successfully');
+      load();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to update order');
+    }
   };
 
   const verifyPayment = async (orderId, approved) => {
     try {
       const { data } = await api.put(`/orders/${orderId}/verify-payment?approved=${approved}`);
-      showToast(data.message);
+      showToast(data.message || 'Payment verification completed');
       load();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Payment verification failed');
@@ -51,9 +55,13 @@ export default function AdminOrdersTab() {
 
   const clearAll = async () => {
     if (!window.confirm('Delete ALL orders? This cannot be undone.')) return;
-    const { data } = await api.delete('/admin/orders/all');
-    showToast(data.message);
-    load();
+    try {
+      const { data } = await api.delete('/admin/orders/all');
+      showToast(data.message || 'All orders deleted successfully');
+      load();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to delete orders');
+    }
   };
 
   return (

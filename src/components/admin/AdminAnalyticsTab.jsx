@@ -5,10 +5,23 @@ import { useToast } from '../../context/ToastContext.jsx';
 
 export default function AdminAnalyticsTab() {
   const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
   const showToast = useToast();
 
+  const loadAnalytics = async () => {
+    setLoading(true);
+    try {
+      const { data } = await api.get('/admin/analytics');
+      setData(data);
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to load analytics');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    api.get('/admin/analytics').then(({ data }) => setData(data));
+    loadAnalytics();
   }, []);
 
   const clearDashboard = async () => {
@@ -20,13 +33,14 @@ export default function AdminAnalyticsTab() {
       setData(null);
       showToast('Dashboard cleared. Reloading data...');
       // Reload analytics after clearing
-      api.get('/admin/analytics').then(({ data }) => setData(data));
+      await loadAnalytics();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to reload dashboard');
     }
   };
 
-  if (!data) return <p>Loading...</p>;
+  if (loading) return <p>Loading...</p>;
+  if (!data) return <p>No data available</p>;
 
   const { totals, monthly, topProds, recentOrders } = data;
 

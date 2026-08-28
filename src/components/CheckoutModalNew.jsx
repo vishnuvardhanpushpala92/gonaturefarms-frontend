@@ -152,7 +152,10 @@ export default function CheckoutModal({ open, onClose }) {
       showToast('Please enter your city');
       return;
     }
-    // State is optional, so no validation needed
+    if (!form.state?.trim()) {
+      showToast('Please enter your state');
+      return;
+    }
     if (!form.pincode?.trim()) {
       showToast('Please enter your pincode');
       return;
@@ -191,9 +194,9 @@ export default function CheckoutModal({ open, onClose }) {
         phone: form.phone,
         email: form.email || '',
         address: form.address,
-        area: form.area || '', // Send empty string instead of null
+        area: form.area || '',
         city: form.city,
-        state: form.state || '', // Send empty string instead of null
+        state: form.state || '',
         pincode: form.pincode,
         paymentMethod: form.paymentMethod,
         paymentUtr: form.paymentUtr || '',
@@ -319,7 +322,7 @@ export default function CheckoutModal({ open, onClose }) {
           <div className="fg"><label>Email (required)</label><input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
           <div className="fg"><label>Address</label><textarea required value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
           <div className="frow"><div className="fg"><label>Area (optional)</label><input value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} /></div><div className="fg"><label>City</label><input required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></div></div>
-          <div className="frow"><div className="fg"><label>State (optional)</label><input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} /></div><div className="fg"><label>Pincode</label><input required value={form.pincode} onChange={(e) => { setForm({ ...form, pincode: e.target.value }); validatePincode(e.target.value); }} />{pincodeError && <div style={{ color: '#dc2626', fontSize: '.7rem', marginTop: 4 }}>{pincodeError}</div>}</div></div>
+          <div className="frow"><div className="fg"><label>State (required)</label><input required value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} /></div><div className="fg"><label>Pincode</label><input required value={form.pincode} onChange={(e) => { setForm({ ...form, pincode: e.target.value }); validatePincode(e.target.value); }} />{pincodeError && <div style={{ color: '#dc2626', fontSize: '.7rem', marginTop: 4 }}>{pincodeError}</div>}</div></div>
           <button className="btn btn-primary btn-block">Continue to Payment</button>
         </form>
       )}

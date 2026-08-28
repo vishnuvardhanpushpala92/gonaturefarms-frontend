@@ -64,9 +64,20 @@ export default function AdminProductsTab() {
         return true;
       });
 
+      // If no variants are added, create a default variant
+      let finalVariants = filteredVariants;
+      if (finalVariants.length === 0) {
+        finalVariants = [{
+          variantName: 'Standard',
+          price: form.price ? parseFloat(form.price) : 0,
+          mrp: form.mrp ? parseFloat(form.mrp) : (form.price ? parseFloat(form.price) : 0),
+          stock: 100
+        }];
+      }
+
       const payload = {
         ...form,
-        variants: filteredVariants.map(v => ({
+        variants: finalVariants.map(v => ({
           variantName: v.variantName,
           price: v.price ? parseFloat(v.price) : (v.mrp ? parseFloat(v.mrp) : 0),
           mrp: v.mrp ? parseFloat(v.mrp) : (v.price ? parseFloat(v.price) : 0),
@@ -86,17 +97,25 @@ export default function AdminProductsTab() {
 
   const remove = async (p) => {
     if (!window.confirm(`Delete "${p.name}"?`)) return;
-    const { data } = await api.delete(`/products/${p.id}`);
-    showToast(data.message);
-    load();
+    try {
+      const { data } = await api.delete(`/products/${p.id}`);
+      showToast(data.message || 'Product deleted successfully');
+      load();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to delete product');
+    }
   };
 
   const addCategory = async () => {
     if (!newCat.trim()) return;
-    const { data } = await api.post('/admin/categories', { name: newCat.trim() });
-    showToast(data.message);
-    setNewCat('');
-    load();
+    try {
+      const { data } = await api.post('/admin/categories', { name: newCat.trim() });
+      showToast(data.message || 'Category added successfully');
+      setNewCat('');
+      load();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to add category');
+    }
   };
 
   return (

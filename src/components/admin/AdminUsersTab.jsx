@@ -14,19 +14,28 @@ export default function AdminUsersTab() {
 
   const remove = async (id) => {
     if (!window.confirm('Delete this customer?')) return;
-    const { data } = await api.delete(`/admin/users/${id}`);
-    showToast(data.message);
-    load();
+    try {
+      const { data } = await api.delete(`/admin/users/${id}`);
+      showToast(data.message || 'Customer deleted successfully');
+      load();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to delete customer');
+    }
   };
 
   const exportCsv = async (type) => {
-    const res = await api.get(`/admin/export/${type}`, { responseType: 'blob' });
-    const url = window.URL.createObjectURL(new Blob([res.data]));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${type}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    try {
+      const res = await api.get(`/admin/export/${type}`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${type}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      showToast('CSV exported successfully');
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to export CSV');
+    }
   };
 
   return (

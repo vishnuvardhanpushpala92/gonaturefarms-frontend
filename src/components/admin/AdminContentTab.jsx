@@ -15,35 +15,83 @@ export default function AdminContentTab() {
 
   const addSlide = async (e) => {
     e.preventDefault();
-    const { data } = await api.post('/admin/slides', slideForm);
-    showToast(data.message);
-    if (data.success) { setSlideForm({ imageUrl: '', caption: '', subText: '' }); reload(); }
+    try {
+      const { data } = await api.post('/admin/slides', slideForm);
+      showToast(data.message || 'Slide added successfully');
+      if (data.success) { setSlideForm({ imageUrl: '', caption: '', subText: '' }); reload(); }
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to add slide');
+    }
   };
-  const removeSlide = async (id) => { await api.delete(`/admin/slides/${id}`); reload(); };
+  const removeSlide = async (id) => {
+    try {
+      await api.delete(`/admin/slides/${id}`);
+      showToast('Slide deleted successfully');
+      reload();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to delete slide');
+    }
+  };
 
   const addFaq = async (e) => {
     e.preventDefault();
-    const { data } = await api.post('/admin/faqs', faqForm);
-    showToast(data.message);
-    if (data.success) { setFaqForm({ question: '', answer: '' }); reload(); }
+    try {
+      const { data } = await api.post('/admin/faqs', faqForm);
+      showToast(data.message || 'FAQ added successfully');
+      if (data.success) { setFaqForm({ question: '', answer: '' }); reload(); }
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to add FAQ');
+    }
   };
-  const removeFaq = async (id) => { await api.delete(`/admin/faqs/${id}`); reload(); };
+  const removeFaq = async (id) => {
+    try {
+      await api.delete(`/admin/faqs/${id}`);
+      showToast('FAQ deleted successfully');
+      reload();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to delete FAQ');
+    }
+  };
 
   const addZone = async (e) => {
     e.preventDefault();
-    const { data } = await api.post('/admin/zones', zoneForm);
-    showToast(data.message);
-    if (data.success) { setZoneForm({ pincode: '', area: '', city: '', state: '', charge: '' }); reload(); }
+    try {
+      const { data } = await api.post('/admin/zones', zoneForm);
+      showToast(data.message || 'Zone added successfully');
+      if (data.success) { setZoneForm({ pincode: '', area: '', city: '', state: '', charge: '' }); reload(); }
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to add zone');
+    }
   };
-  const removeZone = async (id) => { await api.delete(`/admin/zones/${id}`); reload(); };
+  const removeZone = async (id) => {
+    try {
+      await api.delete(`/admin/zones/${id}`);
+      showToast('Zone deleted successfully');
+      reload();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to delete zone');
+    }
+  };
 
   const addBlock = async (e) => {
     e.preventDefault();
-    const { data } = await api.post('/admin/scroll-content', blockForm);
-    showToast(data.message);
-    if (data.success) { setBlockForm({ title: '', content: '', icon: '', style: 'info' }); reload(); }
+    try {
+      const { data } = await api.post('/admin/scroll-content', blockForm);
+      showToast(data.message || 'Block added successfully');
+      if (data.success) { setBlockForm({ title: '', content: '', icon: '', style: 'info' }); reload(); }
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to add block');
+    }
   };
-  const removeBlock = async (id) => { await api.delete(`/admin/scroll-content/${id}`); reload(); };
+  const removeBlock = async (id) => {
+    try {
+      await api.delete(`/admin/scroll-content/${id}`);
+      showToast('Block deleted successfully');
+      reload();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to delete block');
+    }
+  };
 
   return (
     <div>

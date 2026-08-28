@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { useSite } from '../../context/SiteContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
@@ -23,19 +23,38 @@ export default function AdminSettingsTab() {
   const [form, setForm] = useState(settings);
   const [creds, setCreds] = useState({ username: '', password: '' });
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Sync form with settings when settings变化
+  useEffect(() => {
+    if (settings) {
+      setForm(settings);
+    }
+  }, [settings]);
 
   const saveSettings = async (e) => {
     e.preventDefault();
-    const { data } = await api.put('/admin/settings', form, { skipTransform: true });
-    showToast(data.message);
-    reload();
+    setSaving(true);
+    try {
+      const { data } = await api.put('/admin/settings', form, { skipTransform: true });
+      showToast(data.message || 'Settings saved successfully');
+      reload();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to save settings');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const updateCreds = async (e) => {
     e.preventDefault();
-    const { data } = await api.put('/admin/credentials', creds);
-    showToast(data.message);
-    if (data.success) setCreds({ username: '', password: '' });
+    try {
+      const { data } = await api.put('/admin/credentials', creds);
+      showToast(data.message || 'Credentials updated successfully');
+      if (data.success) setCreds({ username: '', password: '' });
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to update credentials');
+    }
   };
 
   const uploadImage = async (e, field) => {
@@ -48,19 +67,27 @@ export default function AdminSettingsTab() {
       
       let url;
       if (field === 'footer_bg_image') {
-        const { data } = await api.post('/admin/settings/footer-bg-image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+        const { data } = await api.post('/admin/settings/footer-bg-image', fd, { 
+          headers: { 'Content-Type': 'multipart/form-data' },
+          skipTransform: true 
+        });
         url = data.url;
       } else {
-        const { data } = await api.post('/admin/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+        const { data } = await api.post('/admin/upload', fd, { 
+          headers: { 'Content-Type': 'multipart/form-data' },
+          skipTransform: true 
+        });
         url = data.url;
       }
       
       if (url) {
         setForm((f) => ({ ...f, [field]: url }));
-        showToast('Image uploaded');
+        showToast('Image uploaded successfully');
       } else {
-        showToast('Upload failed');
+        showToast('Upload failed - no URL returned');
       }
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Image upload failed');
     } finally {
       setUploading(false);
     }
@@ -110,7 +137,7 @@ export default function AdminSettingsTab() {
               )}
             </div>
           ))}
-          <button className="btn btn-primary">Save Settings</button>
+          <button className="btn btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save Settings'}</button>
         </form>
       </div>
 

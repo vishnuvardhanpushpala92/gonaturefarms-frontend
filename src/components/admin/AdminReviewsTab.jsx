@@ -14,22 +14,34 @@ export default function AdminReviewsTab() {
   useEffect(() => { load(); }, []);
 
   const act = async (id, action) => {
-    const { data } = await api.put(`/reviews/${id}/${action}`);
-    showToast(data.message);
-    load();
+    try {
+      const { data } = await api.put(`/reviews/${id}/${action}`);
+      showToast(data.message || 'Review updated successfully');
+      load();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to update review');
+    }
   };
 
   const feature = async (id, featured) => {
-    const { data } = await api.put(`/reviews/${id}/feature`, { featured });
-    showToast(data.message);
-    load();
+    try {
+      const { data } = await api.put(`/reviews/${id}/feature`, { featured });
+      showToast(data.message || 'Review featured status updated');
+      load();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to update review');
+    }
   };
 
   const remove = async (id) => {
     if (!window.confirm('Delete this review?')) return;
-    const { data } = await api.delete(`/reviews/${id}`);
-    showToast(data.message);
-    load();
+    try {
+      const { data } = await api.delete(`/reviews/${id}`);
+      showToast(data.message || 'Review deleted successfully');
+      load();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to delete review');
+    }
   };
 
   const startEdit = (review) => {

@@ -14,6 +14,7 @@ export default function AdminFooterTab() {
   ]);
   const [editingLink, setEditingLink] = useState(null);
   const [newLink, setNewLink] = useState({ text: '', action: 'support' });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setForm(settings);
@@ -21,12 +22,15 @@ export default function AdminFooterTab() {
 
   const saveSettings = async (e) => {
     e.preventDefault();
+    setSaving(true);
     try {
-      await api.put('/admin/settings', form);
+      await api.put('/admin/settings', form, { skipTransform: true });
       await reload();
       showToast('Footer settings saved successfully');
     } catch (err) {
-      showToast('Failed to save footer settings');
+      showToast(err?.response?.data?.message || 'Failed to save footer settings');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -101,7 +105,7 @@ export default function AdminFooterTab() {
               placeholder={`© ${new Date().getFullYear()} Go Nature Farms. All rights reserved.`}
             />
           </div>
-          <button className="btn btn-primary">Save Footer Content</button>
+          <button className="btn btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save Footer Content'}</button>
         </form>
       </div>
 
