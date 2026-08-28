@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header.jsx';
 import HeroSlider from '../components/HeroSlider.jsx';
@@ -19,16 +18,27 @@ import ReviewModal from '../components/ReviewModal.jsx';
 import FlowerBlast from '../components/FlowerBlast.jsx';
 import FloatingThemePanel from '../components/FloatingThemePanel.jsx';
 import FloatingCart from '../components/FloatingCart.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [search, setSearch] = useState('');
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [ordersOpen, setOrdersOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
-  const [reviewProduct, setReviewProduct] = useState(null);
+  const [reviewProduct, setReviewProduct] = useState(false);
+
+  // Show auth modal on first visit if not authenticated
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('gnf_visited');
+    if (!hasVisited && !isAuthenticated) {
+      setAuthOpen(true);
+      localStorage.setItem('gnf_visited', 'true');
+    }
+  }, [isAuthenticated]);
 
   return (
     <>
@@ -37,7 +47,13 @@ export default function HomePage() {
       <Header
         search={search}
         onSearch={setSearch}
-        onOpenCart={() => setCartOpen(true)}
+        onOpenCart={() => {
+          if (!isAuthenticated) {
+            setAuthOpen(true);
+            return;
+          }
+          setCartOpen(true);
+        }}
         onOpenOrders={() => setOrdersOpen(true)}
         onOpenAuth={() => setAuthOpen(true)}
         onOpenAdmin={() => navigate('/admin')}
@@ -58,7 +74,13 @@ export default function HomePage() {
       <SupportModal open={supportOpen} onClose={() => setSupportOpen(false)} />
       <ReviewModal product={reviewProduct} onClose={() => setReviewProduct(null)} />
 
-      <FloatingCart onClick={() => setCartOpen(true)} />
+      <FloatingCart onClick={() => {
+        if (!isAuthenticated) {
+          setAuthOpen(true);
+          return;
+        }
+        setCartOpen(true);
+      }} />
       <button
         className="btn-wa"
         style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 999, borderRadius: '50%', width: 54, height: 54 }}

@@ -5,7 +5,7 @@ import { useToast } from '../context/ToastContext.jsx';
 import api from '../api/client';
 
 export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }) {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isAuthenticated } = useAuth();
   const { addItem } = useCart();
   const showToast = useToast();
   const isFuture = product.status === 'future';
@@ -39,6 +39,10 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
     : 0;
 
   const handleAdd = () => {
+    if (!isAuthenticated) {
+      showToast('Please login or register to add items to cart');
+      return;
+    }
     const productToAdd = {
       ...product,
       price: displayPrice,

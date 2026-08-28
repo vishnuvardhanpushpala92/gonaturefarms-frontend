@@ -39,10 +39,17 @@ export default function CheckoutModal({ open, onClose }) {
   const grandTotal = Math.max(0, subtotalWithGst + deliveryCharge - discount);
 
   useEffect(() => {
-    if (user && open) {
+    if (open && user) {
       loadAddresses();
     }
-  }, [user, open]);
+  }, [open, user]);
+
+  useEffect(() => {
+    // Auto-show address form if no addresses exist
+    if (open && addresses.length === 0) {
+      setShowAddressForm(true);
+    }
+  }, [open, addresses.length]);
 
   const loadAddresses = async () => {
     try {
@@ -327,7 +334,19 @@ export default function CheckoutModal({ open, onClose }) {
       </div>
 
       {step === 1 && (
-        <form onSubmit={(e) => { e.preventDefault(); setStep(2); }}>
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          // Validate address selection or manual entry
+          if (addresses.length > 0 && !selectedAddressId) {
+            showToast('Please select a saved address or add a new address');
+            return;
+          }
+          if (addresses.length === 0 && !form.address?.trim()) {
+            showToast('Please enter your address to proceed');
+            return;
+          }
+          setStep(2);
+        }}>
           {addresses.length > 0 && (
             <div style={{ marginBottom: 20 }}>
               <label style={{ fontWeight: 600, marginBottom: 8, display: 'block' }}>Saved Addresses</label>
