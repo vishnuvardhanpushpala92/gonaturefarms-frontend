@@ -3,7 +3,8 @@ import axios from 'axios';
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export const api = axios.create({
-  baseURL: API_BASE ? `${API_BASE}/api` : '/api'
+  baseURL: API_BASE ? `${API_BASE}/api` : '/api',
+  timeout: 60000
 });
 
 // Transform keys (if your backend uses snake_case)

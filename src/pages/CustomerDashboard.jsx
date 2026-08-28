@@ -49,7 +49,7 @@ export default function CustomerDashboard() {
 
   const loadAddresses = async () => {
     try {
-      const { data } = await api.get('/addresses');
+      const { data } = await api.get('/addresses', { timeout: 60000 });
       if (data.success) {
         setAddresses(data.addresses || []);
       }
@@ -67,7 +67,7 @@ export default function CustomerDashboard() {
     e.preventDefault();
     setUpdatingProfile(true);
     try {
-      const { data } = await api.put('/users/profile', profileForm);
+      const { data } = await api.put('/users/profile', profileForm, { timeout: 60000 });
       showToast(data.message || 'Profile updated successfully');
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to update profile');

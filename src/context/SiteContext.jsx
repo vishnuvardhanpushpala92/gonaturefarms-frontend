@@ -15,11 +15,11 @@ export function SiteProvider({ children }) {
   const loadAll = useCallback(async () => {
     try {
       const [s, sl, f, z, b] = await Promise.all([
-        api.get('/admin/settings/public', { skipTransform: true }),
-        api.get('/admin/slides'),
-        api.get('/admin/faqs'),
-        api.get('/admin/zones'),
-        api.get('/admin/scroll-content')
+        api.get('/admin/settings/public', { skipTransform: true, timeout: 60000 }),
+        api.get('/admin/slides', { timeout: 60000 }),
+        api.get('/admin/faqs', { timeout: 60000 }),
+        api.get('/admin/zones', { timeout: 60000 }),
+        api.get('/admin/scroll-content', { timeout: 60000 })
       ]);
       setSettings(s.data.settings || {});
       setSlides(sl.data.slides || []);

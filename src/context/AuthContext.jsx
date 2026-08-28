@@ -60,30 +60,30 @@ export function AuthProvider({ children }) {
   };
 
   const register = useCallback(async (payload) => {
-    const { data } = await api.post('/auth/register', payload);
+    const { data } = await api.post('/auth/register', payload, { timeout: 60000 });
     if (data.success) persist(data.token, data.user);
     return data;
   }, []);
 
   const login = useCallback(async (identifier, password) => {
-    const { data } = await api.post('/auth/login', { identifier, password });
+    const { data } = await api.post('/auth/login', { identifier, password }, { timeout: 60000 });
     if (data.success) persist(data.token, data.user);
     return data;
   }, []);
 
   const adminLogin = useCallback(async (username, password) => {
-    const { data } = await api.post('/auth/admin-login', { username, password });
+    const { data } = await api.post('/auth/admin-login', { username, password }, { timeout: 60000 });
     if (data.success) persist(data.token, data.user);
     return data;
   }, []);
 
   const forgotPassword = useCallback(async (identifier) => {
-    const { data } = await api.post('/auth/forgot-password/verify', { identifier });
+    const { data } = await api.post('/auth/forgot-password/verify', { identifier }, { timeout: 60000 });
     return data;
   }, []);
 
   const resetPassword = useCallback(async (payload) => {
-    const { data } = await api.post('/auth/reset-password', payload);
+    const { data } = await api.post('/auth/reset-password', payload, { timeout: 60000 });
     return data;
   }, []);
 
@@ -92,7 +92,7 @@ export function AuthProvider({ children }) {
   const refreshMe = useCallback(async () => {
     if (!token) return null;
     try {
-      const { data } = await api.get('/auth/me');
+      const { data } = await api.get('/auth/me', { timeout: 60000 });
       if (data.success) return data;
     } catch {
       return null;

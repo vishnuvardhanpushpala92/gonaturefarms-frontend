@@ -30,7 +30,7 @@ export default function OrdersModal({ open, onClose }) {
     if (!phone.trim()) return;
     setLoading(true);
     try {
-      const { data } = await api.get('/orders/lookup', { params: { phone } });
+      const { data } = await api.get('/orders/lookup', { params: { phone }, timeout: 60000 });
       setOrders(data.orders || []);
       setSearched(true);
     } finally {
@@ -41,7 +41,7 @@ export default function OrdersModal({ open, onClose }) {
   const loadMyOrders = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/orders/my');
+      const { data } = await api.get('/orders/my', { timeout: 60000 });
       setOrders(data.orders || []);
       setSearched(true);
     } finally {
