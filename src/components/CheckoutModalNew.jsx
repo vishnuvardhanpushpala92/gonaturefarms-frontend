@@ -92,7 +92,7 @@ export default function CheckoutModal({ open, onClose }) {
         loadAddresses();
       }
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to save address');
+      showToast(err?.userMessage || err?.response?.data?.message || 'Failed to save address');
     }
   };
 
@@ -126,7 +126,7 @@ export default function CheckoutModal({ open, onClose }) {
         showToast(data.message);
       }
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Invalid coupon');
+      showToast(err?.userMessage || err?.response?.data?.message || 'Invalid coupon');
     }
   };
 
@@ -227,7 +227,7 @@ export default function CheckoutModal({ open, onClose }) {
       }
     } catch (err) {
       console.error('Order placement error:', err);
-      const errorMsg = err?.response?.data?.message || err?.message || 'Could not place order';
+      const errorMsg = err?.userMessage || err?.response?.data?.message || err?.message || 'Could not place order';
       showToast(errorMsg);
     } finally {
       setPlacing(false);

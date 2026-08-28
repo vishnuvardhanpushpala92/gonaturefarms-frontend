@@ -80,8 +80,18 @@ export function AuthProvider({ children }) {
   }, []);
 
   const forgotPassword = useCallback(async (identifier) => {
-    const { data } = await api.post('/auth/forgot-password/verify', { identifier }, { timeout: 60000 });
-    return data;
+    try {
+      const { data } = await api.post('/auth/forgot-password/verify', { identifier }, { timeout: 60000 });
+      return data;
+    } catch (err) {
+      // Fallback to the basic forgot-password endpoint if verify endpoint doesn't exist
+      if (err.response?.status === 404) {
+        console.warn('Verify endpoint not found, falling back to basic forgot-password');
+        const { data } = await api.post('/auth/forgot-password', { identifier }, { timeout: 60000 });
+        return data;
+      }
+      throw err;
+    }
   }, []);
 
   const resetPasswordWithSecurityQuestion = useCallback(async (payload) => {

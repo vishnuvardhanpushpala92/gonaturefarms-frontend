@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Modal from './Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
+import api from '../api/client.js';
 
 export default function AuthModal({ open, onClose }) {
   const { login, register, forgotPassword, resetPasswordWithSecurityQuestion, user, isAuthenticated, logout } = useAuth();
@@ -9,7 +10,9 @@ export default function AuthModal({ open, onClose }) {
   
   const [isLogin, setIsLogin] = useState(true);
   const [forgotOpen, setForgotOpen] = useState(false);
+  const [showAddressSetup, setShowAddressSetup] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
+  const [addressForm, setAddressForm] = useState({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
 
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -30,7 +33,7 @@ export default function AuthModal({ open, onClose }) {
       return;
     }
     
-    // Phone validation for registration
+    // Phone validation for registration (must be exactly 10 digits)
     if (!isLogin && form.phone && !validatePhone(form.phone)) {
       showToast('Please enter a valid 10-digit phone number');
       return;
@@ -42,26 +45,147 @@ export default function AuthModal({ open, onClose }) {
       return;
     }
     
+    // Security question validation for registration
+    if (!isLogin && !form.securityQuestion) {
+      showToast('Please select a security question');
+      return;
+    }
+    
+    // Security answer validation for registration
+    if (!isLogin && !form.securityAnswer?.trim()) {
+      showToast('Please provide a security answer');
+      return;
+    }
+    
     try {
       if (isLogin) {
-        await login(form.email || form.phone, form.password);
+        const result = await login(form.email || form.phone, form.password);
         showToast('Login successful');
-        onClose();
+        // Pre-fill address form with user data from response
+        const userData = result?.user || {};
+        setAddressForm({
+          ...addressForm,
+          name: userData.name || form.name,
+          phone: userData.phone || form.phone
+        });
+        // Show address setup after successful login
+        setShowAddressSetup(true);
       } else {
-        await register(form);
+        const result = await register(form);
         showToast('Registration successful');
+        // Pre-fill address form with registration data
+        const userData = result?.user || {};
+        setAddressForm({
+          ...addressForm,
+          name: userData.name || form.name,
+          phone: userData.phone || form.phone
+        });
         setForm({ name: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
+        // Show address setup after successful registration
+        setShowAddressSetup(true);
+      }
+    } catch (err) {
+      showToast(err?.userMessage || err?.response?.data?.message || 'Error');
+    }
+  };
+
+  const handleAddressSetup = async (e) => {
+    e.preventDefault();
+    
+    // Validate address fields
+    if (!addressForm.name?.trim()) {
+      showToast('Please enter your name');
+      return;
+    }
+    if (!addressForm.addressLine?.trim()) {
+      showToast('Please enter your address');
+      return;
+    }
+    if (!addressForm.city?.trim()) {
+      showToast('Please enter your city');
+      return;
+    }
+    if (!addressForm.state?.trim()) {
+      showToast('Please enter your state');
+      return;
+    }
+    if (!addressForm.pincode?.trim()) {
+      showToast('Please enter your pincode');
+      return;
+    }
+    if (!addressForm.phone?.trim()) {
+      showToast('Please enter your phone');
+      return;
+    }
+    
+    try {
+      const payload = { ...addressForm, isDefault: true };
+      const { data } = await api.post('/addresses', payload);
+      if (data.success) {
+        showToast('Address saved successfully');
+        setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
+        setShowAddressSetup(false);
         onClose();
       }
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Error');
+      showToast(err?.response?.data?.message || 'Failed to save address');
     }
   };
 
   return (
-    <Modal open={open} onClose={onClose} title={isAuthenticated ? 'My Account' : (isLogin ? 'Login' : 'Register')}>
+    <Modal open={open} onClose={onClose} title={showAddressSetup ? 'Setup Your Address' : (isAuthenticated ? 'My Account' : (isLogin ? 'Login' : 'Register'))}>
       <div className="mbody">
-        {isAuthenticated && user ? (
+        {showAddressSetup ? (
+          <>
+            <p style={{ textAlign: 'center', marginBottom: '16px', color: 'var(--muted)' }}>
+              Please add your delivery address to complete your profile setup.
+            </p>
+            <form onSubmit={handleAddressSetup}>
+              <div className="fg">
+                <label>Address Type</label>
+                <select 
+                  value={addressForm.addressType} 
+                  onChange={(e) => setAddressForm({ ...addressForm, addressType: e.target.value })}
+                >
+                  <option value="Home">Home</option>
+                  <option value="Office">Office</option>
+                </select>
+              </div>
+              <div className="fg">
+                <label>Name</label>
+                <input required value={addressForm.name} onChange={(e) => setAddressForm({ ...addressForm, name: e.target.value })} />
+              </div>
+              <div className="fg">
+                <label>Address Line</label>
+                <textarea required value={addressForm.addressLine} onChange={(e) => setAddressForm({ ...addressForm, addressLine: e.target.value })} />
+              </div>
+              <div className="frow">
+                <div className="fg">
+                  <label>City</label>
+                  <input required value={addressForm.city} onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} />
+                </div>
+                <div className="fg">
+                  <label>State</label>
+                  <input required value={addressForm.state} onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })} />
+                </div>
+              </div>
+              <div className="frow">
+                <div className="fg">
+                  <label>Pincode</label>
+                  <input required value={addressForm.pincode} onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value })} />
+                </div>
+                <div className="fg">
+                  <label>Phone</label>
+                  <input required value={addressForm.phone} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="submit" className="btn btn-primary btn-block">Save Address</button>
+                <button type="button" className="btn btn-secondary btn-block" onClick={() => { setShowAddressSetup(false); onClose(); }}>Skip for Now</button>
+              </div>
+            </form>
+          </>
+        ) : isAuthenticated && user ? (
           <>
             <div className="profile-card">
               <div className="pa">{user.name?.charAt(0).toUpperCase()}</div>
@@ -86,15 +210,22 @@ export default function AuthModal({ open, onClose }) {
                   <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
                 </div>
               )}
-              <div className="fg">
-                <label>Email or Phone</label>
-                <input required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              </div>
-              {!isLogin && (
+              {isLogin ? (
                 <div className="fg">
-                  <label>Phone</label>
-                  <input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                  <label>Email or Phone</label>
+                  <input required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 </div>
+              ) : (
+                <>
+                  <div className="fg">
+                    <label>Phone (required)</label>
+                    <input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="10-digit phone number" />
+                  </div>
+                  <div className="fg">
+                    <label>Email (optional)</label>
+                    <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" />
+                  </div>
+                </>
               )}
               {!isLogin && (
                 <>
@@ -177,7 +308,7 @@ function ForgotPasswordForm({ onBack }) {
         showToast(data.message);
       }
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Error');
+      showToast(err?.userMessage || err?.response?.data?.message || 'Error');
     }
   };
 
@@ -192,7 +323,7 @@ function ForgotPasswordForm({ onBack }) {
       showToast(data.message || 'Password reset successfully');
       onBack();
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Error');
+      showToast(err?.userMessage || err?.response?.data?.message || 'Error');
     }
   };
 

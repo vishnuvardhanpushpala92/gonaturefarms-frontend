@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://gonaturefarms-qf9o.onrender.com';
 
 export const api = axios.create({
   baseURL: API_BASE ? `${API_BASE}/api` : '/api',
@@ -80,17 +80,30 @@ api.interceptors.response.use(
         url: error.config?.url,
         method: error.config?.method
       });
+      
+      // Add user-friendly error message to error object
+      if (error.response.data && error.response.data.message) {
+        error.userMessage = error.response.data.message;
+      } else if (error.response.status === 400) {
+        error.userMessage = 'Invalid request. Please check your input and try again.';
+      } else if (error.response.status === 404) {
+        error.userMessage = 'The requested resource was not found.';
+      } else if (error.response.status === 500) {
+        error.userMessage = 'Server error. Please try again later.';
+      }
     } else if (error.request) {
       console.error('Network Error:', {
         message: error.message,
         url: error.config?.url,
         method: error.config?.method
       });
+      error.userMessage = 'Network error. Please check your connection and try again.';
     } else {
       console.error('Request Error:', {
         message: error.message,
         config: error.config
       });
+      error.userMessage = 'Request failed. Please try again.';
     }
     
     if (!error.config?.skipTransform && error.response && error.response.data && !(error.response.data instanceof Blob)) {
