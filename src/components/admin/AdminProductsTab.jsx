@@ -29,7 +29,9 @@ export default function AdminProductsTab() {
     setForm({
       name: p.name, description: p.description || '', price: p.price, mrp: p.mrp, gst: p.gst,
       hsn: p.hsn || '', cat: p.cat || '', imgUrl: p.imgUrl || '', status: p.status,
-      additionalImages: p.additionalImages || []
+      additionalImages: p.additionalImages
+        ? (typeof p.additionalImages === 'string' ? JSON.parse(p.additionalImages) : p.additionalImages)
+        : []
     });
     // Load variants for editing
     setVariants(p.variants || []);
