@@ -14,6 +14,7 @@ export default function AdminProductsTab() {
   const [newCat, setNewCat] = useState('');
   const [variants, setVariants] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [addingDemoVariants, setAddingDemoVariants] = useState(false);
 
   const load = () => {
     api.get('/products').then(({ data }) => setProducts(data.products || []));
@@ -115,6 +116,23 @@ export default function AdminProductsTab() {
     setForm({ ...form, additionalImages: form.additionalImages.filter((_, i) => i !== index) });
   };
 
+  const addDemoVariantsToAllProducts = async () => {
+    if (!window.confirm('This will add demo variants (Small, Medium, Large) to all products that currently have no variants. Continue?')) {
+      return;
+    }
+    
+    setAddingDemoVariants(true);
+    try {
+      const { data } = await api.post('/products/add-demo-variants');
+      showToast(data.message || 'Demo variants added successfully');
+      load(); // Reload products to show updated variants
+    } catch (err) {
+      showToast(err?.userMessage || err?.response?.data?.message || 'Failed to add demo variants');
+    } finally {
+      setAddingDemoVariants(false);
+    }
+  };
+
   const save = async (e) => {
     e.preventDefault();
     try {
@@ -193,7 +211,17 @@ export default function AdminProductsTab() {
     <div>
       {/* 1. Add / Edit Product Form */}
       <div className="admin-card">
-        <h3 style={{ marginBottom: 12 }}>{editing ? 'Edit Product' : 'Add Product'}</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <h3 style={{ margin: 0 }}>{editing ? 'Edit Product' : 'Add Product'}</h3>
+          <button 
+            className="btn btn-secondary" 
+            onClick={addDemoVariantsToAllProducts}
+            disabled={addingDemoVariants}
+            style={{ fontSize: '.8rem', padding: '6px 12px' }}
+          >
+            {addingDemoVariants ? 'Adding...' : 'Add Demo Variants to All Products'}
+          </button>
+        </div>
         <form onSubmit={save}>
           <div className="frow">
             <div className="fg"><label>Name</label><input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
