@@ -88,8 +88,10 @@ export default function AuthModal({ open, onClose }) {
           name: userData.name || form.name,
           phone: userData.phone || form.phone
         });
-        // Show address setup after successful login
-        setShowAddressSetup(true);
+        // Small delay to ensure token is fully persisted before showing address setup
+        setTimeout(() => {
+          setShowAddressSetup(true);
+        }, 500);
       } else {
         const result = await register(form);
         showToast('Registration successful');
@@ -101,8 +103,10 @@ export default function AuthModal({ open, onClose }) {
           phone: userData.phone || form.phone
         });
         setForm({ name: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
-        // Show address setup after successful registration
-        setShowAddressSetup(true);
+        // Small delay to ensure token is fully persisted before showing address setup
+        setTimeout(() => {
+          setShowAddressSetup(true);
+        }, 500);
       }
     } catch (err) {
       showToast(err?.userMessage || err?.response?.data?.message || 'Error');
@@ -138,8 +142,19 @@ export default function AuthModal({ open, onClose }) {
       return;
     }
     
+    // Check if user is authenticated before proceeding
+    const token = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
+    if (!token) {
+      showToast('Authentication lost. Please login again.');
+      onClose();
+      return;
+    }
+    
+    console.log('Current token:', token ? 'exists' : 'missing');
+    
     try {
       const payload = { ...addressForm, isDefault: true };
+      console.log('Saving address with payload:', payload);
       const { data } = await api.post('/addresses', payload);
       if (data.success) {
         showToast('Address saved successfully and will be used for your orders');
@@ -148,7 +163,13 @@ export default function AuthModal({ open, onClose }) {
         onClose();
       }
     } catch (err) {
-      showToast(err?.userMessage || err?.response?.data?.message || 'Failed to save address');
+      console.error('Address save error:', err);
+      if (err.response?.status === 401) {
+        showToast('Authentication expired. Please login again.');
+        onClose();
+      } else {
+        showToast(err?.userMessage || err?.response?.data?.message || 'Failed to save address');
+      }
     }
   };
 
