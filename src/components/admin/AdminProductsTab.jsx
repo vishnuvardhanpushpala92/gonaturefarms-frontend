@@ -15,6 +15,7 @@ export default function AdminProductsTab() {
   const [variants, setVariants] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [addingDemoVariants, setAddingDemoVariants] = useState(false);
+  const [removingDemoVariants, setRemovingDemoVariants] = useState(false);
 
   const load = () => {
     api.get('/products').then(({ data }) => setProducts(data.products || []));
@@ -133,6 +134,23 @@ export default function AdminProductsTab() {
     }
   };
 
+  const removeDemoVariantsFromAllProducts = async () => {
+    if (!window.confirm('This will remove demo variants (Small, Medium, Large) from all products. Continue?')) {
+      return;
+    }
+    
+    setRemovingDemoVariants(true);
+    try {
+      const { data } = await api.post('/products/remove-demo-variants');
+      showToast(data.message || 'Demo variants removed successfully');
+      load(); // Reload products to show updated variants
+    } catch (err) {
+      showToast(err?.userMessage || err?.response?.data?.message || 'Failed to remove demo variants');
+    } finally {
+      setRemovingDemoVariants(false);
+    }
+  };
+
   const save = async (e) => {
     e.preventDefault();
     try {
@@ -213,14 +231,24 @@ export default function AdminProductsTab() {
       <div className="admin-card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <h3 style={{ margin: 0 }}>{editing ? 'Edit Product' : 'Add Product'}</h3>
-          <button 
-            className="btn btn-secondary" 
-            onClick={addDemoVariantsToAllProducts}
-            disabled={addingDemoVariants}
-            style={{ fontSize: '.8rem', padding: '6px 12px' }}
-          >
-            {addingDemoVariants ? 'Adding...' : 'Add Demo Variants to All Products'}
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button 
+              className="btn btn-secondary" 
+              onClick={addDemoVariantsToAllProducts}
+              disabled={addingDemoVariants}
+              style={{ fontSize: '.8rem', padding: '6px 12px' }}
+            >
+              {addingDemoVariants ? 'Adding...' : 'Add Demo Variants'}
+            </button>
+            <button 
+              className="btn btn-danger" 
+              onClick={removeDemoVariantsFromAllProducts}
+              disabled={removingDemoVariants}
+              style={{ fontSize: '.8rem', padding: '6px 12px' }}
+            >
+              {removingDemoVariants ? 'Removing...' : 'Remove Demo Variants'}
+            </button>
+          </div>
         </div>
         <form onSubmit={save}>
           <div className="frow">
