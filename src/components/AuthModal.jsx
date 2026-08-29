@@ -142,14 +142,13 @@ export default function AuthModal({ open, onClose }) {
       const payload = { ...addressForm, isDefault: true };
       const { data } = await api.post('/addresses', payload);
       if (data.success) {
-        showToast('Address saved successfully');
+        showToast('Address saved successfully and will be used for your orders');
         setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
         setShowAddressSetup(false);
-        loadAddresses();
         onClose();
       }
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to save address');
+      showToast(err?.userMessage || err?.response?.data?.message || 'Failed to save address');
     }
   };
 

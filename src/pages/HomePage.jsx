@@ -46,6 +46,18 @@ export default function HomePage() {
     }
   }, [isAuthenticated]);
 
+  // Show auth modal after 10 seconds if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const timer = setTimeout(() => {
+        setAuthOpen(true);
+        setBlinkLogin(true);
+        setTimeout(() => setBlinkLogin(false), 3000);
+      }, 10000); // 10 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated]);
+
   // Show welcome message after successful login
   useEffect(() => {
     if (isAuthenticated) {

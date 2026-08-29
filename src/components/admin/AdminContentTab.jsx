@@ -75,12 +75,29 @@ export default function AdminContentTab() {
 
   const addBlock = async (e) => {
     e.preventDefault();
+    // Validate form before submission
+    if (!blockForm.title?.trim()) {
+      showToast('Please enter a title for the block');
+      return;
+    }
+    if (!blockForm.content?.trim()) {
+      showToast('Please enter content for the block');
+      return;
+    }
+    if (!blockForm.style) {
+      showToast('Please select a style for the block');
+      return;
+    }
+    
     try {
       const { data } = await api.post('/admin/scroll-content', blockForm);
-      showToast(data.message || 'Block added successfully');
-      if (data.success) { setBlockForm({ title: '', content: '', icon: '', style: 'info' }); reload(); }
+      showToast(data.message || 'Scrolling notice block added successfully');
+      if (data.success) { 
+        setBlockForm({ title: '', content: '', icon: '', style: 'info' }); 
+        reload(); 
+      }
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to add block');
+      showToast(err?.userMessage || err?.response?.data?.message || 'Failed to add block');
     }
   };
   const removeBlock = async (id) => {
@@ -156,24 +173,36 @@ export default function AdminContentTab() {
         <h3>Scrolling Notice Blocks</h3>
         <form onSubmit={addBlock} style={{ marginTop: 10 }}>
           <div className="frow">
-            <div className="fg"><label>Title</label><input required value={blockForm.title} onChange={(e) => setBlockForm({ ...blockForm, title: e.target.value })} /></div>
+            <div className="fg"><label>Title</label><input required value={blockForm.title} onChange={(e) => setBlockForm({ ...blockForm, title: e.target.value })} placeholder="Enter block title" /></div>
             <div className="fg"><label>Style</label>
               <select value={blockForm.style} onChange={(e) => setBlockForm({ ...blockForm, style: e.target.value })}>
-                <option value="info">Info</option><option value="promo">Promo</option>
-                <option value="notice">Notice</option><option value="earth">Earth</option>
+                <option value="info">Info</option><option value="promo">Promo</option><option value="notice">Notice</option><option value="earth">Earth</option>
               </select>
             </div>
           </div>
-          <div className="fg"><label>Content</label><textarea required value={blockForm.content} onChange={(e) => setBlockForm({ ...blockForm, content: e.target.value })} /></div>
+          <div className="fg"><label>Content</label><textarea required value={blockForm.content} onChange={(e) => setBlockForm({ ...blockForm, content: e.target.value })} placeholder="Enter scrolling notice content" /></div>
           <button className="btn btn-primary">Add Block</button>
         </form>
-        <table className="data-table" style={{ marginTop: 12 }}>
-          <tbody>
-            {blocks.map((b) => (
-              <tr key={b.id}><td>{b.title}</td><td><button className="btn-d" onClick={() => removeBlock(b.id)}>Delete</button></td></tr>
-            ))}
-          </tbody>
-        </table>
+        {blocks.length > 0 && (
+          <table className="data-table" style={{ marginTop: 12 }}>
+            <thead>
+              <tr><th>Title</th><th>Style</th><th>Content</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              {blocks.map((b) => (
+                <tr key={b.id}>
+                  <td>{b.title}</td>
+                  <td>{b.style}</td>
+                  <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.content}</td>
+                  <td><button className="btn-d" onClick={() => removeBlock(b.id)}>Delete</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {blocks.length === 0 && (
+          <p style={{ color: 'var(--muted)', textAlign: 'center', marginTop: 12 }}>No scrolling notice blocks added yet.</p>
+        )}
       </div>
     </div>
   );

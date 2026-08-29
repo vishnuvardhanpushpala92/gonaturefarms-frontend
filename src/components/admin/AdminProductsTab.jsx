@@ -126,7 +126,7 @@ export default function AdminProductsTab() {
         return true;
       });
 
-      // If no variants are added, create a default variant
+      // If no variants are added, create a default variant for all products
       let finalVariants = filteredVariants;
       if (finalVariants.length === 0) {
         finalVariants = [{
@@ -135,6 +135,14 @@ export default function AdminProductsTab() {
           mrp: form.mrp ? parseFloat(form.mrp) : (form.price ? parseFloat(form.price) : 0),
           stock: 100
         }];
+      } else {
+        // Ensure all variant fields are populated with defaults if missing
+        finalVariants = finalVariants.map(v => ({
+          variantName: v.variantName || 'Standard',
+          price: v.price ? parseFloat(v.price) : (v.mrp ? parseFloat(v.mrp) : 0),
+          mrp: v.mrp ? parseFloat(v.mrp) : (v.price ? parseFloat(v.price) : 0),
+          stock: v.stock ? parseInt(v.stock) : 100
+        }));
       }
 
       const payload = {

@@ -221,14 +221,7 @@ export default function CheckoutModal({ open, onClose }) {
       showToast('Please enter the transaction ID/UTR');
       return;
     }
-    if (form.paymentMethod === 'UPI' && form.paymentUtr?.trim()) {
-      // Validate transaction ID format (should be 12 digits for UPI)
-      const utrPattern = /^\d{12}$/;
-      if (!utrPattern.test(form.paymentUtr.trim())) {
-        showToast('Transaction ID must be exactly 12 digits');
-        return;
-      }
-    }
+    // Removed transaction ID format validation - users can enter any format
     if (items.length === 0) {
       showToast('Your cart is empty');
       return;
@@ -429,7 +422,7 @@ export default function CheckoutModal({ open, onClose }) {
               {settings.qr_code && <div className="qr-box"><img src={getImageUrl(settings.qr_code)} alt="Payment QR" /></div>}
               {!settings.qr_code && <div className="qr-box" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb' }}><img src="/qr-placeholder.png" alt="Payment QR" style={{ maxWidth: 200 }} onError={(e) => e.target.style.display = 'none'} /><span style={{ color: 'var(--muted)' }}>QR Code Placeholder</span></div>}
               {settings.upi_id && <div className="upi-box"><span className="upi-id">{settings.upi_id}</span></div>}
-              <div className="fg"><label>Transaction ID / UTR (required)</label><input required value={form.paymentUtr} onChange={(e) => setForm({ ...form, paymentUtr: e.target.value })} placeholder="Enter your UTR number" /></div>
+              <div className="fg"><label>Transaction ID / UTR (required)</label><input required value={form.paymentUtr} onChange={(e) => setForm({ ...form, paymentUtr: e.target.value })} placeholder="Enter your transaction ID" /></div>
             </>
           )}
           {settings.payment_instructions && <p style={{ fontSize: '.75rem', color: 'var(--muted)', whiteSpace: 'pre-line', marginBottom: 12 }}>{settings.payment_instructions}</p>}
