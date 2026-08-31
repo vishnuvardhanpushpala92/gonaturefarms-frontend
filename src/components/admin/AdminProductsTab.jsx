@@ -18,7 +18,7 @@ export default function AdminProductsTab() {
   const [removingDemoVariants, setRemovingDemoVariants] = useState(false);
 
   const load = () => {
-    api.get('/products').then(({ data }) => setProducts(data.products || []));
+    api.get('/products/admin-list').then(({ data }) => setProducts(data.products || []));
     api.get('/products/categories').then(({ data }) => setCategories(data.categories || []));
   };
 
@@ -446,7 +446,11 @@ export default function AdminProductsTab() {
         <tbody>
           {products.map((p) => (
             <tr key={p.id}>
-              <td>{p.name}</td><td>{p.cat}</td><td>₹{p.price}</td><td>{p.status}</td>
+              <td>
+                {p.name}
+                {p.pending && <span style={{ marginLeft: 8, padding: '2px 6px', backgroundColor: '#fef3c7', color: '#92400e', borderRadius: 4, fontSize: '0.7rem' }}>Pending</span>}
+              </td>
+              <td>{p.cat}</td><td>₹{p.price}</td><td>{p.status}</td>
               <td>
                 <button className="btn-e" onClick={() => startEdit(p)}>Edit</button>{' '}
                 <button className="btn-d" onClick={() => remove(p)}>Delete</button>

@@ -13,6 +13,21 @@ export default function AdminContentTab() {
   const [zoneForm, setZoneForm] = useState({ pincode: '', area: '', city: '', state: '', charge: '' });
   const [blockForm, setBlockForm] = useState({ title: '', content: '', icon: '', customIcon: '', style: 'info', backgroundColor: '#f8fafb', textColor: '#2d5a27' });
   const [editingBlock, setEditingBlock] = useState(null);
+  const [adminFaqs, setAdminFaqs] = useState([]);
+
+  // Load admin FAQs (including pending)
+  const loadAdminFaqs = async () => {
+    try {
+      const { data } = await api.get('/admin/faqs/admin-list');
+      setAdminFaqs(data.faqs || []);
+    } catch (err) {
+      console.error('Failed to load admin FAQs:', err);
+    }
+  };
+
+  React.useEffect(() => {
+    loadAdminFaqs();
+  }, []);
 
   const addSlide = async (e) => {
     e.preventDefault();
@@ -39,7 +54,7 @@ export default function AdminContentTab() {
     try {
       const { data } = await api.post('/admin/faqs', faqForm);
       showToast(data.message || 'FAQ added successfully');
-      if (data.success) { setFaqForm({ question: '', answer: '' }); reload(); }
+      if (data.success) { setFaqForm({ question: '', answer: '' }); loadAdminFaqs(); }
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to add FAQ');
     }
@@ -48,7 +63,7 @@ export default function AdminContentTab() {
     try {
       await api.delete(`/admin/faqs/${id}`);
       showToast('FAQ deleted successfully');
-      reload();
+      loadAdminFaqs();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to delete FAQ');
     }
@@ -213,8 +228,14 @@ export default function AdminContentTab() {
         </form>
         <table className="data-table" style={{ marginTop: 12 }}>
           <tbody>
-            {faqs.map((f) => (
-              <tr key={f.id}><td>{f.question}</td><td><button className="btn-d" onClick={() => removeFaq(f.id)}>Delete</button></td></tr>
+            {adminFaqs.map((f) => (
+              <tr key={f.id}>
+                <td>
+                  {f.question}
+                  {f.pending && <span style={{ marginLeft: 8, padding: '2px 6px', backgroundColor: '#fef3c7', color: '#92400e', borderRadius: 4, fontSize: '0.7rem' }}>Pending</span>}
+                </td>
+                <td><button className="btn-d" onClick={() => removeFaq(f.id)}>Delete</button></td>
+              </tr>
             ))}
           </tbody>
         </table>

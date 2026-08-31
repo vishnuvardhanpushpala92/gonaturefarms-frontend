@@ -50,7 +50,7 @@ export default function AdminFooterTab() {
   const loadAboutUsContent = async () => {
     setLoadingAboutUs(true);
     try {
-      const { data } = await api.get('/site-content?slug=about-us');
+      const { data } = await api.get('/site-content/admin?slug=about-us');
       if (data.content) {
         setAboutUsContent(data.content);
       }
@@ -66,9 +66,9 @@ export default function AdminFooterTab() {
     e.preventDefault();
     setSavingAboutUs(true);
     try {
-      // Check if content already exists by trying to get it
-      const { data: existingData } = await api.get('/site-content?slug=about-us');
-      
+      // Check if content already exists by trying to get it (admin endpoint to see pending too)
+      const { data: existingData } = await api.get('/site-content/admin?slug=about-us');
+
       if (existingData.content && existingData.content.id) {
         // Update existing content
         await api.put(`/site-content/${existingData.content.id}`, aboutUsContent);

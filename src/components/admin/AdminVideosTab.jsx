@@ -196,7 +196,10 @@ export default function AdminVideosTab() {
             <tbody>
               {videos.map((video) => (
                 <tr key={video.id}>
-                  <td>{video.title}</td>
+                  <td>
+                    {video.title}
+                    {video.pending && <span style={{ marginLeft: 8, padding: '2px 6px', backgroundColor: '#fef3c7', color: '#92400e', borderRadius: 4, fontSize: '0.7rem' }}>Pending</span>}
+                  </td>
                   <td>
                     <span style={{
                       padding: '4px 8px',
