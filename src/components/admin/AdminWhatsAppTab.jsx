@@ -77,11 +77,14 @@ export default function AdminWhatsAppTab() {
     setLoading(true);
     try {
       const payload = {
-        ...form,
+        reminderType: form.reminderType,
+        message: form.message,
         customerIds: selectedCustomers,
         scheduledAt: form.scheduledAt || new Date().toISOString()
       };
-      
+
+      console.log('Sending WhatsApp payload:', payload);
+
       const { data } = await api.post('/admin/whatsapp/send', payload);
       showToast(data.message);
       
@@ -148,9 +151,10 @@ export default function AdminWhatsAppTab() {
           </div>
           <div className="fg">
             <label>Product (optional)</label>
-            <select value={form.productId} onChange={(e) => {
+            <select value={form.productId || ''} onChange={(e) => {
               const selectedProduct = products.find(p => p.id === parseInt(e.target.value));
-              setForm({ ...form, productId: e.target.value });
+              const productId = e.target.value;
+              setForm({ ...form, productId });
               if (selectedProduct) {
                 const productInfo = `\n\n📦 Product: ${selectedProduct.name}\n💰 Price: ₹${selectedProduct.price}\n${selectedProduct.mrp ? `💰 MRP: ₹${selectedProduct.mrp}` : ''}\n${selectedProduct.gst ? `🧾 GST: ${selectedProduct.gst}%` : ''}\n${selectedProduct.description ? `📝 ${selectedProduct.description}` : ''}${selectedProduct.imgUrl ? `\n🖼 Image: ${selectedProduct.imgUrl}` : ''}`;
                 setForm(prev => ({ ...prev, message: prev.message + productInfo }));

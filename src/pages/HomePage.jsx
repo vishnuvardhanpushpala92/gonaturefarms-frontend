@@ -18,6 +18,7 @@ import ReviewModal from '../components/ReviewModal.jsx';
 import FlowerBlast from '../components/FlowerBlast.jsx';
 import FloatingThemePanel from '../components/FloatingThemePanel.jsx';
 import FloatingCart from '../components/FloatingCart.jsx';
+import ScrollingBlocks from '../components/ScrollingBlocks.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 
@@ -94,6 +95,7 @@ export default function HomePage() {
       <div id="top">
         <HeroSlider />
         <PromoStrip />
+        <ScrollingBlocks />
         <TrustBadges />
       </div>
       <div id="products">

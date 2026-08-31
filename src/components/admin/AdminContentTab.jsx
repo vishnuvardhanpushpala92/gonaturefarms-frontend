@@ -101,11 +101,13 @@ export default function AdminContentTab() {
     }
   };
   const removeBlock = async (id) => {
+    if (!window.confirm('Delete this scrolling notice block?')) return;
     try {
-      await api.delete(`/admin/scroll-content/${id}`);
-      showToast('Block deleted successfully');
+      const { data } = await api.delete(`/admin/scroll-content/${id}`);
+      showToast(data.message || 'Block deleted successfully');
       reload();
     } catch (err) {
+      console.error('Delete block error:', err);
       showToast(err?.response?.data?.message || 'Failed to delete block');
     }
   };
