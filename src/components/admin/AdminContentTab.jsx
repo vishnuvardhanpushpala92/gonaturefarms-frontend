@@ -11,7 +11,7 @@ export default function AdminContentTab() {
   const [slideForm, setSlideForm] = useState({ imageUrl: '', caption: '', subText: '' });
   const [faqForm, setFaqForm] = useState({ question: '', answer: '' });
   const [zoneForm, setZoneForm] = useState({ pincode: '', area: '', city: '', state: '', charge: '' });
-  const [blockForm, setBlockForm] = useState({ title: '', content: '', icon: '', style: 'info' });
+  const [blockForm, setBlockForm] = useState({ title: '', content: '', icon: '', customIcon: '', style: 'info' });
 
   const addSlide = async (e) => {
     e.preventDefault();
@@ -75,41 +75,55 @@ export default function AdminContentTab() {
 
   const addBlock = async (e) => {
     e.preventDefault();
-    // Validate form before submission
-    if (!blockForm.title?.trim()) {
-      showToast('Please enter a title for the block');
-      return;
-    }
-    if (!blockForm.content?.trim()) {
-      showToast('Please enter content for the block');
-      return;
-    }
-    if (!blockForm.style) {
-      showToast('Please select a style for the block');
+    
+    // Check if we already have 6 items
+    if (blocks.length >= 6) {
+      showToast('Maximum 6 features allowed. Delete existing items first.');
       return;
     }
     
+    // Validate form before submission
+    if (!blockForm.title?.trim()) {
+      showToast('Please enter a title for the feature');
+      return;
+    }
+    
+    // Set default icon if none selected
+    const iconValue = blockForm.icon === 'custom' ? (blockForm.customIcon || '🌿') : (blockForm.icon || '🌿');
+    
     try {
-      const { data } = await api.post('/admin/scroll-content', blockForm);
-      showToast(data.message || 'Scrolling notice block added successfully');
+      const payload = {
+        title: blockForm.title,
+        content: blockForm.title, // For features, content is same as title
+        icon: iconValue,
+        style: 'info'
+      };
+      
+      const { data } = await api.post('/admin/scroll-content', payload);
+      showToast(data.message || 'Feature added successfully');
       if (data.success) { 
-        setBlockForm({ title: '', content: '', icon: '', style: 'info' }); 
+        setBlockForm({ title: '', content: '', icon: '', customIcon: '', style: 'info' }); 
         reload(); 
       }
     } catch (err) {
-      showToast(err?.userMessage || err?.response?.data?.message || 'Failed to add block');
+      showToast(err?.userMessage || err?.response?.data?.message || 'Failed to add feature');
     }
   };
   const removeBlock = async (id) => {
-    if (!window.confirm('Delete this scrolling notice block?')) return;
+    if (!window.confirm('Delete this feature?')) return;
     try {
       const { data } = await api.delete(`/admin/scroll-content/${id}`);
-      showToast(data.message || 'Block deleted successfully');
+      showToast(data.message || 'Feature deleted successfully');
       reload();
     } catch (err) {
       console.error('Delete block error:', err);
-      showToast(err?.response?.data?.message || 'Failed to delete block');
+      showToast(err?.response?.data?.message || 'Failed to delete feature');
     }
+  };
+
+  const moveBlock = async (id, direction) => {
+    // This would require backend support for reordering, for now just show a message
+    showToast('Reordering will be implemented with backend support');
   };
 
   return (
@@ -172,38 +186,57 @@ export default function AdminContentTab() {
       </div>
 
       <div className="admin-card">
-        <h3>Scrolling Notice Blocks</h3>
+        <h3>Features Bar (Exactly 6 Items)</h3>
+        <div style={{ marginBottom: 12, padding: 8, background: '#f0fdf4', borderRadius: 6, fontSize: '0.85rem', color: '#166534' }}>
+          This bar will display exactly 6 items horizontally on the homepage. Add items below.
+        </div>
         <form onSubmit={addBlock} style={{ marginTop: 10 }}>
           <div className="frow">
-            <div className="fg"><label>Title</label><input required value={blockForm.title} onChange={(e) => setBlockForm({ ...blockForm, title: e.target.value })} placeholder="Enter block title" /></div>
-            <div className="fg"><label>Style</label>
-              <select value={blockForm.style} onChange={(e) => setBlockForm({ ...blockForm, style: e.target.value })}>
-                <option value="info">Info</option><option value="promo">Promo</option><option value="notice">Notice</option><option value="earth">Earth</option>
+            <div className="fg"><label>Title</label><input required value={blockForm.title} onChange={(e) => setBlockForm({ ...blockForm, title: e.target.value })} placeholder="Enter feature title" /></div>
+            <div className="fg"><label>Icon</label>
+              <select value={blockForm.icon} onChange={(e) => setBlockForm({ ...blockForm, icon: e.target.value })}>
+                <option value="">Select icon...</option>
+                <option value="🌿">🌿 Nature</option>
+                <option value="🥬">🥬 Fresh</option>
+                <option value="🐄">🐄 Cow</option>
+                <option value="🏡">🏡 Home</option>
+                <option value="❤️">❤️ Trusted</option>
+                <option value="🚫">🚫 No Preservatives</option>
+                <option value="🚚">🚚 Direct Delivery</option>
+                <option value="✅">✅ Organic</option>
+                <option value="💚">💚 Healthy</option>
+                <option value="🌱">🌱 Natural</option>
+                <option value="custom">Custom URL...</option>
               </select>
             </div>
           </div>
-          <div className="fg"><label>Content</label><textarea required value={blockForm.content} onChange={(e) => setBlockForm({ ...blockForm, content: e.target.value })} placeholder="Enter scrolling notice content" /></div>
-          <button className="btn btn-primary">Add Block</button>
+          {blockForm.icon === 'custom' && (
+            <div className="fg"><label>Custom Icon URL</label><input value={blockForm.customIcon || ''} onChange={(e) => setBlockForm({ ...blockForm, customIcon: e.target.value })} placeholder="Enter icon URL" /></div>
+          )}
+          <button className="btn btn-primary" disabled={blocks.length >= 6}>{blocks.length >= 6 ? 'Maximum 6 items reached' : 'Add Feature'}</button>
         </form>
         {blocks.length > 0 && (
           <table className="data-table" style={{ marginTop: 12 }}>
             <thead>
-              <tr><th>Title</th><th>Style</th><th>Content</th><th>Action</th></tr>
+              <tr><th>Icon</th><th>Title</th><th>Action</th></tr>
             </thead>
             <tbody>
-              {blocks.map((b) => (
+              {blocks.map((b, index) => (
                 <tr key={b.id}>
+                  <td style={{ fontSize: '1.2rem' }}>{b.icon}</td>
                   <td>{b.title}</td>
-                  <td>{b.style}</td>
-                  <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.content}</td>
-                  <td><button className="btn-d" onClick={() => removeBlock(b.id)}>Delete</button></td>
+                  <td>
+                    <button className="btn-d" onClick={() => removeBlock(b.id)}>Delete</button>
+                    {index > 0 && <button className="btn btn-secondary" style={{ marginLeft: 8, fontSize: '0.8rem' }} onClick={() => moveBlock(b.id, -1)}>↑</button>}
+                    {index < blocks.length - 1 && <button className="btn btn-secondary" style={{ marginLeft: 8, fontSize: '0.8rem' }} onClick={() => moveBlock(b.id, 1)}>↓</button>}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
         {blocks.length === 0 && (
-          <p style={{ color: 'var(--muted)', textAlign: 'center', marginTop: 12 }}>No scrolling notice blocks added yet.</p>
+          <p style={{ color: 'var(--muted)', textAlign: 'center', marginTop: 12 }}>No features added yet. Add up to 6 items.</p>
         )}
       </div>
     </div>
