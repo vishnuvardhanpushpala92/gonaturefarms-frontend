@@ -133,7 +133,22 @@ export default function AdminSettingsTab() {
                 <input value={form[key] || ''} onChange={(e) => setForm({ ...form, [key]: e.target.value })} />
               )}
               {(key === 'qr_code' || key === 'footer_bg_image') && (
-                <input type="file" accept="image/*" disabled={uploading} onChange={(e) => uploadImage(e, key)} style={{ marginTop: 6 }} />
+                <div style={{ marginTop: 6 }}>
+                  <input type="file" accept="image/*" disabled={uploading} onChange={(e) => uploadImage(e, key)} />
+                  {form[key] && (
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      onClick={() => {
+                        setForm(prev => ({ ...prev, [key]: '' }));
+                        showToast(`${key === 'qr_code' ? 'QR Code' : 'Footer background image'} removed`);
+                      }}
+                      style={{ marginTop: 8, fontSize: '.85rem', padding: '6px 12px' }}
+                    >
+                      Remove {key === 'qr_code' ? 'QR Code' : 'Image'}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           ))}

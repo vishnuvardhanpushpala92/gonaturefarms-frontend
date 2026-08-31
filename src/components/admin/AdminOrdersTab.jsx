@@ -23,6 +23,7 @@ export default function AdminOrdersTab() {
   const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [expanded, setExpanded] = useState(null);
+  const [refundForm, setRefundForm] = useState({});
 
   const load = () => {
     api.get('/admin/orders', { params: { status: statusFilter || undefined } })
@@ -61,6 +62,32 @@ export default function AdminOrdersTab() {
       load();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to delete orders');
+    }
+  };
+
+  const processRefund = async (orderId) => {
+    const form = refundForm[orderId] || {};
+    if (!form.returnStatus) {
+      showToast('Please select a refund status');
+      return;
+    }
+
+    if ((form.returnStatus === 'Approved' || form.returnStatus === 'PartialRefund') && !form.refundAmount) {
+      showToast('Please enter refund amount');
+      return;
+    }
+
+    try {
+      const { data } = await api.put(`/orders/${orderId}/refund`, {
+        returnStatus: form.returnStatus,
+        refundAmount: form.refundAmount,
+        refundNotes: form.refundNotes
+      });
+      showToast(data.message || 'Refund processed successfully');
+      setRefundForm(prev => ({ ...prev, [orderId]: {} }));
+      load();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to process refund');
     }
   };
 
@@ -175,16 +202,123 @@ export default function AdminOrdersTab() {
                     )}
                     
                     {o.paymentVerified && (
-                      <div style={{ 
-                        marginTop: 12, 
-                        padding: 8, 
-                        background: '#f0fdf4', 
-                        border: '1px solid #86efac', 
+                      <div style={{
+                        marginTop: 12,
+                        padding: 8,
+                        background: '#f0fdf4',
+                        border: '1px solid #86efac',
                         borderRadius: 8,
                         fontSize: '.85rem',
                         color: '#166534'
                       }}>
                         ✓ Payment verified by admin
+                      </div>
+                    )}
+
+                    {/* Return/Refund Section */}
+                    {o.returnRequested && (
+                      <div style={{
+                        marginTop: 16,
+                        padding: 16,
+                        background: '#fef3c7',
+                        border: '1px solid #fbbf24',
+                        borderRadius: 8
+                      }}>
+                        <h4 style={{ marginBottom: 12, color: '#92400e' }}>🔄 Return Request</h4>
+                        <div style={{ marginBottom: 8 }}>
+                          <strong>Return Reason:</strong> {o.returnReason || 'Not provided'}
+                        </div>
+                        <div style={{ marginBottom: 8 }}>
+                          <strong>Requested At:</strong> {o.returnRequestedAt ? new Date(o.returnRequestedAt).toLocaleString() : 'N/A'}
+                        </div>
+                        <div style={{ marginBottom: 12 }}>
+                          <strong>Current Status:</strong>
+                          <span style={{
+                            padding: '4px 8px',
+                            borderRadius: 4,
+                            fontSize: '.75rem',
+                            marginLeft: 8,
+                            background: o.returnStatus === 'Pending' ? '#fffbeb' : o.returnStatus === 'Approved' ? '#f0fdf4' : o.returnStatus === 'Rejected' ? '#fef2f2' : '#dbeafe',
+                            color: o.returnStatus === 'Pending' ? '#92400e' : o.returnStatus === 'Approved' ? '#166534' : o.returnStatus === 'Rejected' ? '#dc2626' : '#1e40af'
+                          }}>
+                            {o.returnStatus}
+                          </span>
+                        </div>
+
+                        {o.returnStatus === 'Pending' && (
+                          <div style={{ marginTop: 12 }}>
+                            <h5 style={{ marginBottom: 8 }}>Process Refund</h5>
+                            <div className="fg" style={{ marginBottom: 8 }}>
+                              <label>Refund Decision</label>
+                              <select
+                                value={refundForm[o.orderId]?.returnStatus || ''}
+                                onChange={(e) => setRefundForm(prev => ({
+                                  ...prev,
+                                  [o.orderId]: { ...prev[o.orderId], returnStatus: e.target.value }
+                                }))}
+                              >
+                                <option value="">Select action...</option>
+                                <option value="Approved">Full Refund</option>
+                                <option value="PartialRefund">Partial Refund</option>
+                                <option value="Rejected">Reject Return</option>
+                              </select>
+                            </div>
+
+                            {(refundForm[o.orderId]?.returnStatus === 'Approved' || refundForm[o.orderId]?.returnStatus === 'PartialRefund') && (
+                              <div className="fg" style={{ marginBottom: 8 }}>
+                                <label>Refund Amount (₹)</label>
+                                <input
+                                  type="number"
+                                  value={refundForm[o.orderId]?.refundAmount || o.total}
+                                  onChange={(e) => setRefundForm(prev => ({
+                                    ...prev,
+                                    [o.orderId]: { ...prev[o.orderId], refundAmount: parseFloat(e.target.value) }
+                                  }))}
+                                  placeholder="Enter refund amount"
+                                />
+                              </div>
+                            )}
+
+                            <div className="fg" style={{ marginBottom: 12 }}>
+                              <label>Refund Notes (optional)</label>
+                              <textarea
+                                rows={2}
+                                value={refundForm[o.orderId]?.refundNotes || ''}
+                                onChange={(e) => setRefundForm(prev => ({
+                                  ...prev,
+                                  [o.orderId]: { ...prev[o.orderId], refundNotes: e.target.value }
+                                }))}
+                                placeholder="Add notes about this refund..."
+                              />
+                            </div>
+
+                            <button
+                              className="btn btn-primary"
+                              onClick={() => processRefund(o.orderId)}
+                              style={{ background: '#16a34a' }}
+                            >
+                              Process Refund
+                            </button>
+                          </div>
+                        )}
+
+                        {o.returnStatus !== 'Pending' && (
+                          <div style={{ marginTop: 12 }}>
+                            <div style={{ marginBottom: 4 }}>
+                              <strong>Processed At:</strong> {o.returnProcessedAt ? new Date(o.returnProcessedAt).toLocaleString() : 'N/A'}
+                            </div>
+                            {o.refundAmount && (
+                              <div style={{ marginBottom: 4 }}>
+                                <strong>Refund Amount:</strong> ₹{o.refundAmount}
+                              </div>
+                            )}
+                            {o.refundNotes && (
+                              <div style={{ marginBottom: 4 }}>
+                                <strong>Refund Notes:</strong> {o.refundNotes}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </td>

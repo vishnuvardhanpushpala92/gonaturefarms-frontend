@@ -152,7 +152,7 @@ export default function AdminWhatsAppTab() {
               const selectedProduct = products.find(p => p.id === parseInt(e.target.value));
               setForm({ ...form, productId: e.target.value });
               if (selectedProduct) {
-                const productInfo = `\n\n📦 Product: ${selectedProduct.name}\n💰 Price: ₹${selectedProduct.price}\n${selectedProduct.description ? `📝 ${selectedProduct.description}` : ''}${selectedProduct.imgUrl ? `\n🖼 Image: ${selectedProduct.imgUrl}` : ''}`;
+                const productInfo = `\n\n📦 Product: ${selectedProduct.name}\n💰 Price: ₹${selectedProduct.price}\n${selectedProduct.mrp ? `💰 MRP: ₹${selectedProduct.mrp}` : ''}\n${selectedProduct.gst ? `🧾 GST: ${selectedProduct.gst}%` : ''}\n${selectedProduct.description ? `📝 ${selectedProduct.description}` : ''}${selectedProduct.imgUrl ? `\n🖼 Image: ${selectedProduct.imgUrl}` : ''}`;
                 setForm(prev => ({ ...prev, message: prev.message + productInfo }));
               }
             }}>
@@ -163,14 +163,50 @@ export default function AdminWhatsAppTab() {
             </select>
             {form.productId && (() => {
               const selectedProduct = products.find(p => p.id === parseInt(form.productId));
-              return selectedProduct && selectedProduct.imgUrl ? (
-                <div style={{ marginTop: 8 }}>
-                  <img
-                    src={selectedProduct.imgUrl}
-                    alt={selectedProduct.name}
-                    style={{ maxWidth: 100, maxHeight: 100, objectFit: 'contain', borderRadius: 8 }}
-                  />
-                  <span style={{ fontSize: '.7rem', color: 'var(--muted)', marginLeft: 8 }}>Product image will be included in message</span>
+              return selectedProduct ? (
+                <div style={{ marginTop: 12, padding: 12, background: '#f9fafb', borderRadius: 8, border: '1px solid var(--border)' }}>
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '0.9rem' }}>Selected Product Details</h4>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    {selectedProduct.imgUrl && (
+                      <img
+                        src={selectedProduct.imgUrl}
+                        alt={selectedProduct.name}
+                        style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--border)' }}
+                      />
+                    )}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: 4 }}>{selectedProduct.name}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: 2 }}>
+                        Price: ₹{selectedProduct.price} {selectedProduct.mrp && <span style={{ textDecoration: 'line-through', color: '#9ca3af', marginLeft: 8 }}>MRP: ₹{selectedProduct.mrp}</span>}
+                      </div>
+                      {selectedProduct.gst && <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: 2 }}>GST: {selectedProduct.gst}%</div>}
+                      {selectedProduct.category && <div style={{ fontSize: '.75rem', color: 'var(--muted)' }}>Category: {selectedProduct.category}</div>}
+                      {selectedProduct.hsn && <div style={{ fontSize: '.75rem', color: 'var(--muted)' }}>HSN: {selectedProduct.hsn}</div>}
+                      {selectedProduct.description && (
+                        <div style={{ fontSize: '.8rem', marginTop: 4, lineHeight: 1.4 }}>
+                          {selectedProduct.description}
+                        </div>
+                      )}
+                      {selectedProduct.variants && selectedProduct.variants.length > 0 && (
+                        <div style={{ marginTop: 8 }}>
+                          <div style={{ fontSize: '.75rem', fontWeight: 600, marginBottom: 4 }}>Available Variants:</div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                            {selectedProduct.variants.map(v => (
+                              <span key={v.id} style={{ 
+                                fontSize: '.7rem', 
+                                background: '#e0f2fe', 
+                                color: '#0369a1', 
+                                padding: '2px 6px', 
+                                borderRadius: 4 
+                              }}>
+                                {v.variantName}: ₹{v.price}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ) : null;
             })()}

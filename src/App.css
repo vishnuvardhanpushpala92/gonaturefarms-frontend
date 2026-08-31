@@ -154,6 +154,14 @@ body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);overflo
   .trust-grid{grid-template-columns:repeat(2,1fr);}
   .chat-window{width:calc(100vw - 32px);right:16px;}
   #futureGrid{grid-template-columns:1fr!important;}
+
+  /* Mobile Navigation */
+  .mobile-menu-btn{display:block !important;}
+  .nav-right{display:none;}
+  .search-wrap input{width:100%;}
+  header{padding:0 16px;}
+  .brand img{height:40px;}
+  .brand-text h1{font-size:1.2rem;}
 }
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px;}
 a{text-decoration:none;color:inherit;}

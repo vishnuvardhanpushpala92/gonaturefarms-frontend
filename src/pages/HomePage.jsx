@@ -91,13 +91,19 @@ export default function HomePage() {
         blinkLogin={blinkLogin}
         blinkCart={blinkCart}
       />
-      <HeroSlider />
-      <PromoStrip />
-      <TrustBadges />
-      <ProductGrid search={search} onOpenReviews={setReviewProduct} />
+      <div id="top">
+        <HeroSlider />
+        <PromoStrip />
+        <TrustBadges />
+      </div>
+      <div id="products">
+        <ProductGrid search={search} onOpenReviews={setReviewProduct} />
+      </div>
       <VideoGallery />
       <Testimonials />
-      <FaqSection />
+      <div id="about">
+        <FaqSection />
+      </div>
       <Footer onOpenSupport={() => setSupportOpen(true)} />
 
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }} />
