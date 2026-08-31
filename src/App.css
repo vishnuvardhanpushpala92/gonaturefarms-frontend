@@ -230,7 +230,7 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:900;b
 
 /* ── SECTION WRAPPER ────────────────────────────────────────── */
 .section{max-width:1240px;margin:0 auto;padding:16px 24px;}
-.section.first-section{padding-top:16px;}
+.section.first-section{padding-top:0;}
 .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;}
 .section-head h2{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--p);}
 .section-head h2 span{display:block;width:40px;height:3px;background:var(--accent);border-radius:2px;margin-top:6px;}

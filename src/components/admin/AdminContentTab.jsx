@@ -11,7 +11,8 @@ export default function AdminContentTab() {
   const [slideForm, setSlideForm] = useState({ imageUrl: '', caption: '', subText: '' });
   const [faqForm, setFaqForm] = useState({ question: '', answer: '' });
   const [zoneForm, setZoneForm] = useState({ pincode: '', area: '', city: '', state: '', charge: '' });
-  const [blockForm, setBlockForm] = useState({ title: '', content: '', icon: '', customIcon: '', style: 'info' });
+  const [blockForm, setBlockForm] = useState({ title: '', content: '', icon: '', customIcon: '', style: 'info', backgroundColor: '#f8fafb', textColor: '#2d5a27' });
+  const [editingBlock, setEditingBlock] = useState(null);
 
   const addSlide = async (e) => {
     e.preventDefault();
@@ -96,18 +97,74 @@ export default function AdminContentTab() {
         title: blockForm.title,
         content: blockForm.title, // For features, content is same as title
         icon: iconValue,
-        style: 'info'
+        style: 'info',
+        backgroundColor: blockForm.backgroundColor,
+        textColor: blockForm.textColor
       };
       
       const { data } = await api.post('/admin/scroll-content', payload);
       showToast(data.message || 'Feature added successfully');
       if (data.success) { 
-        setBlockForm({ title: '', content: '', icon: '', customIcon: '', style: 'info' }); 
+        setBlockForm({ title: '', content: '', icon: '', customIcon: '', style: 'info', backgroundColor: '#f8fafb', textColor: '#2d5a27' }); 
         reload(); 
       }
     } catch (err) {
       showToast(err?.userMessage || err?.response?.data?.message || 'Failed to add feature');
     }
+  };
+
+  const editBlock = async (e) => {
+    e.preventDefault();
+    
+    if (!editingBlock) return;
+    
+    // Validate form before submission
+    if (!blockForm.title?.trim()) {
+      showToast('Please enter a title for the feature');
+      return;
+    }
+    
+    // Set default icon if none selected
+    const iconValue = blockForm.icon === 'custom' ? (blockForm.customIcon || '🌿') : (blockForm.icon || '🌿');
+    
+    try {
+      const payload = {
+        title: blockForm.title,
+        content: blockForm.title,
+        icon: iconValue,
+        style: 'info',
+        backgroundColor: blockForm.backgroundColor,
+        textColor: blockForm.textColor
+      };
+      
+      const { data } = await api.put(`/admin/scroll-content/${editingBlock.id}`, payload);
+      showToast(data.message || 'Feature updated successfully');
+      if (data.success) { 
+        setEditingBlock(null);
+        setBlockForm({ title: '', content: '', icon: '', customIcon: '', style: 'info', backgroundColor: '#f8fafb', textColor: '#2d5a27' }); 
+        reload(); 
+      }
+    } catch (err) {
+      showToast(err?.userMessage || err?.response?.data?.message || 'Failed to update feature');
+    }
+  };
+
+  const startEdit = (block) => {
+    setEditingBlock(block);
+    setBlockForm({
+      title: block.title,
+      content: block.content,
+      icon: block.icon,
+      customIcon: '',
+      style: block.style,
+      backgroundColor: block.backgroundColor || '#f8fafb',
+      textColor: block.textColor || '#2d5a27'
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingBlock(null);
+    setBlockForm({ title: '', content: '', icon: '', customIcon: '', style: 'info', backgroundColor: '#f8fafb', textColor: '#2d5a27' });
   };
   const removeBlock = async (id) => {
     if (!window.confirm('Delete this feature?')) return;
@@ -190,7 +247,7 @@ export default function AdminContentTab() {
         <div style={{ marginBottom: 12, padding: 8, background: '#f0fdf4', borderRadius: 6, fontSize: '0.85rem', color: '#166534' }}>
           This bar will display exactly 6 items horizontally on the homepage. Add items below.
         </div>
-        <form onSubmit={addBlock} style={{ marginTop: 10 }}>
+        <form onSubmit={editingBlock ? editBlock : addBlock} style={{ marginTop: 10 }}>
           <div className="frow">
             <div className="fg"><label>Title</label><input required value={blockForm.title} onChange={(e) => setBlockForm({ ...blockForm, title: e.target.value })} placeholder="Enter feature title" /></div>
             <div className="fg"><label>Icon</label>
@@ -213,12 +270,57 @@ export default function AdminContentTab() {
           {blockForm.icon === 'custom' && (
             <div className="fg"><label>Custom Icon URL</label><input value={blockForm.customIcon || ''} onChange={(e) => setBlockForm({ ...blockForm, customIcon: e.target.value })} placeholder="Enter icon URL" /></div>
           )}
-          <button className="btn btn-primary" disabled={blocks.length >= 6}>{blocks.length >= 6 ? 'Maximum 6 items reached' : 'Add Feature'}</button>
+          <div className="frow">
+            <div className="fg">
+              <label>Background Color</label>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input 
+                  type="color" 
+                  value={blockForm.backgroundColor} 
+                  onChange={(e) => setBlockForm({ ...blockForm, backgroundColor: e.target.value })}
+                  style={{ width: 50, height: 38, cursor: 'pointer' }}
+                />
+                <input 
+                  type="text" 
+                  value={blockForm.backgroundColor} 
+                  onChange={(e) => setBlockForm({ ...blockForm, backgroundColor: e.target.value })}
+                  placeholder="#f8fafb"
+                  style={{ flex: 1 }}
+                />
+              </div>
+            </div>
+            <div className="fg">
+              <label>Text Color</label>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input 
+                  type="color" 
+                  value={blockForm.textColor} 
+                  onChange={(e) => setBlockForm({ ...blockForm, textColor: e.target.value })}
+                  style={{ width: 50, height: 38, cursor: 'pointer' }}
+                />
+                <input 
+                  type="text" 
+                  value={blockForm.textColor} 
+                  onChange={(e) => setBlockForm({ ...blockForm, textColor: e.target.value })}
+                  placeholder="#2d5a27"
+                  style={{ flex: 1 }}
+                />
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-primary" disabled={blocks.length >= 6 && !editingBlock}>
+              {editingBlock ? 'Update Feature' : (blocks.length >= 6 ? 'Maximum 6 items reached' : 'Add Feature')}
+            </button>
+            {editingBlock && (
+              <button type="button" className="btn btn-secondary" onClick={cancelEdit}>Cancel</button>
+            )}
+          </div>
         </form>
         {blocks.length > 0 && (
           <table className="data-table" style={{ marginTop: 12 }}>
             <thead>
-              <tr><th>Icon</th><th>Title</th><th>Action</th></tr>
+              <tr><th>Icon</th><th>Title</th><th>Background</th><th>Action</th></tr>
             </thead>
             <tbody>
               {blocks.map((b, index) => (
@@ -226,6 +328,13 @@ export default function AdminContentTab() {
                   <td style={{ fontSize: '1.2rem' }}>{b.icon}</td>
                   <td>{b.title}</td>
                   <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 24, height: 24, borderRadius: 4, backgroundColor: b.backgroundColor || '#f8fafb', border: '1px solid #ddd' }}></div>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>{b.backgroundColor || '#f8fafb'}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <button className="btn btn-secondary" style={{ marginRight: 8, fontSize: '0.8rem' }} onClick={() => startEdit(b)}>Edit</button>
                     <button className="btn-d" onClick={() => removeBlock(b.id)}>Delete</button>
                     {index > 0 && <button className="btn btn-secondary" style={{ marginLeft: 8, fontSize: '0.8rem' }} onClick={() => moveBlock(b.id, -1)}>↑</button>}
                     {index < blocks.length - 1 && <button className="btn btn-secondary" style={{ marginLeft: 8, fontSize: '0.8rem' }} onClick={() => moveBlock(b.id, 1)}>↓</button>}

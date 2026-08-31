@@ -9,12 +9,18 @@ export default function ScrollingBlocks() {
   // Limit to 6 items and use only the first 6
   const displayBlocks = blocks.slice(0, 6);
 
+  // Get background color from first block or use default light color
+  const backgroundColor = displayBlocks[0]?.backgroundColor || '#f8fafb';
+  // Get text color from first block or use default green
+  const textColor = displayBlocks[0]?.textColor || '#2d5a27';
+
   return (
     <div style={{
-      background: '#ffffff',
+      background: backgroundColor,
       padding: '15px 20px',
       borderBottom: '1px solid #e5e7eb',
-      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+      margin: '0'
     }}>
       <div style={{
         display: 'flex',
@@ -30,7 +36,7 @@ export default function ScrollingBlocks() {
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
-              color: '#2d5a27',
+              color: textColor,
               fontSize: '0.9rem',
               fontWeight: '500',
               padding: '0 15px',
