@@ -94,7 +94,6 @@ export default function HomePage() {
       />
       <div id="top">
         <HeroSlider />
-        <PromoStrip />
         <ScrollingBlocks />
         <TrustBadges />
       </div>
