@@ -210,7 +210,7 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:900;b
 }
 
 /* ── HERO SLIDER ────────────────────────────────────────────── */
-.slider-wrap{position:relative;height:min(600px,50vh);min-height:350px;overflow:hidden;background:#1a2e17;}
+.slider-wrap{position:relative;height:min(600px,50vh);min-height:350px;overflow:hidden;background:#1a2e17;margin-bottom:0;}
 .slide{position:absolute;inset:0;opacity:0;transition:opacity 1s ease;background-size:cover;background-position:center;}
 .slide.active{opacity:1;}
 .slide-mask{position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,.55) 0%,rgba(0,0,0,.15) 60%,transparent 100%);}
