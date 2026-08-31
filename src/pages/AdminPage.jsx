@@ -42,9 +42,6 @@ export default function AdminPage() {
   const [tab, setTab] = useState('analytics');
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [pendingCount, setPendingCount] = useState(0);
-  const [committing, setCommitting] = useState(false);
-  const [hasUncommittedChanges, setHasUncommittedChanges] = useState(false);
 
   // ✅ FIX: Force re-render when admin logs out
   useEffect(() => {
@@ -55,11 +52,7 @@ export default function AdminPage() {
 
   // Force logout when admin closes the window or navigates away
   useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      if (isAdmin && hasUncommittedChanges) {
-        e.preventDefault();
-        e.returnValue = 'You have uncommitted changes. Are you sure you want to leave?';
-      }
+    const handleBeforeUnload = () => {
       if (isAdmin) {
         logout();
       }
@@ -78,29 +71,7 @@ export default function AdminPage() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isAdmin, logout, hasUncommittedChanges]);
-
-  // Fetch pending changes count
-  useEffect(() => {
-    if (!isAdmin) return;
-
-    const fetchPendingCount = async () => {
-      try {
-        const { data } = await api.post('/admin/commit/pending-count');
-        if (data.success) {
-          setPendingCount(data.count);
-          setHasUncommittedChanges(data.count > 0);
-        }
-      } catch (err) {
-        console.error('Failed to fetch pending count:', err);
-      }
-    };
-
-    fetchPendingCount();
-    // Poll every 30 seconds
-    const interval = setInterval(fetchPendingCount, 30000);
-    return () => clearInterval(interval);
-  }, [isAdmin]);
+  }, [isAdmin, logout]);
 
   if (!isAdmin) {
     const handleLogin = async (e) => {
@@ -146,53 +117,12 @@ export default function AdminPage() {
     );
   }
 
-  const handleCommit = async () => {
-    if (!window.confirm('Are you sure you want to commit all pending changes? This will make them visible to all users.')) {
-      return;
-    }
-
-    setCommitting(true);
-    try {
-      const { data } = await api.post('/admin/commit');
-      if (data.success) {
-        showToast(`Changes committed successfully! ${data.details.total} items updated.`);
-        setPendingCount(0);
-        setHasUncommittedChanges(false);
-        // Reload the current tab to show committed changes
-        window.location.reload();
-      } else {
-        showToast(data.message || 'Failed to commit changes');
-      }
-    } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to commit changes');
-    } finally {
-      setCommitting(false);
-    }
-  };
-
   return (
     <div className="admin-shell">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
         <h2>Admin Dashboard</h2>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <span style={{ alignSelf: 'center', fontSize: '.82rem', color: 'var(--muted)' }}>Hi, {user?.name}</span>
-          {pendingCount > 0 && (
-            <button
-              className="btn btn-primary"
-              onClick={handleCommit}
-              disabled={committing}
-              style={{
-                backgroundColor: 'var(--accent)',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: 'var(--r-pill)',
-                cursor: committing ? 'not-allowed' : 'pointer',
-                opacity: committing ? 0.6 : 1
-              }}
-            >
-              {committing ? 'Committing...' : `Commit Changes (${pendingCount})`}
-            </button>
-          )}
           <button className="btn btn-secondary" onClick={() => navigate('/')}>View Store</button>
           <button className="btn btn-danger" onClick={logout}>Logout</button>
         </div>

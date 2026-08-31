@@ -6,6 +6,8 @@ import { useToast } from '../../context/ToastContext.jsx';
 export default function AdminAnalyticsTab() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [committing, setCommitting] = useState(false);
   const showToast = useToast();
 
   const loadAnalytics = async () => {
@@ -23,6 +25,48 @@ export default function AdminAnalyticsTab() {
   useEffect(() => {
     loadAnalytics();
   }, []);
+
+  // Fetch pending changes count
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const { data } = await api.post('/admin/commit/pending-count');
+        if (data.success) {
+          setPendingCount(data.count);
+        }
+      } catch (err) {
+        console.error('Failed to fetch pending count:', err);
+      }
+    };
+
+    fetchPendingCount();
+    // Poll every 30 seconds
+    const interval = setInterval(fetchPendingCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleCommit = async () => {
+    if (!window.confirm('Are you sure you want to commit all pending changes? This will make them visible to all users.')) {
+      return;
+    }
+
+    setCommitting(true);
+    try {
+      const { data } = await api.post('/admin/commit');
+      if (data.success) {
+        showToast(`Changes committed successfully! ${data.details.total} items updated.`);
+        setPendingCount(0);
+        // Reload the page to show committed changes
+        window.location.reload();
+      } else {
+        showToast(data.message || 'Failed to commit changes');
+      }
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to commit changes');
+    } finally {
+      setCommitting(false);
+    }
+  };
 
   const clearDashboard = () => {
     if (!window.confirm('Are you sure you want to clear the dashboard view? This will reset the displayed data.')) {
@@ -64,7 +108,22 @@ export default function AdminAnalyticsTab() {
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
+      <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
+        <button
+          className="btn btn-primary"
+          onClick={handleCommit}
+          disabled={committing}
+          style={{
+            backgroundColor: 'var(--accent)',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: 'var(--r-pill)',
+            cursor: committing ? 'not-allowed' : 'pointer',
+            opacity: committing ? 0.6 : 1
+          }}
+        >
+          {committing ? 'Committing...' : `Commit Changes (${pendingCount})`}
+        </button>
         <button className="btn btn-danger" onClick={clearDashboard}>Clear Dashboard</button>
         <button className="btn btn-primary" onClick={exportToExcel}>Export to Excel</button>
       </div>
