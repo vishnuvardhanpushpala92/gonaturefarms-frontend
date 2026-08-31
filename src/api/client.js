@@ -51,7 +51,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => {
     if (response.config?.skipTransform) return response;
-    if (response.data && !(response.data instanceof Blob)) {
+    if (response.data && !(response.data instanceof Blob) && !(response.data instanceof ArrayBuffer)) {
       response.data = transformKeys(response.data, snakeToCamel);
     }
     return response;
@@ -106,7 +106,7 @@ api.interceptors.response.use(
       error.userMessage = 'Request failed. Please try again.';
     }
     
-    if (!error.config?.skipTransform && error.response && error.response.data && !(error.response.data instanceof Blob)) {
+    if (!error.config?.skipTransform && error.response && error.response.data && !(error.response.data instanceof Blob) && !(error.response.data instanceof ArrayBuffer)) {
       error.response.data = transformKeys(error.response.data, snakeToCamel);
     }
     return Promise.reject(error);

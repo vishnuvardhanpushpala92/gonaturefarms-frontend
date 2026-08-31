@@ -24,18 +24,36 @@ export default function AdminAnalyticsTab() {
     loadAnalytics();
   }, []);
 
-  const clearDashboard = async () => {
-    if (!window.confirm('Are you sure you want to clear the dashboard view? This will only refresh the analytics data from the database.')) {
+  const clearDashboard = () => {
+    if (!window.confirm('Are you sure you want to clear the dashboard view? This will reset the displayed data.')) {
       return;
     }
+    // Clear local state without making an API call
+    setData(null);
+    showToast('Dashboard cleared. Click refresh to load data again.');
+  };
+
+  const exportToExcel = async () => {
     try {
-      // Clear local state and reload from database
-      setData(null);
-      showToast('Dashboard cleared. Reloading data...');
-      // Reload analytics after clearing
-      await loadAnalytics();
+      const response = await api.get('/admin/analytics/export', {
+        responseType: 'blob',
+        skipTransform: true,
+        timeout: 60000
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `analytics_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      showToast('Excel export downloaded successfully');
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to reload dashboard');
+      showToast('Failed to export Excel: ' + (err?.message || 'Unknown error'));
     }
   };
 
@@ -46,8 +64,9 @@ export default function AdminAnalyticsTab() {
 
   return (
     <div>
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
         <button className="btn btn-danger" onClick={clearDashboard}>Clear Dashboard</button>
+        <button className="btn btn-primary" onClick={exportToExcel}>Export to Excel</button>
       </div>
       <div className="stat-cards">
         <div className="stat-card"><div className="stat-num">{totals.totalOrders}</div><div className="stat-lbl">Orders</div></div>
