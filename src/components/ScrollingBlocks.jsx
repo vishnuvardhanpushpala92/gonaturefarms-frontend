@@ -8,20 +8,15 @@ export default function ScrollingBlocks() {
 
   return (
     <div style={{
-      background: '#ffffff',
-      padding: '14px 0',
+      background: 'linear-gradient(90deg, #2d5a27 0%, #3a7232 50%, #2d5a27 100%)',
+      padding: '12px 0',
       overflow: 'hidden',
-      borderBottom: '1px solid #e5e7eb',
-      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-      position: 'relative',
-      zIndex: 10,
-      margin: '0'
+      borderBottom: '1px solid #1e3d1a'
     }}>
       <div style={{
         display: 'flex',
-        animation: 'scrollLeft 25s linear infinite',
-        whiteSpace: 'nowrap',
-        alignItems: 'center'
+        animation: 'scrollLeft 20s linear infinite',
+        whiteSpace: 'nowrap'
       }}>
         {[...blocks, ...blocks].map((block, index) => (
           <div
@@ -29,42 +24,23 @@ export default function ScrollingBlocks() {
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '12px',
-              padding: '0 32px',
-              color: '#2d5a27',
+              gap: '8px',
+              padding: '0 40px',
+              color: '#fff',
               fontSize: '0.9rem',
-              fontWeight: '500',
-              letterSpacing: '0.2px'
+              fontWeight: '500'
             }}
           >
-            <span style={{
-              fontSize: '1rem',
-              color: '#2d5a27',
-              display: 'flex',
-              alignItems: 'center',
-              minWidth: '16px'
-            }}>
-              {block.icon || '🌿'}
-            </span>
+            {block.icon && <span style={{ fontSize: '1.2rem' }}>{block.icon}</span>}
             <span style={{
               padding: '4px 12px',
-              borderRadius: '16px',
-              background: '#f0fdf4',
-              border: '1px solid #bbf7d0',
-              display: 'inline-block',
-              whiteSpace: 'nowrap',
-              fontWeight: '600',
-              color: '#2d5a27'
+              borderRadius: '20px',
+              background: getBlockStyle(block.style),
+              display: 'inline-block'
             }}>
               {block.title}
             </span>
-            <span style={{
-              color: '#1f2937',
-              fontSize: '0.85rem',
-              whiteSpace: 'nowrap'
-            }}>
-              {block.content}
-            </span>
+            <span>{block.content}</span>
           </div>
         ))}
       </div>
@@ -73,15 +49,17 @@ export default function ScrollingBlocks() {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }
         }
-        
-        @media (max-width: 768px) {
-          div > div {
-            padding: 0 20px;
-            font-size: 0.8rem;
-            gap: 8px;
-          }
-        }
       `}</style>
     </div>
   );
+}
+
+function getBlockStyle(style) {
+  const styles = {
+    info: 'rgba(59, 130, 246, 0.3)',
+    promo: 'rgba(245, 158, 11, 0.3)',
+    notice: 'rgba(239, 68, 68, 0.3)',
+    earth: 'rgba(139, 92, 246, 0.3)'
+  };
+  return styles[style] || styles.info;
 }
