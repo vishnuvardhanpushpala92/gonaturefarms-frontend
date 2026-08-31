@@ -44,31 +44,13 @@ export default function CheckoutModal({ open, onClose }) {
     }
   }, [open, user]);
 
-  useEffect(() => {
-    // Auto-show address form if no addresses exist
-    if (open && addresses.length === 0) {
-      setShowAddressForm(true);
-    }
-  }, [open, addresses.length]);
-
   const loadAddresses = async () => {
     try {
       const { data } = await api.get('/addresses');
       if (data.success) {
         setAddresses(data.addresses || []);
-        const defaultAddr = data.addresses?.find(a => a.isDefault);
-        if (defaultAddr) {
-          setSelectedAddressId(defaultAddr.id);
-          setForm({
-            ...form,
-            customerName: defaultAddr.name,
-            phone: defaultAddr.phone,
-            address: defaultAddr.addressLine,
-            city: defaultAddr.city,
-            state: defaultAddr.state,
-            pincode: defaultAddr.pincode
-          });
-        }
+        // Don't auto-select any address - user must manually select
+        setSelectedAddressId(null);
       }
     } catch (err) {
       console.error('Failed to load addresses:', err);
@@ -86,6 +68,8 @@ export default function CheckoutModal({ open, onClose }) {
       state: address.state,
       pincode: address.pincode
     });
+    // Close address form if open
+    setShowAddressForm(false);
   };
 
   const saveAddress = async (e) => {
@@ -337,13 +321,14 @@ export default function CheckoutModal({ open, onClose }) {
       {step === 1 && (
         <form onSubmit={(e) => {
           e.preventDefault();
-          // Validate address selection or manual entry
-          if (addresses.length > 0 && !selectedAddressId) {
-            showToast('Please select a saved address or add a new address');
+          // Require address selection when addresses exist
+          if (addresses.length > 0 && !selectedAddressId && !showAddressForm) {
+            showToast('Please select a saved address or click "Add New Address"');
             return;
           }
-          if (addresses.length === 0 && !form.address?.trim()) {
-            showToast('Please enter your address to proceed');
+          // Require manual address entry when adding new address
+          if (showAddressForm && !form.address?.trim()) {
+            showToast('Please enter your address details');
             return;
           }
           setStep(2);
@@ -406,9 +391,6 @@ export default function CheckoutModal({ open, onClose }) {
 
           <div className="frow"><div className="fg"><label>Name</label><input required value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} /></div><div className="fg"><label>Phone</label><input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div></div>
           <div className="fg"><label>Email (required)</label><input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-          <div className="fg"><label>Address</label><textarea required value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
-          <div className="frow"><div className="fg"><label>Area (optional)</label><input value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} /></div><div className="fg"><label>City</label><input required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></div></div>
-          <div className="frow"><div className="fg"><label>State (required)</label><input required value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} /></div><div className="fg"><label>Pincode</label><input required value={form.pincode} onChange={(e) => { setForm({ ...form, pincode: e.target.value }); validatePincode(e.target.value); }} />{pincodeError && <div style={{ color: '#dc2626', fontSize: '.7rem', marginTop: 4 }}>{pincodeError}</div>}</div></div>
           <button className="btn btn-primary btn-block">Continue to Payment</button>
         </form>
       )}
