@@ -55,10 +55,24 @@ export default function AdminOrdersTab() {
   };
 
   const clearAll = async () => {
-    if (!window.confirm('Delete ALL orders? This cannot be undone.')) return;
+    if (!window.confirm('Delete ALL orders? This will export all orders to Excel before clearing. This cannot be undone.')) return;
     try {
       const { data } = await api.delete('/admin/orders/all');
       showToast(data.message || 'All orders deleted successfully');
+      
+      // Download Excel file if available
+      if (data.excelData) {
+        const blob = new Blob([data.excelData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `orders_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+      
       load();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to delete orders');

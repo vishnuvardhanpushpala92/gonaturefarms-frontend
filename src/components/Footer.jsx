@@ -91,8 +91,6 @@ export default function Footer({ onOpenSupport }) {
             <>
               <a href="#" onClick={(e) => { e.preventDefault(); onOpenSupport(); }}>Contact Support</a>
               <a href="#faq">FAQ</a>
-              <a href="#shipping">Shipping Info</a>
-              <a href="#returns">Returns & Refunds</a>
             </>
           )}
         </div>

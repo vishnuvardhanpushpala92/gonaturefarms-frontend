@@ -22,7 +22,8 @@ export default function AdminFooterTab() {
     imageUrl: '',
     personName: '',
     personRole: '',
-    personImageUrl: ''
+    personImageUrl: '',
+    optionalLink: ''
   });
   const [loadingAboutUs, setLoadingAboutUs] = useState(false);
   const [savingAboutUs, setSavingAboutUs] = useState(false);
@@ -408,6 +409,15 @@ export default function AdminFooterTab() {
               value={aboutUsContent.personImageUrl || ''}
               onChange={(e) => setAboutUsContent({ ...aboutUsContent, personImageUrl: e.target.value })}
               placeholder="https://example.com/person.jpg"
+            />
+          </div>
+          <div className="fg">
+            <label>Optional Link (for image)</label>
+            <input
+              type="text"
+              value={aboutUsContent.optionalLink || ''}
+              onChange={(e) => setAboutUsContent({ ...aboutUsContent, optionalLink: e.target.value })}
+              placeholder="https://example.com/learn-more"
             />
           </div>
           <button className="btn btn-primary" disabled={savingAboutUs}>

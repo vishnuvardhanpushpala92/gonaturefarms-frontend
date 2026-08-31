@@ -54,6 +54,7 @@ export default function AboutUs() {
   const personName = content?.personName || '';
   const personRole = content?.personRole || '';
   const personImageUrl = content?.personImageUrl || '';
+  const optionalLink = content?.optionalLink || '';
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -94,6 +95,22 @@ export default function AboutUs() {
                 boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
               }}
             />
+            {optionalLink && (
+              <div style={{ marginTop: '16px' }}>
+                <a 
+                  href={optionalLink} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ 
+                    color: 'var(--p)', 
+                    textDecoration: 'underline',
+                    fontSize: '1rem'
+                  }}
+                >
+                  Learn More
+                </a>
+              </div>
+            )}
           </div>
         )}
 
