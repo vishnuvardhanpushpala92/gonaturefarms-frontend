@@ -12,7 +12,7 @@ export default function AuthModal({ open, onClose }) {
   const [forgotOpen, setForgotOpen] = useState(false);
   const [showAddressSetup, setShowAddressSetup] = useState(false);
   const [showAddressManagement, setShowAddressManagement] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
+  const [form, setForm] = useState({ name: '', username: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
   const [addressForm, setAddressForm] = useState({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
   const [addresses, setAddresses] = useState([]);
   const [editingAddressId, setEditingAddressId] = useState(null);
@@ -94,7 +94,7 @@ export default function AuthModal({ open, onClose }) {
     
     try {
       if (isLogin) {
-        const result = await login(form.email || form.phone, form.password);
+        const result = await login(form.username, form.password);
         const userData = result?.user || {};
         showToast(`Welcome back, ${userData.name || 'User'}!`);
         // Don't show address setup on login - address will be auto-loaded
@@ -109,7 +109,7 @@ export default function AuthModal({ open, onClose }) {
           name: userData.name || form.name,
           phone: userData.phone || form.phone
         });
-        setForm({ name: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
+        setForm({ name: '', username: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
         // Small delay to ensure token is fully persisted before showing address setup
         setTimeout(() => {
           setShowAddressSetup(true);
@@ -508,15 +508,21 @@ export default function AuthModal({ open, onClose }) {
           <>
             <form onSubmit={handleSubmit}>
               {!isLogin && (
-                <div className="fg">
-                  <label>Name</label>
-                  <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-                </div>
+                <>
+                  <div className="fg">
+                    <label>Name</label>
+                    <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                  </div>
+                  <div className="fg">
+                    <label>Username</label>
+                    <input required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="Choose a username" />
+                  </div>
+                </>
               )}
               {isLogin ? (
                 <div className="fg">
-                  <label>Username, Phone or Email</label>
-                  <input required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                  <label>Username</label>
+                  <input required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="Enter your username" />
                 </div>
               ) : (
                 <>
