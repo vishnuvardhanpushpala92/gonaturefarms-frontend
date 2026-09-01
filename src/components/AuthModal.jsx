@@ -95,7 +95,8 @@ export default function AuthModal({ open, onClose }) {
     try {
       if (isLogin) {
         const result = await login(form.email || form.phone, form.password);
-        showToast('Login successful');
+        const userData = result?.user || {};
+        showToast(`Welcome back, ${userData.name || 'User'}!`);
         // Don't show address setup on login - address will be auto-loaded
         onClose();
       } else {
