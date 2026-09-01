@@ -21,6 +21,8 @@ export default function CheckoutModal({ open, onClose }) {
   const [addressForm, setAddressForm] = useState({
     addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false
   });
+  const [originalAddressForm, setOriginalAddressForm] = useState(null);
+  const [changeCount, setChangeCount] = useState(0);
   const [form, setForm] = useState({
     customerName: user?.name || '', phone: user?.phone || '', email: user?.email || '',
     address: '', area: '', city: '', state: '', pincode: '', paymentMethod: 'UPI',
@@ -44,13 +46,41 @@ export default function CheckoutModal({ open, onClose }) {
     }
   }, [open, user]);
 
+  useEffect(() => {
+    if (originalAddressForm) {
+      let changes = 0;
+      const fields = ['addressType', 'name', 'addressLine', 'city', 'state', 'pincode', 'phone', 'isDefault'];
+      fields.forEach(field => {
+        if (addressForm[field] !== originalAddressForm[field]) {
+          changes++;
+        }
+      });
+      setChangeCount(changes);
+    }
+  }, [addressForm, originalAddressForm]);
+
   const loadAddresses = async () => {
     try {
       const { data } = await api.get('/addresses');
       if (data.success) {
-        setAddresses(data.addresses || []);
-        // Don't auto-select any address - user must manually select
-        setSelectedAddressId(null);
+        const loadedAddresses = data.addresses || [];
+        setAddresses(loadedAddresses);
+        // Auto-select default address if exists
+        const defaultAddress = loadedAddresses.find(addr => addr.isDefault);
+        if (defaultAddress) {
+          setSelectedAddressId(defaultAddress.id);
+          setForm({
+            ...form,
+            customerName: defaultAddress.name,
+            phone: defaultAddress.phone,
+            address: defaultAddress.addressLine,
+            city: defaultAddress.city,
+            state: defaultAddress.state,
+            pincode: defaultAddress.pincode
+          });
+        } else {
+          setSelectedAddressId(null);
+        }
       }
     } catch (err) {
       console.error('Failed to load addresses:', err);
@@ -86,6 +116,8 @@ export default function CheckoutModal({ open, onClose }) {
         showToast(editingAddressId ? 'Address updated successfully' : 'Address saved successfully');
         setShowAddressForm(false);
         setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
+        setOriginalAddressForm(null);
+        setChangeCount(0);
         setEditingAddressId(null);
         loadAddresses();
       }
@@ -95,7 +127,7 @@ export default function CheckoutModal({ open, onClose }) {
   };
 
   const editAddress = (address) => {
-    setAddressForm({
+    const formCopy = {
       addressType: address.addressType,
       name: address.name,
       addressLine: address.addressLine,
@@ -104,9 +136,12 @@ export default function CheckoutModal({ open, onClose }) {
       pincode: address.pincode,
       phone: address.phone,
       isDefault: address.isDefault
-    });
+    };
+    setAddressForm(formCopy);
+    setOriginalAddressForm(formCopy);
     setEditingAddressId(address.id);
     setShowAddressForm(true);
+    setChangeCount(0);
   };
 
   const deleteAddress = async (id) => {
@@ -126,6 +161,8 @@ export default function CheckoutModal({ open, onClose }) {
   const cancelAddressForm = () => {
     setShowAddressForm(false);
     setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
+    setOriginalAddressForm(null);
+    setChangeCount(0);
     setEditingAddressId(null);
   };
 
@@ -372,7 +409,7 @@ export default function CheckoutModal({ open, onClose }) {
                   </div>
                 ))}
               </div>
-              <button type="button" className="btn btn-secondary" style={{ marginTop: 8, width: '100%' }} onClick={() => { setEditingAddressId(null); setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false }); setShowAddressForm(true); }}>+ Add New Address</button>
+              <button type="button" className="btn btn-secondary" style={{ marginTop: 8, width: '100%' }} onClick={() => { setEditingAddressId(null); setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false }); setOriginalAddressForm(null); setChangeCount(0); setShowAddressForm(true); }}>+ Add New Address</button>
             </div>
           )}
 
@@ -385,7 +422,7 @@ export default function CheckoutModal({ open, onClose }) {
               <div className="frow"><div className="fg"><label>City</label><input required value={addressForm.city} onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} /></div><div className="fg"><label>State</label><input required value={addressForm.state} onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })} /></div></div>
               <div className="frow"><div className="fg"><label>Pincode</label><input required value={addressForm.pincode} onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value })} /></div><div className="fg"><label>Phone</label><input required value={addressForm.phone} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} /></div></div>
               <div className="fg"><label><input type="checkbox" checked={addressForm.isDefault} onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })} style={{ marginRight: 8 }} />Set as default address</label></div>
-              <div style={{ display: 'flex', gap: 8 }}><button type="button" className="btn btn-primary" onClick={saveAddress}>{editingAddressId ? 'Update Address' : 'Save Address'}</button><button type="button" className="btn btn-secondary" onClick={cancelAddressForm}>Cancel</button></div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}><button type="button" className="btn btn-primary" onClick={saveAddress} disabled={editingAddressId && changeCount === 0}>{editingAddressId ? `Commit Changes${changeCount > 0 ? ` (${changeCount})` : ''}` : 'Save Address'}</button><button type="button" className="btn btn-secondary" onClick={cancelAddressForm}>Cancel</button></div>
             </div>
           )}
 

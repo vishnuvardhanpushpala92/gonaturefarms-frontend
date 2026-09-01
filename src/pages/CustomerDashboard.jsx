@@ -34,6 +34,8 @@ export default function CustomerDashboard() {
     addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false
   });
   const [editingAddressId, setEditingAddressId] = useState(null);
+  const [originalAddressForm, setOriginalAddressForm] = useState(null);
+  const [changeCount, setChangeCount] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -46,6 +48,19 @@ export default function CustomerDashboard() {
       loadAddresses();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (originalAddressForm) {
+      let changes = 0;
+      const fields = ['addressType', 'name', 'addressLine', 'city', 'state', 'pincode', 'phone', 'isDefault'];
+      fields.forEach(field => {
+        if (addressForm[field] !== originalAddressForm[field]) {
+          changes++;
+        }
+      });
+      setChangeCount(changes);
+    }
+  }, [addressForm, originalAddressForm]);
 
   const loadAddresses = async () => {
     try {
@@ -83,18 +98,20 @@ export default function CustomerDashboard() {
         ...addressForm,
         isDefault: addresses.length === 0 ? true : addressForm.isDefault
       };
-      
+
       let data;
       if (editingAddressId) {
         data = await api.put(`/addresses/${editingAddressId}`, payload);
       } else {
         data = await api.post('/addresses', payload);
       }
-      
+
       if (data.data.success) {
         showToast(editingAddressId ? 'Address updated successfully' : 'Address saved successfully');
         setShowAddressForm(false);
         setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
+        setOriginalAddressForm(null);
+        setChangeCount(0);
         setEditingAddressId(null);
         loadAddresses();
       }
@@ -104,7 +121,7 @@ export default function CustomerDashboard() {
   };
 
   const editAddress = (address) => {
-    setAddressForm({
+    const formCopy = {
       addressType: address.addressType,
       name: address.name,
       addressLine: address.addressLine,
@@ -113,9 +130,12 @@ export default function CustomerDashboard() {
       pincode: address.pincode,
       phone: address.phone,
       isDefault: address.isDefault
-    });
+    };
+    setAddressForm(formCopy);
+    setOriginalAddressForm(formCopy);
     setEditingAddressId(address.id);
     setShowAddressForm(true);
+    setChangeCount(0);
   };
 
   const deleteAddress = async (id) => {
@@ -142,6 +162,8 @@ export default function CustomerDashboard() {
   const cancelAddressForm = () => {
     setShowAddressForm(false);
     setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
+    setOriginalAddressForm(null);
+    setChangeCount(0);
     setEditingAddressId(null);
   };
 
@@ -258,7 +280,7 @@ export default function CustomerDashboard() {
             <div className="admin-card" style={{ padding: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2>Saved Addresses</h2>
-                <button className="btn btn-primary" onClick={() => setShowAddressForm(true)}>
+                <button className="btn btn-primary" onClick={() => { setEditingAddressId(null); setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false }); setOriginalAddressForm(null); setChangeCount(0); setShowAddressForm(true); }}>
                   + Add New Address
                 </button>
               </div>
@@ -340,9 +362,9 @@ export default function CustomerDashboard() {
                         Set as default address
                       </label>
                     </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button type="submit" className="btn btn-primary">
-                        {editingAddressId ? 'Update Address' : 'Save Address'}
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <button type="submit" className="btn btn-primary" disabled={editingAddressId && changeCount === 0}>
+                        {editingAddressId ? `Commit Changes${changeCount > 0 ? ` (${changeCount})` : ''}` : 'Save Address'}
                       </button>
                       <button type="button" className="btn btn-secondary" onClick={cancelAddressForm}>
                         Cancel

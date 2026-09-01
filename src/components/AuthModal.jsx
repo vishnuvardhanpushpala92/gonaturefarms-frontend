@@ -16,12 +16,27 @@ export default function AuthModal({ open, onClose }) {
   const [addressForm, setAddressForm] = useState({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
   const [addresses, setAddresses] = useState([]);
   const [editingAddressId, setEditingAddressId] = useState(null);
+  const [originalAddressForm, setOriginalAddressForm] = useState(null);
+  const [changeCount, setChangeCount] = useState(0);
 
   useEffect(() => {
     if (isAuthenticated && user) {
       loadAddresses();
     }
   }, [isAuthenticated, user]);
+
+  useEffect(() => {
+    if (originalAddressForm) {
+      let changes = 0;
+      const fields = ['addressType', 'name', 'addressLine', 'city', 'state', 'pincode', 'phone', 'isDefault'];
+      fields.forEach(field => {
+        if (addressForm[field] !== originalAddressForm[field]) {
+          changes++;
+        }
+      });
+      setChangeCount(changes);
+    }
+  }, [addressForm, originalAddressForm]);
 
   const loadAddresses = async () => {
     try {
@@ -81,17 +96,8 @@ export default function AuthModal({ open, onClose }) {
       if (isLogin) {
         const result = await login(form.email || form.phone, form.password);
         showToast('Login successful');
-        // Pre-fill address form with user data from response
-        const userData = result?.user || {};
-        setAddressForm({
-          ...addressForm,
-          name: userData.name || form.name,
-          phone: userData.phone || form.phone
-        });
-        // Small delay to ensure token is fully persisted before showing address setup
-        setTimeout(() => {
-          setShowAddressSetup(true);
-        }, 500);
+        // Don't show address setup on login - address will be auto-loaded
+        onClose();
       } else {
         const result = await register(form);
         showToast('Registration successful');
@@ -180,18 +186,20 @@ export default function AuthModal({ open, onClose }) {
         ...addressForm,
         isDefault: addresses.length === 0 ? true : addressForm.isDefault
       };
-      
+
       let data;
       if (editingAddressId) {
         data = await api.put(`/addresses/${editingAddressId}`, payload);
       } else {
         data = await api.post('/addresses', payload);
       }
-      
+
       if (data.data.success) {
         showToast(editingAddressId ? 'Address updated successfully' : 'Address saved successfully');
         setShowAddressManagement(false);
         setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
+        setOriginalAddressForm(null);
+        setChangeCount(0);
         setEditingAddressId(null);
         loadAddresses();
       }
@@ -201,7 +209,7 @@ export default function AuthModal({ open, onClose }) {
   };
 
   const editAddress = (address) => {
-    setAddressForm({
+    const formCopy = {
       addressType: address.addressType,
       name: address.name,
       addressLine: address.addressLine,
@@ -210,9 +218,12 @@ export default function AuthModal({ open, onClose }) {
       pincode: address.pincode,
       phone: address.phone,
       isDefault: address.isDefault
-    });
+    };
+    setAddressForm(formCopy);
+    setOriginalAddressForm(formCopy);
     setEditingAddressId(address.id);
     setShowAddressManagement(true);
+    setChangeCount(0);
   };
 
   const deleteAddress = async (id) => {
@@ -239,6 +250,8 @@ export default function AuthModal({ open, onClose }) {
   const cancelAddressForm = () => {
     setShowAddressManagement(false);
     setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
+    setOriginalAddressForm(null);
+    setChangeCount(0);
     setEditingAddressId(null);
   };
 
@@ -301,7 +314,7 @@ export default function AuthModal({ open, onClose }) {
               <button className="btn btn-secondary" onClick={() => setShowAddressManagement(false)} style={{ marginBottom: 12 }}>
                 ← Back to Account
               </button>
-              <button className="btn btn-primary" onClick={() => { setEditingAddressId(null); setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false }); }} style={{ float: 'right' }}>
+              <button className="btn btn-primary" onClick={() => { setEditingAddressId(null); setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false }); setOriginalAddressForm(null); setChangeCount(0); }} style={{ float: 'right' }}>
                 + Add New Address
               </button>
             </div>
@@ -383,9 +396,9 @@ export default function AuthModal({ open, onClose }) {
                       Set as default address
                     </label>
                   </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button type="submit" className="btn btn-primary">
-                      {editingAddressId ? 'Update Address' : 'Save Address'}
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <button type="submit" className="btn btn-primary" disabled={editingAddressId && changeCount === 0}>
+                      {editingAddressId ? `Commit Changes${changeCount > 0 ? ` (${changeCount})` : ''}` : 'Save Address'}
                     </button>
                     <button type="button" className="btn btn-secondary" onClick={cancelAddressForm}>
                       Cancel
