@@ -15,9 +15,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <ThemeProvider>
         <ToastProvider>
           <AuthProvider>
-              <App />
             <SiteProvider>
               <CartProvider>
+                <App />
               </CartProvider>
             </SiteProvider>
           </AuthProvider>
