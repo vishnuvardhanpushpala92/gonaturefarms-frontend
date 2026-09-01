@@ -515,7 +515,7 @@ export default function AuthModal({ open, onClose }) {
               )}
               {isLogin ? (
                 <div className="fg">
-                  <label>Email or Phone</label>
+                  <label>Username, Phone or Email</label>
                   <input required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 </div>
               ) : (
