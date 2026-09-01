@@ -94,9 +94,9 @@ export default function AuthModal({ open, onClose }) {
     
     try {
       if (isLogin) {
-        const result = await login(form.username, form.password);
+        const result = await login(form.phone, form.password);
         const userData = result?.user || {};
-        showToast(`Welcome back, ${userData.name || 'User'}!`);
+        showToast(`Welcome back, ${userData.username || userData.name || 'User'}!`);
         // Don't show address setup on login - address will be auto-loaded
         onClose();
       } else {
@@ -514,15 +514,15 @@ export default function AuthModal({ open, onClose }) {
                     <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
                   </div>
                   <div className="fg">
-                    <label>Username</label>
-                    <input required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="Choose a username" />
+                    <label>Username (optional)</label>
+                    <input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="Choose a username" />
                   </div>
                 </>
               )}
               {isLogin ? (
                 <div className="fg">
-                  <label>Username</label>
-                  <input required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="Enter your username" />
+                  <label>Phone Number</label>
+                  <input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="10-digit phone number" />
                 </div>
               ) : (
                 <>
