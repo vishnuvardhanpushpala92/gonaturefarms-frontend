@@ -74,6 +74,12 @@ export default function AuthModal({ open, onClose }) {
       return;
     }
     
+    // Password validation for registration (must be at least 6 characters)
+    if (!isLogin && form.password && form.password.length < 6) {
+      showToast('Password must be at least 6 characters');
+      return;
+    }
+    
     // Password confirmation for registration
     if (!isLogin && form.password !== form.confirmPassword) {
       showToast('Passwords do not match');
@@ -121,7 +127,7 @@ export default function AuthModal({ open, onClose }) {
         // Ensure email is not sent as phone number - validate email properly
         const registerPayload = {
           name: form.name,
-          username: form.username,
+          username: form.username && form.username !== form.email ? form.username : null, // Don't use email as username
           phone: form.phone, // Only phone should be sent as identifier
           email: form.email && validateEmail(form.email) ? form.email : null, // Only send valid email
           password: form.password,
