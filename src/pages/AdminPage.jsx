@@ -14,6 +14,7 @@ import AdminSettingsTab from '../components/admin/AdminSettingsTab.jsx';
 import AdminFooterTab from '../components/admin/AdminFooterTab.jsx';
 import AdminVideosTab from '../components/admin/AdminVideosTab.jsx';
 import AdminWhatsAppTab from '../components/admin/AdminWhatsAppTab.jsx';
+import AdminDataDeletionTab from '../components/admin/AdminDataDeletionTab.jsx';
 import FloatingCart from '../components/FloatingCart.jsx';
 import CartDrawer from '../components/CartDrawer.jsx';
 import CheckoutModal from '../components/CheckoutModalNew.jsx';
@@ -30,7 +31,8 @@ const TABS = [
   { key: 'videos', label: 'Videos' },
   { key: 'whatsapp', label: 'WhatsApp' },
   { key: 'footer', label: 'Footer' },
-  { key: 'settings', label: 'Settings' }
+  { key: 'settings', label: 'Settings' },
+  { key: 'data-deletion', label: 'Data Deletion' }
 ];
 
 export default function AdminPage() {
@@ -148,6 +150,7 @@ export default function AdminPage() {
       {tab === 'whatsapp' && <AdminWhatsAppTab />}
       {tab === 'footer' && <AdminFooterTab />}
       {tab === 'settings' && <AdminSettingsTab />}
+      {tab === 'data-deletion' && <AdminDataDeletionTab />}
 
       <FloatingCart onClick={() => setCartOpen(true)} />
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }} />
