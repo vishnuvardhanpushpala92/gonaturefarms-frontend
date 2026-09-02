@@ -85,7 +85,15 @@ api.interceptors.response.use(
       if (error.response.data && error.response.data.message) {
         error.userMessage = error.response.data.message;
       } else if (error.response.status === 400) {
-        error.userMessage = 'Invalid request. Please check your input and try again.';
+        // Check for specific validation errors
+        const data = error.response.data;
+        if (data?.errors) {
+          // Handle validation errors array
+          const errorMessages = Object.values(data.errors).flat();
+          error.userMessage = errorMessages.join(', ') || 'Invalid request. Please check your input and try again.';
+        } else {
+          error.userMessage = 'Invalid request. Please check your input and try again.';
+        }
       } else if (error.response.status === 404) {
         error.userMessage = 'The requested resource was not found.';
       } else if (error.response.status === 500) {

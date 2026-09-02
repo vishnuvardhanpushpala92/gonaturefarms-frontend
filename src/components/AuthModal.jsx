@@ -62,7 +62,7 @@ export default function AuthModal({ open, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Email validation for registration
+    // Email validation for registration - only validate if email is provided
     if (!isLogin && form.email && !validateEmail(form.email)) {
       showToast('Please enter a valid email address');
       return;
@@ -92,15 +92,44 @@ export default function AuthModal({ open, onClose }) {
       return;
     }
     
+    // Ensure phone is provided and not empty
+    if (!form.phone?.trim()) {
+      showToast('Phone number is required');
+      return;
+    }
+    
+    // Ensure name is provided and not empty
+    if (!isLogin && !form.name?.trim()) {
+      showToast('Name is required');
+      return;
+    }
+    
+    // Ensure password is provided and not empty
+    if (!form.password?.trim()) {
+      showToast('Password is required');
+      return;
+    }
+    
     try {
       if (isLogin) {
         const result = await login(form.phone, form.password);
         const userData = result?.user || {};
         showToast(`Welcome back, ${userData.username || userData.name || 'User'}!`);
-        // Don't show address setup on login - address will be auto-loaded
-        onClose();
+        // Keep modal open to show account view - don't close it
+        // The modal will automatically switch to account view due to isAuthenticated check
       } else {
-        const result = await register(form);
+        // Ensure email is not sent as phone number - validate email properly
+        const registerPayload = {
+          name: form.name,
+          username: form.username,
+          phone: form.phone, // Only phone should be sent as identifier
+          email: form.email && validateEmail(form.email) ? form.email : null, // Only send valid email
+          password: form.password,
+          securityQuestion: form.securityQuestion,
+          securityAnswer: form.securityAnswer
+        };
+        
+        const result = await register(registerPayload);
         showToast('Registration successful');
         // Pre-fill address form with registration data
         const userData = result?.user || {};
