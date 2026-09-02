@@ -131,7 +131,7 @@ export default function AuthModal({ open, onClose }) {
         
         console.log('Registration payload:', registerPayload);
         
-        const result = await register(registerPayload);
+        const result = await register(registerPayload, { skipTransform: true });
         showToast('Registration successful');
         // Pre-fill address form with registration data
         const userData = result?.user || {};
