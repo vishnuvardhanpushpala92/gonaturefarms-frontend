@@ -156,8 +156,16 @@ export default function AuthModal({ open, onClose }) {
         }, 500);
       }
     } catch (err) {
-      console.error('Registration error:', err);
-      showToast(err?.userMessage || err?.response?.data?.message || 'Error');
+      console.error('=== REGISTRATION ERROR FULL ===');
+      console.error('Error object:', err);
+      console.error('Error response:', err.response);
+      console.error('Error response data:', err.response?.data);
+      console.error('Error user message:', err.userMessage);
+      console.error('Error response data message:', err.response?.data?.message);
+      console.error('============================');
+      
+      const errorMessage = err?.userMessage || err?.response?.data?.message || JSON.stringify(err.response?.data) || 'Error';
+      showToast(errorMessage);
     }
   };
 

@@ -77,10 +77,11 @@ api.interceptors.response.use(
       console.error('=== API ERROR DETAILS ===');
       console.error('Status:', error.response.status);
       console.error('Status Text:', error.response.statusText);
-      console.error('Response Data:', error.response.data);
+      console.error('Response Data:', JSON.stringify(error.response.data, null, 2));
       console.error('URL:', error.config?.url);
+      console.error('Full URL:', error.config?.baseURL + error.config?.url);
       console.error('Method:', error.config?.method);
-      console.error('Headers:', error.config?.headers);
+      console.error('Headers:', JSON.stringify(error.config?.headers, null, 2));
       console.error('==========================');
       
       // Transform error data if needed
@@ -118,7 +119,7 @@ api.interceptors.response.use(
     } else {
       console.error('=== REQUEST ERROR ===');
       console.error('Message:', error.message);
-      console.error('Config:', error.config);
+      console.error('Config:', JSON.stringify(error.config, null, 2));
       console.error('===================');
       error.userMessage = 'Request failed. Please try again.';
     }
