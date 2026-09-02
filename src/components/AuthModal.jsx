@@ -184,7 +184,22 @@ export default function AuthModal({ open, onClose }) {
       console.error('Error response data message:', err.response?.data?.message);
       console.error('============================');
       
-      const errorMessage = err?.userMessage || err?.response?.data?.message || JSON.stringify(err.response?.data) || 'Error';
+      // Handle specific registration errors
+      let errorMessage = err?.userMessage || err?.response?.data?.message || 'Error';
+      
+      // Provide more user-friendly error messages
+      if (errorMessage.includes('Phone number already registered')) {
+        errorMessage = 'This phone number is already registered. Please use a different phone number or login.';
+      } else if (errorMessage.includes('Email already registered')) {
+        errorMessage = 'This email is already registered. Please use a different email or login.';
+      } else if (errorMessage.includes('Phone must be exactly 10 digits')) {
+        errorMessage = 'Phone number must be exactly 10 digits.';
+      } else if (errorMessage.includes('Password must be at least 6 characters')) {
+        errorMessage = 'Password must be at least 6 characters long.';
+      } else if (errorMessage.includes('Name is required')) {
+        errorMessage = 'Name is required for registration.';
+      }
+      
       showToast(errorMessage);
     }
   };
