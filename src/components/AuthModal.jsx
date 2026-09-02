@@ -129,6 +129,8 @@ export default function AuthModal({ open, onClose }) {
           securityAnswer: form.securityAnswer
         };
         
+        console.log('Registration payload:', registerPayload);
+        
         const result = await register(registerPayload);
         showToast('Registration successful');
         // Pre-fill address form with registration data
@@ -145,6 +147,7 @@ export default function AuthModal({ open, onClose }) {
         }, 500);
       }
     } catch (err) {
+      console.error('Registration error:', err);
       showToast(err?.userMessage || err?.response?.data?.message || 'Error');
     }
   };

@@ -88,9 +88,9 @@ api.interceptors.response.use(
         // Check for specific validation errors
         const data = error.response.data;
         if (data?.errors) {
-          // Handle validation errors array
-          const errorMessages = Object.values(data.errors).flat();
-          error.userMessage = errorMessages.join(', ') || 'Invalid request. Please check your input and try again.';
+          // Handle validation errors object
+          const errorMessages = Object.values(data.errors);
+          error.userMessage = errorMessages.join('; ') || 'Invalid request. Please check your input and try again.';
         } else {
           error.userMessage = 'Invalid request. Please check your input and try again.';
         }
