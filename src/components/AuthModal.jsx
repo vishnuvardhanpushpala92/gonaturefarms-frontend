@@ -121,8 +121,9 @@ export default function AuthModal({ open, onClose }) {
         const result = await login(form.phone, form.password);
         const userData = result?.user || {};
         showToast(`Welcome back, ${userData.username || userData.name || 'User'}!`);
-        // Keep modal open to show account view - don't close it
+        // Keep modal open and switch to account view
         // The modal will automatically switch to account view due to isAuthenticated check
+        // No need to call onClose() - let the conditional rendering handle the switch
       } else {
         // Ensure email is not sent as phone number - validate email properly
         const registerPayload = {
@@ -312,7 +313,7 @@ export default function AuthModal({ open, onClose }) {
         {showAddressSetup ? (
           <>
             <p style={{ textAlign: 'center', marginBottom: '16px', color: 'var(--muted)' }}>
-              Please add your delivery address to complete your profile setup.
+              Please add your delivery address to complete your profile setup. This is required to place orders.
             </p>
             <form onSubmit={handleAddressSetup}>
               <div className="fg">
@@ -353,10 +354,7 @@ export default function AuthModal({ open, onClose }) {
                   <input required value={addressForm.phone} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} />
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" className="btn btn-primary btn-block">Save Address</button>
-                <button type="button" className="btn btn-secondary btn-block" onClick={() => { setShowAddressSetup(false); onClose(); }}>Skip for Now</button>
-              </div>
+              <button type="submit" className="btn btn-primary btn-block">Save Address</button>
             </form>
           </>
         ) : showAddressManagement ? (
