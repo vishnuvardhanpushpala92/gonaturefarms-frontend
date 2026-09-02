@@ -152,10 +152,28 @@ export default function AuthModal({ open, onClose }) {
           phone: userData.phone || form.phone
         });
         setForm({ name: '', username: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
-        // Small delay to ensure token is fully persisted before showing address setup
+        
+        // Verify authentication is complete before showing address setup
+        console.log('Checking authentication after registration...');
+        const checkAuth = setInterval(() => {
+          const token = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
+          const userStr = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
+          console.log('Token check:', token ? 'exists' : 'missing');
+          console.log('User check:', userStr ? 'exists' : 'missing');
+          
+          if (token && userStr) {
+            clearInterval(checkAuth);
+            console.log('Authentication confirmed, showing address setup');
+            setShowAddressSetup(true);
+          }
+        }, 200);
+        
+        // Fallback after 2 seconds to show address setup anyway
         setTimeout(() => {
+          clearInterval(checkAuth);
+          console.log('Fallback: showing address setup after timeout');
           setShowAddressSetup(true);
-        }, 500);
+        }, 2000);
       }
     } catch (err) {
       console.error('=== REGISTRATION ERROR FULL ===');
@@ -202,13 +220,28 @@ export default function AuthModal({ open, onClose }) {
     
     // Check if user is authenticated before proceeding
     const token = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
-    if (!token) {
-      showToast('Authentication lost. Please login again.');
-      onClose();
+    const userStr = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
+    
+    console.log('=== ADDRESS SETUP AUTH CHECK ===');
+    console.log('Token:', token ? 'exists' : 'missing');
+    console.log('User:', userStr ? 'exists' : 'missing');
+    console.log('================================');
+    
+    if (!token || !userStr) {
+      showToast('Authentication not complete. Please try again.');
+      // Try to refresh authentication
+      setTimeout(() => {
+        const retryToken = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
+        const retryUser = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
+        if (retryToken && retryUser) {
+          console.log('Retry successful - authentication found');
+        } else {
+          console.log('Retry failed - no authentication found');
+          onClose();
+        }
+      }, 500);
       return;
     }
-    
-    console.log('Current token:', token ? 'exists' : 'missing');
     
     try {
       const payload = { ...addressForm, isDefault: true };
@@ -221,7 +254,13 @@ export default function AuthModal({ open, onClose }) {
         onClose();
       }
     } catch (err) {
-      console.error('Address save error:', err);
+      console.error('=== ADDRESS SAVE ERROR ===');
+      console.error('Error:', err);
+      console.error('Error response:', err.response);
+      console.error('Error status:', err.response?.status);
+      console.error('Error data:', err.response?.data);
+      console.error('=======================');
+      
       if (err.response?.status === 401) {
         showToast('Authentication expired. Please login again.');
         onClose();
