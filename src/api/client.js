@@ -74,14 +74,14 @@ api.interceptors.response.use(
     
     // Enhanced error logging for debugging
     if (error.response) {
-      console.error('API Error Details:', {
-        status: error.response.status,
-        statusText: error.response.statusText,
-        data: error.response.data,
-        url: error.config?.url,
-        method: error.config?.method,
-        headers: error.config?.headers
-      });
+      console.error('=== API ERROR DETAILS ===');
+      console.error('Status:', error.response.status);
+      console.error('Status Text:', error.response.statusText);
+      console.error('Response Data:', error.response.data);
+      console.error('URL:', error.config?.url);
+      console.error('Method:', error.config?.method);
+      console.error('Headers:', error.config?.headers);
+      console.error('==========================');
       
       // Transform error data if needed
       if (!error.config?.skipTransform && error.response.data && !(error.response.data instanceof Blob) && !(error.response.data instanceof ArrayBuffer)) {
@@ -109,17 +109,17 @@ api.interceptors.response.use(
         error.userMessage = `Request failed with status ${error.response.status}`;
       }
     } else if (error.request) {
-      console.error('Network Error:', {
-        message: error.message,
-        url: error.config?.url,
-        method: error.config?.method
-      });
+      console.error('=== NETWORK ERROR ===');
+      console.error('Message:', error.message);
+      console.error('URL:', error.config?.url);
+      console.error('Method:', error.config?.method);
+      console.error('===================');
       error.userMessage = 'Network error. Please check your connection and try again.';
     } else {
-      console.error('Request Error:', {
-        message: error.message,
-        config: error.config
-      });
+      console.error('=== REQUEST ERROR ===');
+      console.error('Message:', error.message);
+      console.error('Config:', error.config);
+      console.error('===================');
       error.userMessage = 'Request failed. Please try again.';
     }
     
