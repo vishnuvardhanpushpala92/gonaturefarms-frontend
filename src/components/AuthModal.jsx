@@ -129,7 +129,10 @@ export default function AuthModal({ open, onClose }) {
           securityAnswer: form.securityAnswer
         };
         
-        console.log('Registration payload:', registerPayload);
+        console.log('=== REGISTRATION PAYLOAD ===');
+        console.log('Payload:', registerPayload);
+        console.log('Payload as JSON:', JSON.stringify(registerPayload, null, 2));
+        console.log('===========================');
         
         const result = await register(registerPayload, { skipTransform: true });
         showToast('Registration successful');

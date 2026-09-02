@@ -74,19 +74,26 @@ api.interceptors.response.use(
     
     // Enhanced error logging for debugging
     if (error.response) {
-      console.error('API Error:', {
+      console.error('API Error Details:', {
         status: error.response.status,
+        statusText: error.response.statusText,
         data: error.response.data,
         url: error.config?.url,
-        method: error.config?.method
+        method: error.config?.method,
+        headers: error.config?.headers
       });
       
+      // Transform error data if needed
+      if (!error.config?.skipTransform && error.response.data && !(error.response.data instanceof Blob) && !(error.response.data instanceof ArrayBuffer)) {
+        error.response.data = transformKeys(error.response.data, snakeToCamel);
+      }
+      
       // Add user-friendly error message to error object
-      if (error.response.data && error.response.data.message) {
-        error.userMessage = error.response.data.message;
+      const data = error.response.data;
+      if (data?.message) {
+        error.userMessage = data.message;
       } else if (error.response.status === 400) {
         // Check for specific validation errors
-        const data = error.response.data;
         if (data?.errors) {
           // Handle validation errors object
           const errorMessages = Object.values(data.errors);
@@ -98,6 +105,8 @@ api.interceptors.response.use(
         error.userMessage = 'The requested resource was not found.';
       } else if (error.response.status === 500) {
         error.userMessage = 'Server error. Please try again later.';
+      } else {
+        error.userMessage = `Request failed with status ${error.response.status}`;
       }
     } else if (error.request) {
       console.error('Network Error:', {
@@ -114,9 +123,6 @@ api.interceptors.response.use(
       error.userMessage = 'Request failed. Please try again.';
     }
     
-    if (!error.config?.skipTransform && error.response && error.response.data && !(error.response.data instanceof Blob) && !(error.response.data instanceof ArrayBuffer)) {
-      error.response.data = transformKeys(error.response.data, snakeToCamel);
-    }
     return Promise.reject(error);
   }
 );
