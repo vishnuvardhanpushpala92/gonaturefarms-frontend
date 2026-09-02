@@ -140,7 +140,8 @@ export default function AuthModal({ open, onClose }) {
         console.log('Payload as JSON:', JSON.stringify(registerPayload, null, 2));
         console.log('===========================');
         
-        const result = await register(registerPayload, { skipTransform: true });
+        // Remove skipTransform to allow camelCase to snake_case conversion
+        const result = await register(registerPayload);
         showToast('Registration successful');
         // Pre-fill address form with registration data
         const userData = result?.user || {};
