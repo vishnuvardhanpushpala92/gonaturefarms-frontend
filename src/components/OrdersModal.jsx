@@ -30,6 +30,13 @@ export default function OrdersModal({ open, onClose }) {
   const lookupByPhone = async (e) => {
     e.preventDefault();
     if (!phone.trim()) return;
+    
+    // If user is logged in, they should use "View My Orders" instead
+    if (user) {
+      alert('Please use the "View My Orders" button to view your orders.');
+      return;
+    }
+    
     setLoading(true);
     try {
       const { data } = await api.get('/orders/lookup', { params: { phone }, timeout: 60000 });
@@ -69,6 +76,25 @@ export default function OrdersModal({ open, onClose }) {
       loadMyOrders();
     } catch (err) {
       alert(err?.response?.data?.message || 'Failed to submit return request');
+    }
+  };
+
+  const reorderOrder = async (order) => {
+    if (!confirm('Do you want to add these items to your cart?')) return;
+    
+    try {
+      const items = order.items || [];
+      for (const item of items) {
+        await api.post('/cart', {
+          productId: item.productId,
+          variantId: item.variantId,
+          quantity: item.quantity
+        });
+      }
+      alert('Items added to cart successfully');
+      window.location.reload();
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Failed to add items to cart');
     }
   };
 
@@ -174,7 +200,72 @@ export default function OrdersModal({ open, onClose }) {
                 </div>
               )}
               
-              {o.trackingLocation && <p style={{ fontSize: '.78rem', color: 'var(--muted)' }}>📍 {o.trackingLocation}</p>}
+              {o.trackingLocation && (
+                <div style={{ 
+                  marginTop: 12, 
+                  padding: 12, 
+                  background: '#f0fdf4', 
+                  border: '2px solid #16a34a', 
+                  borderRadius: 8 
+                }}>
+                  <div style={{ 
+                    fontSize: '.85rem', 
+                    fontWeight: 600, 
+                    color: '#16a34a', 
+                    marginBottom: 4 
+                  }}>
+                    🚚 Current Location
+                  </div>
+                  <div style={{ 
+                    fontSize: '.9rem', 
+                    color: '#1f2937',
+                    fontWeight: 500
+                  }}>
+                    {o.trackingLocation}
+                  </div>
+                  <div style={{ 
+                    fontSize: '.75rem', 
+                    color: '#6b7280', 
+                    marginTop: 4 
+                  }}>
+                    Last updated: {new Date(o.updatedAt || o.createdAt).toLocaleString()}
+                  </div>
+                </div>
+              )}
+
+              {/* Post-Delivery Actions */}
+              {o.status === 'Delivered' && (
+                <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => window.open(`/api/orders/${o.orderId}/invoice`, '_blank')}
+                    style={{ fontSize: '.85rem' }}
+                  >
+                    📄 Download Invoice
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => window.open(`/api/orders/${o.orderId}/details`, '_blank')}
+                    style={{ fontSize: '.85rem' }}
+                  >
+                    👁️ View Details
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowReturnForm(prev => ({ ...prev, [o.orderId]: !prev[o.orderId] }))}
+                    style={{ fontSize: '.85rem' }}
+                  >
+                    🔄 Request Return
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => reorderOrder(o)}
+                    style={{ fontSize: '.85rem' }}
+                  >
+                    🛒 Reorder
+                  </button>
+                </div>
+              )}
 
               {/* Return Request Section */}
               {o.status === 'Delivered' && !o.returnRequested && (

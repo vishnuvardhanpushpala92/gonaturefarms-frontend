@@ -221,6 +221,13 @@ export default function CustomerDashboard() {
                 📦 Orders
               </button>
               <button 
+                className={`fbtn${activeTab === 'manage' ? ' active' : ''}`}
+                onClick={() => setActiveTab('manage')}
+                style={{ textAlign: 'left', padding: '10px 12px' }}
+              >
+                ⚙️ Manage Account
+              </button>
+              <button 
                 className="btn btn-danger"
                 onClick={handleLogout}
                 style={{ marginTop: 12 }}
@@ -449,6 +456,69 @@ export default function CustomerDashboard() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'manage' && (
+            <div className="admin-card" style={{ padding: 24 }}>
+              <h2 style={{ marginBottom: 20 }}>Manage Account</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ padding: 16, border: '1px solid var(--border)', borderRadius: 8 }}>
+                  <h3 style={{ marginBottom: 12 }}>Change Password</h3>
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    const currentPassword = e.target.currentPassword.value;
+                    const newPassword = e.target.newPassword.value;
+                    if (!currentPassword || !newPassword) {
+                      showToast('Please fill in all fields');
+                      return;
+                    }
+                    if (newPassword.length < 6) {
+                      showToast('Password must be at least 6 characters');
+                      return;
+                    }
+                    try {
+                      const { data } = await api.put('/users/change-password', { currentPassword, newPassword });
+                      showToast(data.message || 'Password changed successfully');
+                      e.target.reset();
+                    } catch (err) {
+                      showToast(err?.response?.data?.message || 'Failed to change password');
+                    }
+                  }}>
+                    <div className="fg">
+                      <label>Current Password</label>
+                      <input type="password" name="currentPassword" required />
+                    </div>
+                    <div className="fg">
+                      <label>New Password</label>
+                      <input type="password" name="newPassword" required minLength="6" />
+                    </div>
+                    <button type="submit" className="btn btn-primary">Change Password</button>
+                  </form>
+                </div>
+
+                <div style={{ padding: 16, border: '1px solid #dc2626', borderRadius: 8, background: '#fef2f2' }}>
+                  <h3 style={{ marginBottom: 12, color: '#dc2626' }}>Danger Zone</h3>
+                  <p style={{ fontSize: '.85rem', color: 'var(--muted)', marginBottom: 12 }}>
+                    Once you delete your account, there is no going back. Please be certain.
+                  </p>
+                  <button 
+                    className="btn btn-danger" 
+                    onClick={async () => {
+                      if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) return;
+                      try {
+                        const { data } = await api.delete('/users/account');
+                        showToast(data.message || 'Account deleted successfully');
+                        handleLogout();
+                      } catch (err) {
+                        showToast(err?.response?.data?.message || 'Failed to delete account');
+                      }
+                    }}
+                  >
+                    Delete Account
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

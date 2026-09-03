@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Modal from './Modal.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -33,11 +32,12 @@ export default function CheckoutModal({ open, onClose }) {
   const [placing, setPlacing] = useState(false);
   const [placedOrder, setPlacedOrder] = useState(null);
   const [pincodeError, setPincodeError] = useState('');
+  const [deliveryCharge, setDeliveryCharge] = useState(0);
+  const [loadingDeliveryCharge, setLoadingDeliveryCharge] = useState(false);
 
   const freeDeliveryAbove = parseFloat(settings.free_delivery_above || 500);
   const deliveryChargeBelow = parseFloat(settings.delivery_charge_below || 50);
   const subtotalWithGst = totals.subtotal + totals.gstAmount;
-  const deliveryCharge = subtotalWithGst >= freeDeliveryAbove ? 0 : deliveryChargeBelow;
   const grandTotal = Math.max(0, subtotalWithGst + deliveryCharge - discount);
 
   useEffect(() => {
@@ -45,6 +45,35 @@ export default function CheckoutModal({ open, onClose }) {
       loadAddresses();
     }
   }, [open, user]);
+
+  const fetchDeliveryCharge = async (pincode) => {
+    try {
+      setLoadingDeliveryCharge(true);
+      const { data } = await api.get(`/delivery-zone/charge/${pincode}`);
+      if (data.success) {
+        const zoneCharge = parseFloat(data.charge || 0);
+        // Apply free delivery logic
+        const finalCharge = subtotalWithGst >= freeDeliveryAbove ? 0 : zoneCharge;
+        setDeliveryCharge(finalCharge);
+        setPincodeError('');
+      } else {
+        setPincodeError(data.message || 'Delivery not available in your area');
+        setDeliveryCharge(0);
+      }
+    } catch (err) {
+      console.error('Failed to fetch delivery charge:', err);
+      setPincodeError('Could not verify delivery availability');
+      setDeliveryCharge(0);
+    } finally {
+      setLoadingDeliveryCharge(false);
+    }
+  };
+
+  useEffect(() => {
+    if (form.pincode && form.pincode.length === 6) {
+      fetchDeliveryCharge(form.pincode);
+    }
+  }, [form.pincode, subtotalWithGst, freeDeliveryAbove]);
 
   useEffect(() => {
     if (originalAddressForm) {
@@ -420,7 +449,8 @@ export default function CheckoutModal({ open, onClose }) {
               <div className="fg"><label>Name</label><input required value={addressForm.name} onChange={(e) => setAddressForm({ ...addressForm, name: e.target.value })} /></div>
               <div className="fg"><label>Address Line</label><textarea required value={addressForm.addressLine} onChange={(e) => setAddressForm({ ...addressForm, addressLine: e.target.value })} /></div>
               <div className="frow"><div className="fg"><label>City</label><input required value={addressForm.city} onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} /></div><div className="fg"><label>State</label><input required value={addressForm.state} onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })} /></div></div>
-              <div className="frow"><div className="fg"><label>Pincode</label><input required value={addressForm.pincode} onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value })} /></div><div className="fg"><label>Phone</label><input required value={addressForm.phone} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} /></div></div>
+              <div className="frow"><div className="fg"><label>Pincode</label><input required value={addressForm.pincode} onChange={(e) => { setAddressForm({ ...addressForm, pincode: e.target.value }); if (e.target.value.length === 6) fetchDeliveryCharge(e.target.value); }} /></div><div className="fg"><label>Phone</label><input required value={addressForm.phone} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} /></div></div>
+              {pincodeError && <div style={{ color: '#dc2626', fontSize: '.8rem', marginTop: 4 }}>{pincodeError}</div>}
               <div className="fg"><label><input type="checkbox" checked={addressForm.isDefault} onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })} style={{ marginRight: 8 }} />Set as default address</label></div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}><button type="button" className="btn btn-primary" onClick={saveAddress} disabled={editingAddressId && changeCount === 0}>{editingAddressId ? `Commit Changes${changeCount > 0 ? ` (${changeCount})` : ''}` : 'Save Address'}</button><button type="button" className="btn btn-secondary" onClick={cancelAddressForm}>Cancel</button></div>
             </div>
@@ -428,6 +458,11 @@ export default function CheckoutModal({ open, onClose }) {
 
           <div className="frow"><div className="fg"><label>Name</label><input required value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} /></div><div className="fg"><label>Phone</label><input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div></div>
           <div className="fg"><label>Email (required)</label><input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+          <div className="fg"><label>Address</label><textarea required value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
+          <div className="frow"><div className="fg"><label>City</label><input required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></div><div className="fg"><label>State</label><input required value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} /></div></div>
+          <div className="fg"><label>Pincode</label><input required value={form.pincode} onChange={(e) => { setForm({ ...form, pincode: e.target.value }); if (e.target.value.length === 6) fetchDeliveryCharge(e.target.value); }} /></div>
+          {pincodeError && <div style={{ color: '#dc2626', fontSize: '.8rem', marginTop: 4 }}>{pincodeError}</div>}
+          {loadingDeliveryCharge && <div style={{ color: 'var(--muted)', fontSize: '.8rem', marginTop: 4 }}>Checking delivery availability...</div>}
           <button className="btn btn-primary btn-block">Continue to Payment</button>
         </form>
       )}
