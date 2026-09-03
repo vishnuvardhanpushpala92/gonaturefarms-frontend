@@ -68,17 +68,33 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(async (identifier, password) => {
-    const { data } = await api.post('/auth/login', { identifier, password }, { timeout: 60000 });
-    if (data.success) {
-      persist(data.token, data.user);
+    try {
+      const { data } = await api.post('/auth/login', { identifier, password }, { timeout: 60000 });
+      if (data.success) {
+        persist(data.token, data.user);
+        return data;
+      } else {
+        return { success: false, message: data.message || 'Login failed' };
+      }
+    } catch (err) {
+      const errorMessage = err?.response?.data?.message || err?.message || 'Login failed';
+      return { success: false, message: errorMessage };
     }
-    return data;
   }, []);
 
   const adminLogin = useCallback(async (username, password) => {
-    const { data } = await api.post('/auth/admin-login', { username, password }, { timeout: 60000 });
-    if (data.success) persist(data.token, data.user);
-    return data;
+    try {
+      const { data } = await api.post('/auth/admin-login', { username, password }, { timeout: 60000 });
+      if (data.success) {
+        persist(data.token, data.user);
+        return { success: true };
+      } else {
+        return { success: false, message: data.message || 'Admin login failed' };
+      }
+    } catch (err) {
+      const errorMessage = err?.response?.data?.message || err?.message || 'Admin login failed';
+      return { success: false, message: errorMessage };
+    }
   }, []);
 
   const forgotPassword = useCallback(async (identifier) => {

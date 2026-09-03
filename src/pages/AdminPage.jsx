@@ -80,16 +80,33 @@ export default function AdminPage() {
       e.preventDefault();
       setBusy(true);
       try {
-        const data = await adminLogin(form.username, form.password);
-        if (data && data.success) {
+        const result = await adminLogin(form.username, form.password);
+        if (result.success) {
           showToast('Login successful! Redirecting to dashboard...');
         } else {
-          showToast(data?.message || 'Invalid credentials');
+          const errorMessage = result.message || 'Login failed. Please try again.';
+          
+          // Provide specific error messages
+          if (errorMessage.includes('Admin account not found')) {
+            showToast('Admin account not found. Please check your username.');
+          } else if (errorMessage.includes('Incorrect admin password')) {
+            showToast('Incorrect admin password. Please try again.');
+          } else {
+            showToast(errorMessage);
+          }
         }
       } catch (err) {
         console.error('Admin login error:', err);
         const errorMsg = err?.response?.data?.message || err?.message || 'Login failed. Please try again.';
-        showToast(errorMsg);
+        
+        // Provide specific error messages
+        if (errorMsg.includes('Admin account not found')) {
+          showToast('Admin account not found. Please check your username.');
+        } else if (errorMsg.includes('Incorrect admin password')) {
+          showToast('Incorrect admin password. Please try again.');
+        } else {
+          showToast(errorMsg);
+        }
       } finally {
         setBusy(false);
       }

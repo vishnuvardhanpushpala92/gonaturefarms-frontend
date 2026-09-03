@@ -118,12 +118,31 @@ export default function AuthModal({ open, onClose }) {
     
     try {
       if (isLogin) {
-        const result = await login(form.phone, form.password);
-        const userData = result?.user || {};
-        showToast(`Welcome back, ${userData.username || userData.name || 'User'}!`);
-        // Keep modal open and switch to account view
-        // The modal will automatically switch to account view due to isAuthenticated check
-        // No need to call onClose() - let the conditional rendering handle the switch
+        try {
+          const result = await login(form.phone, form.password);
+          if (result.success) {
+            const userData = result?.user || {};
+            showToast(`Welcome back, ${userData.username || userData.name || 'User'}!`);
+            // Keep modal open and switch to account view
+            // The modal will automatically switch to account view due to isAuthenticated check
+            // No need to call onClose() - let the conditional rendering handle the switch
+          } else {
+            showToast(result.message || 'Login failed. Please try again.');
+          }
+        } catch (loginErr) {
+          console.error('Login error:', loginErr);
+          const errorMessage = loginErr?.response?.data?.message || loginErr?.userMessage || 'Login failed. Please try again.';
+          
+          // Provide specific error messages
+          if (errorMessage.includes('User not found')) {
+            showToast('User not found. Please check your phone number or register a new account.');
+          } else if (errorMessage.includes('Incorrect password')) {
+            showToast('Incorrect password. Please try again.');
+          } else {
+            showToast(errorMessage);
+          }
+          return;
+        }
       } else {
         // Ensure email is not sent as phone number - validate email properly
         const registerPayload = {
