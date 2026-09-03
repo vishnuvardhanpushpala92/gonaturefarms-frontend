@@ -238,17 +238,10 @@ export default function OrdersModal({ open, onClose }) {
                 <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   <button
                     className="btn btn-secondary"
-                    onClick={() => window.open(`/api/orders/${o.orderId}/invoice`, '_blank')}
+                    onClick={() => window.open(`/api/orders/${o.orderId}`, '_blank')}
                     style={{ fontSize: '.85rem' }}
                   >
-                    📄 Download Invoice
-                  </button>
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => window.open(`/api/orders/${o.orderId}/details`, '_blank')}
-                    style={{ fontSize: '.85rem' }}
-                  >
-                    👁️ View Details
+                    📄 View Details
                   </button>
                   <button
                     className="btn btn-secondary"

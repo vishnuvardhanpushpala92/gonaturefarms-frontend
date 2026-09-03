@@ -49,7 +49,7 @@ export default function CheckoutModal({ open, onClose }) {
   const fetchDeliveryCharge = async (pincode) => {
     try {
       setLoadingDeliveryCharge(true);
-      const { data } = await api.get(`/delivery-zone/charge/${pincode}`);
+      const { data } = await api.get(`/admin/zones/charge?pincode=${pincode}`);
       if (data.success) {
         const zoneCharge = parseFloat(data.charge || 0);
         // Apply free delivery logic
