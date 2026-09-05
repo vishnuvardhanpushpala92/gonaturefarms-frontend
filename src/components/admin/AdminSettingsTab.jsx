@@ -7,6 +7,7 @@ import { useToast } from '../../context/ToastContext.jsx';
 const FIELDS = [
   ['site_name', 'Site Name'], ['tagline', 'Tagline'], ['footer_text', 'Footer Text'],
   ['upi_id', 'UPI ID'], ['store_location', 'Store Location'], ['qr_code', 'QR Code Image URL'],
+  ['upi_scanner_url', 'UPI Scanner Image URL'],
   ['hdr_bg', 'Header Background'], ['hdr_text', 'Header Text Color'],
   ['hdr_font_size', 'Header Font Size (px)'], ['ftr_bg', 'Footer Background'], ['ftr_text', 'Footer Text Color'],
   ['ftr_font_size', 'Footer Font Size (px)'],
@@ -72,6 +73,12 @@ export default function AdminSettingsTab() {
           skipTransform: true 
         });
         url = data.url;
+      } else if (field === 'upi_scanner_url') {
+        const { data } = await api.post('/admin/settings/upi-scanner', fd, { 
+          headers: { 'Content-Type': 'multipart/form-data' },
+          skipTransform: true 
+        });
+        url = data.url;
       } else {
         const { data } = await api.post('/admin/upload', fd, { 
           headers: { 'Content-Type': 'multipart/form-data' },
@@ -132,21 +139,28 @@ export default function AdminSettingsTab() {
               ) : (
                 <input value={form[key] || ''} onChange={(e) => setForm({ ...form, [key]: e.target.value })} />
               )}
-              {(key === 'qr_code' || key === 'footer_bg_image') && (
+              {(key === 'qr_code' || key === 'footer_bg_image' || key === 'upi_scanner_url') && (
                 <div style={{ marginTop: 6 }}>
                   <input type="file" accept="image/*" disabled={uploading} onChange={(e) => uploadImage(e, key)} />
                   {form[key] && (
-                    <button
-                      type="button"
-                      className="btn btn-danger"
-                      onClick={() => {
-                        setForm(prev => ({ ...prev, [key]: '' }));
-                        showToast(`${key === 'qr_code' ? 'QR Code' : 'Footer background image'} removed`);
-                      }}
-                      style={{ marginTop: 8, fontSize: '.85rem', padding: '6px 12px' }}
-                    >
-                      Remove {key === 'qr_code' ? 'QR Code' : 'Image'}
-                    </button>
+                    <div style={{ marginTop: 8 }}>
+                      <img 
+                        src={form[key]} 
+                        alt={key === 'qr_code' ? 'QR Code' : key === 'upi_scanner_url' ? 'UPI Scanner' : 'Footer Background'} 
+                        style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px' }}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={() => {
+                          setForm(prev => ({ ...prev, [key]: '' }));
+                          showToast(`${key === 'qr_code' ? 'QR Code' : key === 'upi_scanner_url' ? 'UPI Scanner' : 'Footer background image'} removed`);
+                        }}
+                        style={{ marginTop: 8, fontSize: '.85rem', padding: '6px 12px' }}
+                      >
+                        Remove {key === 'qr_code' ? 'QR Code' : key === 'upi_scanner_url' ? 'UPI Scanner' : 'Image'}
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
