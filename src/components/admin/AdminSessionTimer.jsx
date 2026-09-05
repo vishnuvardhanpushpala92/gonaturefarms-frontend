@@ -234,7 +234,7 @@ export default function AdminSessionTimer() {
       padding: '16px',
       marginBottom: '20px',
       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      background: isSessionExpired ? '#f8d7da' : (!isTimerActive ? '#fff3cd' : '#ffffff')
+      backgroundColor: isSessionExpired ? '#f8d7da' : (!isTimerActive ? '#fff3cd' : '#ffffff')
     }}>
       {isSessionExpired ? (
         <>
