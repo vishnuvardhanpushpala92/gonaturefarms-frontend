@@ -9,6 +9,7 @@ const FIELDS = [
   ['site_name', 'Site Name'], ['tagline', 'Tagline'], ['footer_text', 'Footer Text'],
   ['upi_id', 'UPI ID'], ['store_location', 'Store Location'],
   ['upi_scanner_url', 'UPI Scanner Image URL'],
+  ['admin_session_timeout', 'Admin Session Timeout (minutes)'],
   ['hdr_bg', 'Header Background'], ['hdr_text', 'Header Text Color'],
   ['hdr_font_size', 'Header Font Size (px)'], ['ftr_bg', 'Footer Background'], ['ftr_text', 'Footer Text Color'],
   ['ftr_font_size', 'Footer Font Size (px)'],
