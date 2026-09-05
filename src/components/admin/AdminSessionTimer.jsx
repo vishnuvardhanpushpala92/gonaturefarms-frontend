@@ -12,6 +12,7 @@ export default function AdminSessionTimer() {
   const [showWarning, setShowWarning] = useState(false);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSessionExpired, setIsSessionExpired] = useState(false);
   const [inputMinutes, setInputMinutes] = useState('');
   const timeoutRef = useRef(null);
   const warningRef = useRef(null);
@@ -50,6 +51,8 @@ export default function AdminSessionTimer() {
     // Auto logout at timeout
     timeoutRef.current = setTimeout(() => {
       if (isAuthenticated && isAdmin) {
+        setIsSessionExpired(true);
+        setIsTimerActive(false);
         logout();
         showToast('Admin session expired. Please login again.');
       }
@@ -60,6 +63,7 @@ export default function AdminSessionTimer() {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     if (warningRef.current) clearTimeout(warningRef.current);
     setIsTimerActive(false);
+    setIsSessionExpired(false);
     setTimeLeft(0);
     setShowWarning(false);
   }, []);
@@ -111,24 +115,25 @@ export default function AdminSessionTimer() {
     };
   }, []);
 
-  // Handle tab switching - require login if timer is active
+  // Handle tab switching - only require login if timer has completed (session expired)
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && isTimerActive && isAdmin && isAuthenticated) {
+      if (document.hidden && isSessionExpired && isAdmin && isAuthenticated) {
         logout();
-        showToast('Session expired due to tab switch. Please login again.');
+        showToast('Session expired. Please login again.');
       }
     };
 
     const handleBeforeUnload = (e) => {
-      if (isTimerActive && isAdmin && isAuthenticated) {
+      if (isSessionExpired && isAdmin && isAuthenticated) {
         e.preventDefault();
         e.returnValue = '';
         logout();
       }
     };
 
-    if (isTimerActive) {
+    // Only add listeners if session has expired
+    if (isSessionExpired) {
       document.addEventListener('visibilitychange', handleVisibilityChange);
       window.addEventListener('beforeunload', handleBeforeUnload);
     }
@@ -137,7 +142,7 @@ export default function AdminSessionTimer() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [isTimerActive, isAdmin, isAuthenticated, logout, showToast]);
+  }, [isSessionExpired, isAdmin, isAuthenticated, logout, showToast]);
 
   // Countdown display
   useEffect(() => {
@@ -147,6 +152,7 @@ export default function AdminSessionTimer() {
       setTimeLeft(prev => {
         if (prev <= 1000) {
           setIsTimerActive(false);
+          setIsSessionExpired(true);
           return 0;
         }
         return prev - 1000;
@@ -164,6 +170,67 @@ export default function AdminSessionTimer() {
   };
 
   if (!isAdmin || !isAuthenticated) return null;
+
+  // Show session expired message
+  if (isSessionExpired) {
+    return (
+      <div style={{
+        background: '#f8d7da',
+        border: '2px solid #dc3545',
+        borderRadius: '8px',
+        padding: '16px',
+        marginBottom: '20px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: '12px'
+        }}>
+          <h3 style={{ 
+            margin: 0, 
+            fontSize: '16px', 
+            fontWeight: '600',
+            color: '#721c24'
+          }}>
+            Session Expired
+          </h3>
+          <div style={{ fontSize: '12px', color: '#721c24' }}>
+            🔒 Locked
+          </div>
+        </div>
+        <div style={{ 
+          padding: '12px',
+          background: '#fff',
+          border: '1px solid #dc3545',
+          borderRadius: '4px',
+          fontSize: '14px',
+          color: '#721c24',
+          textAlign: 'center',
+          marginBottom: '12px'
+        }}>
+          ⚠️ Your admin session has expired. Please login again to continue.
+        </div>
+        <button
+          onClick={logout}
+          style={{
+            width: '100%',
+            padding: '10px',
+            background: '#dc3545',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}
+        >
+          Go to Login
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -359,7 +426,7 @@ export default function AdminSessionTimer() {
             marginTop: '8px',
             textAlign: 'center'
           }}>
-            Note: Switching tabs or closing window will require login again
+            Note: Tab switching allowed. Session locks when timer expires.
           </div>
         </div>
       )}
