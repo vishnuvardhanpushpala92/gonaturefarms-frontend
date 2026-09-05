@@ -2,6 +2,12 @@ import React from 'react';
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import api from '../api/client';
 
+// Helper function to ensure HTTPS URLs
+const ensureHttps = (url) => {
+  if (!url) return url;
+  return url.replace(/^http:\/\//, 'https://');
+};
+
 const SiteContext = createContext(null);
 
 export function SiteProvider({ children }) {
@@ -23,7 +29,22 @@ export function SiteProvider({ children }) {
         api.get('/admin/scroll-content', { timeout: 60000 }),
         api.get('/footer-links', { timeout: 60000 })
       ]);
-      setSettings(s.data.settings || {});
+      
+      // Sanitize settings URLs to ensure HTTPS
+      const sanitizedSettings = {};
+      if (s.data.settings) {
+        Object.keys(s.data.settings).forEach(key => {
+          const value = s.data.settings[key];
+          // Sanitize URLs for image fields
+          if (key.includes('url') || key.includes('image') || key === 'qr_code' || key === 'logo' || key === 'favicon') {
+            sanitizedSettings[key] = ensureHttps(value);
+          } else {
+            sanitizedSettings[key] = value;
+          }
+        });
+      }
+      
+      setSettings(sanitizedSettings || {});
       setSlides(sl.data.slides || []);
       setFaqs(f.data.faqs || []);
       setZones(z.data.zones || []);

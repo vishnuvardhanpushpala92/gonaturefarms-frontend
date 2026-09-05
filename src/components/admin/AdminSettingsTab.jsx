@@ -4,9 +4,15 @@ import api from '../../api/client';
 import { useSite } from '../../context/SiteContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 
+// Helper function to ensure HTTPS URLs
+const ensureHttps = (url) => {
+  if (!url) return url;
+  return url.replace(/^http:\/\//, 'https://');
+};
+
 const FIELDS = [
   ['site_name', 'Site Name'], ['tagline', 'Tagline'], ['footer_text', 'Footer Text'],
-  ['upi_id', 'UPI ID'], ['store_location', 'Store Location'], ['qr_code', 'QR Code Image URL'],
+  ['upi_id', 'UPI ID'], ['store_location', 'Store Location'],
   ['upi_scanner_url', 'UPI Scanner Image URL'],
   ['hdr_bg', 'Header Background'], ['hdr_text', 'Header Text Color'],
   ['hdr_font_size', 'Header Font Size (px)'], ['ftr_bg', 'Footer Background'], ['ftr_text', 'Footer Text Color'],
@@ -29,7 +35,18 @@ export default function AdminSettingsTab() {
   // Sync form with settings when settings变化
   useEffect(() => {
     if (settings) {
-      setForm(settings);
+      // Sanitize all URLs to ensure HTTPS
+      const sanitizedSettings = {};
+      Object.keys(settings).forEach(key => {
+        const value = settings[key];
+        // Sanitize URLs for image fields
+        if (key.includes('url') || key.includes('image') || key === 'qr_code' || key === 'logo' || key === 'favicon') {
+          sanitizedSettings[key] = ensureHttps(value);
+        } else {
+          sanitizedSettings[key] = value;
+        }
+      });
+      setForm(sanitizedSettings);
     }
   }, [settings]);
 
@@ -88,7 +105,9 @@ export default function AdminSettingsTab() {
       }
       
       if (url) {
-        setForm((f) => ({ ...f, [field]: url }));
+        // Ensure HTTPS for all URLs
+        const httpsUrl = ensureHttps(url);
+        setForm((f) => ({ ...f, [field]: httpsUrl }));
         showToast('Image uploaded successfully');
       } else {
         showToast('Upload failed - no URL returned');
@@ -139,38 +158,13 @@ export default function AdminSettingsTab() {
               ) : (
                 <input value={form[key] || ''} onChange={(e) => setForm({ ...form, [key]: e.target.value })} />
               )}
-              {key === 'qr_code' && (
-                <div style={{ marginTop: 6 }}>
-                  <input type="file" accept="image/*" disabled={uploading} onChange={(e) => uploadImage(e, key)} />
-                  {form[key] && (
-                    <div style={{ marginTop: 8 }}>
-                      <img 
-                        src={form[key]} 
-                        alt="QR Code" 
-                        style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px' }}
-                      />
-                      <button
-                        type="button"
-                        className="btn btn-danger"
-                        onClick={() => {
-                          setForm(prev => ({ ...prev, [key]: '' }));
-                          showToast('QR Code removed');
-                        }}
-                        style={{ marginTop: 8, fontSize: '.85rem', padding: '6px 12px' }}
-                      >
-                        Remove QR Code
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
               {key === 'upi_scanner_url' && (
                 <div style={{ marginTop: 6 }}>
                   <input type="file" accept="image/*" disabled={uploading} onChange={(e) => uploadImage(e, key)} />
                   {form[key] && (
                     <div style={{ marginTop: 8 }}>
                       <img 
-                        src={form[key]} 
+                        src={ensureHttps(form[key])} 
                         alt="UPI Scanner" 
                         style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px' }}
                       />
@@ -193,17 +187,24 @@ export default function AdminSettingsTab() {
                 <div style={{ marginTop: 6 }}>
                   <input type="file" accept="image/*" disabled={uploading} onChange={(e) => uploadImage(e, key)} />
                   {form[key] && (
-                    <button
-                      type="button"
-                      className="btn btn-danger"
-                      onClick={() => {
-                        setForm(prev => ({ ...prev, [key]: '' }));
-                        showToast('Footer background image removed');
-                      }}
-                      style={{ marginTop: 8, fontSize: '.85rem', padding: '6px 12px' }}
-                    >
-                      Remove Image
-                    </button>
+                    <div style={{ marginTop: 8 }}>
+                      <img 
+                        src={ensureHttps(form[key])} 
+                        alt="Footer Background" 
+                        style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px' }}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={() => {
+                          setForm(prev => ({ ...prev, [key]: '' }));
+                          showToast('Footer background image removed');
+                        }}
+                        style={{ marginTop: 8, fontSize: '.85rem', padding: '6px 12px' }}
+                      >
+                        Remove Image
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
