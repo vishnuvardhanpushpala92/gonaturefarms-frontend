@@ -57,6 +57,7 @@ export function AuthProvider({ children }) {
     }
     setToken(t);
     setUser(u);
+    // Note: Cart is preserved independently in CartContext
   };
 
   const register = useCallback(async (payload, config = {}) => {
@@ -122,7 +123,15 @@ export function AuthProvider({ children }) {
     return data;
   }, []);
 
-  const logout = useCallback(() => persist(null, null), []);
+  const logout = useCallback(() => {
+    // Clear only auth tokens, preserve cart
+    sessionStorage.removeItem('gnf_token');
+    localStorage.removeItem('gnf_token');
+    sessionStorage.removeItem('gnf_user');
+    localStorage.removeItem('gnf_user');
+    setToken(null);
+    setUser(null);
+  }, []);
 
   const refreshMe = useCallback(async () => {
     if (!token) return null;

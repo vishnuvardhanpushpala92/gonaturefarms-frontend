@@ -345,7 +345,7 @@ export default function CheckoutModal({ open, onClose }) {
           phone: form.phone,
           items: orderedItems
         });
-        clearCart();
+        // Don't clear cart - let user decide when to clear it
         setStep(3);
         showToast('Order placed successfully!');
       } else {

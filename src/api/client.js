@@ -58,11 +58,12 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Clear tokens if unauthorized
+      // Clear tokens if unauthorized, but keep cart intact
       sessionStorage.removeItem('gnf_token');
       sessionStorage.removeItem('gnf_user');
       localStorage.removeItem('gnf_token');
       localStorage.removeItem('gnf_user');
+      // Do NOT remove cart - it should persist independently
       
       // Prevent infinite console spam
       if (!error.config?.silent) {

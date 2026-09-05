@@ -12,6 +12,10 @@ export default function AuthModal({ open, onClose }) {
   const [forgotOpen, setForgotOpen] = useState(false);
   const [showAddressSetup, setShowAddressSetup] = useState(false);
   const [showAddressManagement, setShowAddressManagement] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showResetConfirmPassword, setShowResetConfirmPassword] = useState(false);
   const [form, setForm] = useState({ name: '', username: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
   const [addressForm, setAddressForm] = useState({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
   const [addresses, setAddresses] = useState([]);
@@ -681,12 +685,62 @@ export default function AuthModal({ open, onClose }) {
               )}
               <div className="fg">
                 <label>Password</label>
-                <input required type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    required 
+                    type={showPassword ? "text" : "password"} 
+                    value={form.password} 
+                    onChange={(e) => setForm({ ...form, password: e.target.value })} 
+                    style={{ paddingRight: '40px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '16px',
+                      color: '#666'
+                    }}
+                  >
+                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
               </div>
               {!isLogin && (
                 <div className="fg">
                   <label>Confirm Password</label>
-                  <input required type="password" value={form.confirmPassword} onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })} />
+                  <div style={{ position: 'relative' }}>
+                    <input 
+                      required 
+                      type={showConfirmPassword ? "text" : "password"} 
+                      value={form.confirmPassword} 
+                      onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                      style={{ paddingRight: '40px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '16px',
+                        color: '#666'
+                      }}
+                    >
+                      {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+                    </button>
+                  </div>
                 </div>
               )}
               
@@ -782,11 +836,61 @@ function ForgotPasswordForm({ onBack }) {
           </div>
           <div className="fg">
             <label>New Password</label>
-            <input required type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+            <div style={{ position: 'relative' }}>
+              <input 
+                required 
+                type={showNewPassword ? "text" : "password"} 
+                value={newPassword} 
+                onChange={(e) => setNewPassword(e.target.value)}
+                style={{ paddingRight: '40px' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  color: '#666'
+                }}
+              >
+                {showNewPassword ? '👁️' : '👁️‍🗨️'}
+              </button>
+            </div>
           </div>
           <div className="fg">
             <label>Confirm Password</label>
-            <input required type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+            <div style={{ position: 'relative' }}>
+              <input 
+                required 
+                type={showResetConfirmPassword ? "text" : "password"} 
+                value={confirmPassword} 
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                style={{ paddingRight: '40px' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowResetConfirmPassword(!showResetConfirmPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  color: '#666'
+                }}
+              >
+                {showResetConfirmPassword ? '👁️' : '👁️‍🗨️'}
+              </button>
+            </div>
           </div>
           <button type="submit" className="btn btn-primary btn-block">Reset Password</button>
           <button type="button" className="btn btn-secondary btn-block" onClick={onBack}>Back to Login</button>

@@ -16,9 +16,27 @@ export function CartProvider({ children }) {
     }
   });
 
+  // Save to localStorage whenever items change
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items]);
+
+  // Sync cart across tabs/windows
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === STORAGE_KEY) {
+        try {
+          const newItems = e.newValue ? JSON.parse(e.newValue) : [];
+          setItems(newItems);
+        } catch (error) {
+          console.error('Error parsing cart from storage event:', error);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const addItem = useCallback((product) => {
     setItems((prev) => {
@@ -57,15 +75,32 @@ export function CartProvider({ children }) {
     });
   }, [showToast]);
 
-  const removeItem = useCallback((id) => {
-    setItems((prev) => (prev || []).filter((i) => i.id !== id));
-  }, []);
-
-  const updateQty = useCallback((id, qty) => {
+  const removeItem = useCallback((id, variantId = null) => {
     setItems((prev) => {
       const prevArray = prev || [];
-      if (qty <= 0) return prevArray.filter((i) => i.id !== id);
-      return prevArray.map((i) => (i.id === id ? { ...i, qty } : i));
+      return prevArray.filter((i) => {
+        const itemKey = i.variantId ? `${i.id}-${i.variantId}` : `${i.id}`;
+        const targetKey = variantId ? `${id}-${variantId}` : `${id}`;
+        return itemKey !== targetKey;
+      });
+    });
+  }, []);
+
+  const updateQty = useCallback((id, qty, variantId = null) => {
+    setItems((prev) => {
+      const prevArray = prev || [];
+      if (qty <= 0) {
+        return prevArray.filter((i) => {
+          const itemKey = i.variantId ? `${i.id}-${i.variantId}` : `${i.id}`;
+          const targetKey = variantId ? `${id}-${variantId}` : `${id}`;
+          return itemKey !== targetKey;
+        });
+      }
+      return prevArray.map((i) => {
+        const itemKey = i.variantId ? `${i.id}-${i.variantId}` : `${i.id}`;
+        const targetKey = variantId ? `${id}-${variantId}` : `${id}`;
+        return itemKey === targetKey ? { ...i, qty } : i;
+      });
     });
   }, []);
 
