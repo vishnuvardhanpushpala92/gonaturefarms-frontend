@@ -8,6 +8,7 @@ import { CartProvider } from './context/CartContext.jsx';
 import { SiteProvider } from './context/SiteContext.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
+import AdminSessionTimer from './components/admin/AdminSessionTimer.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -17,6 +18,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <AuthProvider>
             <SiteProvider>
               <CartProvider>
+                <AdminSessionTimer />
                 <App />
               </CartProvider>
             </SiteProvider>

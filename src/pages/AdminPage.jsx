@@ -15,7 +15,6 @@ import AdminFooterTab from '../components/admin/AdminFooterTab.jsx';
 import AdminVideosTab from '../components/admin/AdminVideosTab.jsx';
 import AdminWhatsAppTab from '../components/admin/AdminWhatsAppTab.jsx';
 import AdminDataDeletionTab from '../components/admin/AdminDataDeletionTab.jsx';
-import AdminSessionTimer from '../components/admin/AdminSessionTimer.jsx';
 import FloatingCart from '../components/FloatingCart.jsx';
 import CartDrawer from '../components/CartDrawer.jsx';
 import CheckoutModal from '../components/CheckoutModalNew.jsx';
@@ -116,7 +115,6 @@ export default function AdminPage() {
 
   return (
     <div className="admin-shell">
-      <AdminSessionTimer />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
         <h2>Admin Dashboard</h2>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
