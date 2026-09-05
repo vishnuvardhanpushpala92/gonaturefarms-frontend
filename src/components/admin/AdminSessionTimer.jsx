@@ -23,6 +23,9 @@ export default function AdminSessionTimer() {
   const [isSessionExpired, setIsSessionExpired] = useState(false);
   const [inputMinutes, setInputMinutes] = useState('');
   const [showFullControls, setShowFullControls] = useState(false);
+  const [position, setPosition] = useState({ x: 10, y: 10 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const intervalRef = useRef(null);
   const timeoutRef = useRef(null);
   const warningRef = useRef(null);
@@ -253,6 +256,41 @@ export default function AdminSessionTimer() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [isTimerActive, isSessionExpired, isAdmin, isAuthenticated, logout, showToast]);
+
+  // Handle drag and drop
+  const handleMouseDown = (e) => {
+    if (isAdminPage) return; // Don't allow dragging on admin page
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    const newX = e.clientX - dragOffset.x;
+    const newY = e.clientY - dragOffset.y;
+    setPosition({ x: newX, y: newY });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    } else {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset]);
 
   const formatTime = (ms) => {
     const seconds = Math.floor(ms / 1000);
@@ -537,15 +575,19 @@ export default function AdminSessionTimer() {
 
   // On other pages, show compact version
   return (
-    <div style={{
-      position: 'fixed',
-      top: '10px',
-      right: '10px',
-      zIndex: 9999,
-      display: 'flex',
-      gap: '8px',
-      alignItems: 'center'
-    }}>
+    <div 
+      style={{
+        position: 'fixed',
+        top: `${position.y}px`,
+        left: `${position.x}px`,
+        zIndex: 9999,
+        display: 'flex',
+        gap: '8px',
+        alignItems: 'center',
+        cursor: isDragging ? 'grabbing' : 'grab'
+      }}
+      onMouseDown={handleMouseDown}
+    >
       {isTimerActive && (
         <div style={{
           background: isSessionExpired ? '#f8d7da' : '#e3f2fd',
@@ -556,7 +598,8 @@ export default function AdminSessionTimer() {
           fontWeight: 'bold',
           color: isSessionExpired ? '#dc3545' : '#0d47a1',
           fontFamily: 'monospace',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          userSelect: 'none'
         }}>
           {formatTime(timeLeft)}
         </div>
@@ -569,7 +612,8 @@ export default function AdminSessionTimer() {
           padding: '8px 12px',
           fontSize: '12px',
           color: '#721c24',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          userSelect: 'none'
         }}>
           🔒 Session Expired
         </div>
@@ -588,7 +632,8 @@ export default function AdminSessionTimer() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          userSelect: 'none'
         }}
       >
         ⏱️
@@ -597,8 +642,8 @@ export default function AdminSessionTimer() {
       {showFullControls && (
         <div style={{
           position: 'fixed',
-          top: '50px',
-          right: '10px',
+          top: `${position.y + 40}px`,
+          left: `${position.x}px`,
           width: '320px',
           zIndex: 9999,
           background: '#ffffff',
