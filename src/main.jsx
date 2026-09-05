@@ -8,6 +8,7 @@ import { CartProvider } from './context/CartContext.jsx';
 import { SiteProvider } from './context/SiteContext.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
+import GlobalAdminTimer from './components/GlobalAdminTimer.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -17,6 +18,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <AuthProvider>
             <SiteProvider>
               <CartProvider>
+                <GlobalAdminTimer />
                 <App />
               </CartProvider>
             </SiteProvider>
