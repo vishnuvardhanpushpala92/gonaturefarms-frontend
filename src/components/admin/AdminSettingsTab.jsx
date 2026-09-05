@@ -139,14 +139,14 @@ export default function AdminSettingsTab() {
               ) : (
                 <input value={form[key] || ''} onChange={(e) => setForm({ ...form, [key]: e.target.value })} />
               )}
-              {(key === 'qr_code' || key === 'footer_bg_image' || key === 'upi_scanner_url') && (
+              {key === 'qr_code' && (
                 <div style={{ marginTop: 6 }}>
                   <input type="file" accept="image/*" disabled={uploading} onChange={(e) => uploadImage(e, key)} />
                   {form[key] && (
                     <div style={{ marginTop: 8 }}>
                       <img 
                         src={form[key]} 
-                        alt={key === 'qr_code' ? 'QR Code' : key === 'upi_scanner_url' ? 'UPI Scanner' : 'Footer Background'} 
+                        alt="QR Code" 
                         style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px' }}
                       />
                       <button
@@ -154,13 +154,56 @@ export default function AdminSettingsTab() {
                         className="btn btn-danger"
                         onClick={() => {
                           setForm(prev => ({ ...prev, [key]: '' }));
-                          showToast(`${key === 'qr_code' ? 'QR Code' : key === 'upi_scanner_url' ? 'UPI Scanner' : 'Footer background image'} removed`);
+                          showToast('QR Code removed');
                         }}
                         style={{ marginTop: 8, fontSize: '.85rem', padding: '6px 12px' }}
                       >
-                        Remove {key === 'qr_code' ? 'QR Code' : key === 'upi_scanner_url' ? 'UPI Scanner' : 'Image'}
+                        Remove QR Code
                       </button>
                     </div>
+                  )}
+                </div>
+              )}
+              {key === 'upi_scanner_url' && (
+                <div style={{ marginTop: 6 }}>
+                  <input type="file" accept="image/*" disabled={uploading} onChange={(e) => uploadImage(e, key)} />
+                  {form[key] && (
+                    <div style={{ marginTop: 8 }}>
+                      <img 
+                        src={form[key]} 
+                        alt="UPI Scanner" 
+                        style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px' }}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={() => {
+                          setForm(prev => ({ ...prev, [key]: '' }));
+                          showToast('UPI Scanner removed');
+                        }}
+                        style={{ marginTop: 8, fontSize: '.85rem', padding: '6px 12px' }}
+                      >
+                        Remove UPI Scanner
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              {key === 'footer_bg_image' && (
+                <div style={{ marginTop: 6 }}>
+                  <input type="file" accept="image/*" disabled={uploading} onChange={(e) => uploadImage(e, key)} />
+                  {form[key] && (
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      onClick={() => {
+                        setForm(prev => ({ ...prev, [key]: '' }));
+                        showToast('Footer background image removed');
+                      }}
+                      style={{ marginTop: 8, fontSize: '.85rem', padding: '6px 12px' }}
+                    >
+                      Remove Image
+                    </button>
                   )}
                 </div>
               )}
