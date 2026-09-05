@@ -22,6 +22,7 @@ export default function AdminSessionTimer() {
   const intervalRef = useRef(null);
   const timeoutRef = useRef(null);
   const warningRef = useRef(null);
+  const showWarningRef = useRef(false);
 
   // Load initial timeout setting
   useEffect(() => {
@@ -35,41 +36,58 @@ export default function AdminSessionTimer() {
   useEffect(() => {
     if (!isAdmin || !isAuthenticated) {
       // Clear timer data if not admin
-      localStorage.removeItem(TIMER_START_TIME);
-      localStorage.removeItem(TIMER_DURATION);
-      localStorage.removeItem(TIMER_EXPIRED);
-      return;
-    }
-
-    const startTime = localStorage.getItem(TIMER_START_TIME);
-    const duration = localStorage.getItem(TIMER_DURATION);
-    const expired = localStorage.getItem(TIMER_EXPIRED);
-
-    if (expired === 'true') {
-      setIsSessionExpired(true);
-      setIsTimerActive(false);
-      return;
-    }
-
-    if (startTime && duration) {
-      const startTimeMs = parseInt(startTime, 10);
-      const durationMs = parseInt(duration, 10) * 60 * 1000;
-      const elapsed = Date.now() - startTimeMs;
-      const remaining = durationMs - elapsed;
-
-      if (remaining <= 0) {
-        // Timer expired while away
-        setIsSessionExpired(true);
-        setIsTimerActive(false);
-        localStorage.setItem(TIMER_EXPIRED, 'true');
+      try {
         localStorage.removeItem(TIMER_START_TIME);
         localStorage.removeItem(TIMER_DURATION);
-      } else {
-        // Timer still running
-        setIsTimerActive(true);
-        setTimeLeft(remaining);
-        setIsSessionExpired(false);
+        localStorage.removeItem(TIMER_EXPIRED);
+      } catch (e) {
+        // Ignore localStorage errors
       }
+      return;
+    }
+
+    try {
+      const startTime = localStorage.getItem(TIMER_START_TIME);
+      const duration = localStorage.getItem(TIMER_DURATION);
+      const expired = localStorage.getItem(TIMER_EXPIRED);
+
+      if (expired === 'true') {
+        setIsSessionExpired(true);
+        setIsTimerActive(false);
+        return;
+      }
+
+      if (startTime && duration) {
+        const startTimeMs = parseInt(startTime, 10);
+        const durationMs = parseInt(duration, 10) * 60 * 1000;
+        
+        if (isNaN(startTimeMs) || isNaN(durationMs)) {
+          // Invalid data, clear it
+          localStorage.removeItem(TIMER_START_TIME);
+          localStorage.removeItem(TIMER_DURATION);
+          return;
+        }
+        
+        const elapsed = Date.now() - startTimeMs;
+        const remaining = durationMs - elapsed;
+
+        if (remaining <= 0) {
+          // Timer expired while away
+          setIsSessionExpired(true);
+          setIsTimerActive(false);
+          localStorage.setItem(TIMER_EXPIRED, 'true');
+          localStorage.removeItem(TIMER_START_TIME);
+          localStorage.removeItem(TIMER_DURATION);
+        } else {
+          // Timer still running
+          setIsTimerActive(true);
+          setTimeLeft(remaining);
+          setIsSessionExpired(false);
+        }
+      }
+    } catch (e) {
+      // Handle any localStorage errors
+      console.error('Timer initialization error:', e);
     }
   }, [isAdmin, isAuthenticated]);
 
@@ -85,13 +103,18 @@ export default function AdminSessionTimer() {
     const startTime = Date.now();
     
     // Save to localStorage for persistence across navigation
-    localStorage.setItem(TIMER_START_TIME, startTime.toString());
-    localStorage.setItem(TIMER_DURATION, minutes.toString());
-    localStorage.setItem(TIMER_EXPIRED, 'false');
+    try {
+      localStorage.setItem(TIMER_START_TIME, startTime.toString());
+      localStorage.setItem(TIMER_DURATION, minutes.toString());
+      localStorage.setItem(TIMER_EXPIRED, 'false');
+    } catch (e) {
+      console.error('Failed to save timer to localStorage:', e);
+    }
     
     setTimeLeft(durationMs);
     setIsTimerActive(true);
     setShowWarning(false);
+    showWarningRef.current = false;
     setIsEditing(false);
     setIsSessionExpired(false);
     
@@ -105,22 +128,27 @@ export default function AdminSessionTimer() {
         clearInterval(intervalRef.current);
         setIsTimerActive(false);
         setIsSessionExpired(true);
-        localStorage.setItem(TIMER_EXPIRED, 'true');
-        localStorage.removeItem(TIMER_START_TIME);
-        localStorage.removeItem(TIMER_DURATION);
+        try {
+          localStorage.setItem(TIMER_EXPIRED, 'true');
+          localStorage.removeItem(TIMER_START_TIME);
+          localStorage.removeItem(TIMER_DURATION);
+        } catch (e) {
+          console.error('Failed to update timer in localStorage:', e);
+        }
         logout();
         showToast('Admin session expired. Please login again.');
       } else {
         setTimeLeft(remaining);
         
         // Show warning at 1 minute remaining
-        if (remaining <= 60000 && !showWarning) {
+        if (remaining <= 60000 && !showWarningRef.current) {
+          showWarningRef.current = true;
           setShowWarning(true);
           showToast('Session will expire in 1 minute. Please save your work.');
         }
       }
     }, 1000);
-  }, [isAdmin, isAuthenticated, logout, showToast, showWarning]);
+  }, [isAdmin, isAuthenticated, logout, showToast]);
 
   const stopTimer = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -131,11 +159,16 @@ export default function AdminSessionTimer() {
     setIsSessionExpired(false);
     setTimeLeft(0);
     setShowWarning(false);
+    showWarningRef.current = false;
     
     // Clear localStorage
-    localStorage.removeItem(TIMER_START_TIME);
-    localStorage.removeItem(TIMER_DURATION);
-    localStorage.removeItem(TIMER_EXPIRED);
+    try {
+      localStorage.removeItem(TIMER_START_TIME);
+      localStorage.removeItem(TIMER_DURATION);
+      localStorage.removeItem(TIMER_EXPIRED);
+    } catch (e) {
+      console.error('Failed to clear timer from localStorage:', e);
+    }
   }, []);
 
   const deleteTimer = useCallback(() => {
