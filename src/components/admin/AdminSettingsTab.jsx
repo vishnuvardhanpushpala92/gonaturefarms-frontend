@@ -9,7 +9,6 @@ const FIELDS = [
   ['site_name', 'Site Name'], ['tagline', 'Tagline'], ['footer_text', 'Footer Text'],
   ['upi_id', 'UPI ID'], ['store_location', 'Store Location'],
   ['upi_scanner_url', 'UPI Scanner Image URL'],
-  ['admin_session_timeout', 'Admin Session Timeout (minutes)'],
   ['hdr_bg', 'Header Background'], ['hdr_text', 'Header Text Color'],
   ['hdr_font_size', 'Header Font Size (px)'], ['ftr_bg', 'Footer Background'], ['ftr_text', 'Footer Text Color'],
   ['ftr_font_size', 'Footer Font Size (px)'],
@@ -151,20 +150,6 @@ export default function AdminSettingsTab() {
                   max="32"
                   placeholder="16"
                 />
-              ) : key === 'admin_session_timeout' ? (
-                <div>
-                  <input
-                    type="number"
-                    value={form[key] || ''}
-                    onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                    min="0"
-                    step="5"
-                    placeholder="0 (disabled)"
-                  />
-                  <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                    Set to 0 to disable auto-logout. Timer starts when you save this setting.
-                  </div>
-                </div>
               ) : (
                 <input value={form[key] || ''} onChange={(e) => setForm({ ...form, [key]: e.target.value })} />
               )}

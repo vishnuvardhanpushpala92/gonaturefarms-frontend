@@ -55,12 +55,22 @@ export function SiteProvider({ children }) {
     }
   }, []);
 
+  const updateSettings = useCallback(async (newSettings) => {
+    try {
+      await api.put('/admin/settings', newSettings, { skipTransform: true });
+      await loadAll();
+    } catch (error) {
+      console.error('Failed to update settings:', error);
+      throw error;
+    }
+  }, [loadAll]);
+
   useEffect(() => {
     loadAll();
   }, [loadAll]);
 
   return (
-    <SiteContext.Provider value={{ settings, slides, faqs, zones, blocks, footerLinks, loaded, reload: loadAll }}>
+    <SiteContext.Provider value={{ settings, slides, faqs, zones, blocks, footerLinks, loaded, reload: loadAll, updateSettings }}>
       {children}
     </SiteContext.Provider>
   );
