@@ -151,6 +151,20 @@ export default function AdminSettingsTab() {
                   max="32"
                   placeholder="16"
                 />
+              ) : key === 'admin_session_timeout' ? (
+                <div>
+                  <input
+                    type="number"
+                    value={form[key] || ''}
+                    onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                    min="0"
+                    step="5"
+                    placeholder="0 (disabled)"
+                  />
+                  <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                    Set to 0 to disable auto-logout. Timer starts when you save this setting.
+                  </div>
+                </div>
               ) : (
                 <input value={form[key] || ''} onChange={(e) => setForm({ ...form, [key]: e.target.value })} />
               )}
