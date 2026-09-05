@@ -2,6 +2,12 @@ import axios from 'axios';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://gonaturefarms-qf9o.onrender.com';
 
+// Helper function to ensure HTTPS URLs
+const ensureHttps = (url) => {
+  if (!url) return url;
+  return url.replace(/^http:\/\//, 'https://');
+};
+
 export const api = axios.create({
   baseURL: API_BASE ? `${API_BASE}/api` : '/api',
   timeout: 60000
@@ -47,12 +53,46 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Helper function to sanitize URLs in API responses
+function sanitizeUrlsInObject(obj) {
+  if (!obj) return obj;
+  if (typeof obj === 'string') {
+    // Check if string is a URL and ensure HTTPS
+    if (obj.match(/^https?:\/\/.*cloudinary\.com/)) {
+      return ensureHttps(obj);
+    }
+    // Also sanitize other image URLs
+    if (obj.match(/^https?:\/\/.*\.(jpg|jpeg|png|gif|webp|svg)/i)) {
+      return ensureHttps(obj);
+    }
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeUrlsInObject);
+  }
+  if (isPlainObject(obj)) {
+    return Object.entries(obj || {}).reduce((acc, [key, value]) => {
+      acc[key] = sanitizeUrlsInObject(value);
+      return acc;
+    }, {});
+  }
+  return obj;
+}
+
 // Handle 401 errors gracefully (prevent console spam and auto-logout)
 api.interceptors.response.use(
   (response) => {
-    if (response.config?.skipTransform) return response;
+    if (response.config?.skipTransform) {
+      // Still sanitize URLs even with skipTransform
+      if (response.data && !(response.data instanceof Blob) && !(response.data instanceof ArrayBuffer)) {
+        response.data = sanitizeUrlsInObject(response.data);
+      }
+      return response;
+    }
     if (response.data && !(response.data instanceof Blob) && !(response.data instanceof ArrayBuffer)) {
       response.data = transformKeys(response.data, snakeToCamel);
+      // Sanitize URLs to prevent mixed content errors
+      response.data = sanitizeUrlsInObject(response.data);
     }
     return response;
   },

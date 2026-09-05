@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useSite } from '../context/SiteContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
+import { ensureHttps } from '../context/SiteContext.jsx';
 import api from '../api/client.js';
 
 export default function CheckoutModal({ open, onClose }) {
@@ -369,7 +370,11 @@ export default function CheckoutModal({ open, onClose }) {
 
   const getImageUrl = (imgUrl) => {
     if (!imgUrl) return '';
-    if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) return imgUrl;
+    // Ensure HTTPS for external URLs (Cloudinary, etc.)
+    if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) {
+      return ensureHttps(imgUrl);
+    }
+    // Handle local URLs (server-hosted images)
     const apiUrl = import.meta.env.VITE_API_URL || '';
     const cleanImgUrl = imgUrl.startsWith('/') ? imgUrl : `/${imgUrl}`;
     const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
@@ -473,8 +478,8 @@ export default function CheckoutModal({ open, onClose }) {
           <div className="fg"><label>Payment Method</label><select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}><option value="UPI">UPI</option></select></div>
           {form.paymentMethod === 'UPI' && (
             <>
-              {settings.qr_code && <div className="qr-box"><img src={getImageUrl(settings.qr_code)} alt="Payment QR" /></div>}
-              {!settings.qr_code && <div className="qr-box" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb' }}><img src="/qr-placeholder.png" alt="Payment QR" style={{ maxWidth: 200 }} onError={(e) => e.target.style.display = 'none'} /><span style={{ color: 'var(--muted)' }}>QR Code Placeholder</span></div>}
+              {settings.upi_scanner_url && <div className="qr-box"><img src={getImageUrl(settings.upi_scanner_url)} alt="UPI Scanner" /></div>}
+              {!settings.upi_scanner_url && <div className="qr-box" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb' }}><img src="/qr-placeholder.png" alt="Payment QR" style={{ maxWidth: 200 }} onError={(e) => e.target.style.display = 'none'} /><span style={{ color: 'var(--muted)' }}>QR Code Placeholder</span></div>}
               {settings.upi_id && <div className="upi-box"><span className="upi-id">{settings.upi_id}</span></div>}
               <div className="fg"><label>Transaction ID / UTR (required)</label><input required value={form.paymentUtr} onChange={(e) => setForm({ ...form, paymentUtr: e.target.value })} placeholder="Enter your transaction ID" /></div>
             </>

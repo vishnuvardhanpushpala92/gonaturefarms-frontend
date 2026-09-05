@@ -2,8 +2,8 @@ import React from 'react';
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import api from '../api/client';
 
-// Helper function to ensure HTTPS URLs
-const ensureHttps = (url) => {
+// Helper function to ensure HTTPS URLs - export for global use
+export const ensureHttps = (url) => {
   if (!url) return url;
   return url.replace(/^http:\/\//, 'https://');
 };

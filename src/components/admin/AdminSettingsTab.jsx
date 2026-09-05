@@ -3,12 +3,7 @@ import { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { useSite } from '../../context/SiteContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
-
-// Helper function to ensure HTTPS URLs
-const ensureHttps = (url) => {
-  if (!url) return url;
-  return url.replace(/^http:\/\//, 'https://');
-};
+import { ensureHttps } from '../../context/SiteContext.jsx';
 
 const FIELDS = [
   ['site_name', 'Site Name'], ['tagline', 'Tagline'], ['footer_text', 'Footer Text'],
@@ -105,7 +100,7 @@ export default function AdminSettingsTab() {
       }
       
       if (url) {
-        // Ensure HTTPS for all URLs
+        // Ensure HTTPS for all URLs using global function
         const httpsUrl = ensureHttps(url);
         setForm((f) => ({ ...f, [field]: httpsUrl }));
         showToast('Image uploaded successfully');
