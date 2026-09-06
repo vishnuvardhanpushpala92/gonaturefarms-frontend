@@ -20,12 +20,15 @@ export default function HeroSlider() {
         <div
           key={slide.id}
           className={`slide${i === index ? ' active' : ''}`}
-          style={{ backgroundImage: `url(${slide.imageUrl})` }}
+          style={{ 
+            backgroundImage: slide.imageUrl ? `url(${slide.imageUrl})` : 'none',
+            backgroundColor: slide.imageUrl ? 'transparent' : '#2d5a27'
+          }}
         >
           <div className="slide-mask" />
           <div className="slide-content">
-            <h2>{slide.caption}</h2>
-            <p>{slide.subText}</p>
+            {slide.caption && <h2>{slide.caption}</h2>}
+            {slide.subText && <p>{slide.subText}</p>}
           </div>
         </div>
       ))}

@@ -298,8 +298,8 @@ export default function AdminContentTab() {
             </div>
           )}
           
-          <div className="fg"><label>Caption</label><input value={slideForm.caption} onChange={(e) => setSlideForm({ ...slideForm, caption: e.target.value })} /></div>
-          <div className="fg"><label>Sub Text</label><input value={slideForm.subText} onChange={(e) => setSlideForm({ ...slideForm, subText: e.target.value })} /></div>
+          <div className="fg"><label>Caption (Optional)</label><input value={slideForm.caption} onChange={(e) => setSlideForm({ ...slideForm, caption: e.target.value })} placeholder="Optional caption text" /></div>
+          <div className="fg"><label>Sub Text (Optional)</label><input value={slideForm.subText} onChange={(e) => setSlideForm({ ...slideForm, subText: e.target.value })} placeholder="Optional sub text" /></div>
           <button className="btn btn-primary" disabled={uploadingSlide}>
             {uploadingSlide ? 'Adding Slide...' : 'Add Slide'}
           </button>
