@@ -8,6 +8,7 @@ import ProductGrid from '../components/ProductGrid.jsx';
 import VideoGallery from '../components/VideoGallery.jsx';
 import FaqSection from '../components/FaqSection.jsx';
 import Testimonials from '../components/Testimonials.jsx';
+import CustomerTestimonials from '../components/CustomerTestimonials.jsx';
 import Footer from '../components/Footer.jsx';
 import CartDrawer from '../components/CartDrawer.jsx';
 import CheckoutModal from '../components/CheckoutModalNew.jsx';
@@ -103,6 +104,7 @@ export default function HomePage() {
       </div>
       <VideoGallery />
       <Testimonials />
+      <CustomerTestimonials />
       <div id="about">
         <FaqSection />
       </div>

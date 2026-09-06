@@ -50,6 +50,13 @@ export default function VideoGallery() {
     return `${filePath}?v=${Date.now()}`;
   };
 
+  // Get poster URL or fallback to product image
+  const getPosterUrl = (video) => {
+    if (video.posterUrl) return video.posterUrl;
+    if (video.product && video.product.imgUrl) return video.product.imgUrl;
+    return ''; // No fallback - will use black background
+  };
+
   const closeVideo = () => {
     if (videoRef.current) {
       videoRef.current.pause();
@@ -71,7 +78,7 @@ export default function VideoGallery() {
     <section className="section video-section">
       <div className="section-head">
         <h2>
-          Our Farm Videos
+          Watch and Buy
           <span />
         </h2>
       </div>
@@ -89,9 +96,23 @@ export default function VideoGallery() {
                   loop
                   playsInline
                   preload="metadata"
-                  poster=""
+                  poster={getPosterUrl(video)}
                   src={getVideoUrl(video.filePath)}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover',
+                    backgroundColor: '#000' 
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.style.background = '#f0f0f0';
+                    e.target.parentElement.innerHTML = `
+                      <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#999;font-size:14px;">
+                        Video Unavailable
+                      </div>
+                    `;
+                  }}
                 />
                 <div className="video-play-overlay">
                   <span className="play-icon">▶</span>
@@ -99,6 +120,20 @@ export default function VideoGallery() {
               </div>
               <div className="video-card-info">
                 <h4>{video.title}</h4>
+                {video.product && (
+                  <div className="video-product-info">
+                    <img 
+                      src={video.product.imgUrl || ''} 
+                      alt={video.product.name}
+                      className="video-product-image"
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                    <div className="video-product-details">
+                      <p className="video-product-name">{video.product.name}</p>
+                      <p className="video-product-price">₹{video.product.price}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -122,6 +157,12 @@ export default function VideoGallery() {
             />
             <div className="video-modal-title">
               <h3>{selectedVideo.title}</h3>
+              {selectedVideo.product && (
+                <div className="video-modal-product">
+                  <p className="video-modal-product-name">{selectedVideo.product.name}</p>
+                  <p className="video-modal-product-price">₹{selectedVideo.product.price}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

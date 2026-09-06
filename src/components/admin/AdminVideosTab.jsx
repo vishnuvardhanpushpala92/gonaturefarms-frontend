@@ -1,228 +1,238 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from '../../api/client';
 import { useToast } from '../../context/ToastContext.jsx';
+
+const EMPTY = { title: '', productId: '', posterUrl: '', enabled: true, sortOrder: 0, orientation: 'landscape' };
 
 export default function AdminVideosTab() {
   const showToast = useToast();
   const [videos, setVideos] = useState([]);
-  const [form, setForm] = useState({ title: '', enabled: true, sortOrder: 0, orientation: 'landscape' });
-  const [file, setFile] = useState(null);
+  const [products, setProducts] = useState([]);
   const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState(EMPTY);
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const load = () => {
+    api.get('/videos/admin/all').then(({ data }) => setVideos(data.videos || []));
+    api.get('/products').then(({ data }) => setProducts(data.products || []));
+  };
 
   useEffect(() => {
-    loadVideos();
+    load();
   }, []);
 
-  const loadVideos = async () => {
-    try {
-      // This must be /admin/all, NOT /admin
-      const res = await api.get('/videos/admin/all');
-      
-      console.log('Admin videos response:', res);
-      console.log('Admin videos response.data:', res.data);
-      
-      if (res.data.success) {
-        setVideos(res.data.videos || []);
-      } else {
-        console.error('API returned success=false:', res.data);
-      }
-    } catch (err) {
-      // This prevents the error from printing as a massive red crash in the browser console
-      console.warn('Could not load videos silently:', err.message);
-    }
-  };
-
-  const saveVideo = async (e) => {
-    e.preventDefault();
-    
-    if (!file && !editing) {
-      showToast('Please select a video file to upload');
-      return;
-    }
-    
-    const formData = new FormData();
-    formData.append('title', form.title);
-    formData.append('enabled', form.enabled);
-    formData.append('sortOrder', form.sortOrder);
-    formData.append('orientation', form.orientation);
-    
-    if (file) {
-      formData.append('file', file);
-    }
-    
-    try {
-      if (editing) {
-        await api.put(`/videos/admin/${editing}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        showToast('Video updated successfully');
-      } else {
-        await api.post('/videos/admin', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        showToast('Video added successfully');
-      }
-      resetForm();
-      loadVideos();
-    } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to save video');
-    }
-  };
-
-  const resetForm = () => {
-    setForm({ title: '', enabled: true, sortOrder: 0, orientation: 'landscape' });
-    setFile(null);
-    setEditing(null);
-  };
-
-  const editVideo = (video) => {
+  const startEdit = (video) => {
     setEditing(video.id);
-    setForm({ 
-      title: video.title, 
-      enabled: video.enabled, 
+    setForm({
+      title: video.title,
+      productId: video.productId || '',
+      posterUrl: video.posterUrl || '',
+      enabled: video.enabled,
       sortOrder: video.sortOrder,
-      orientation: video.orientation || 'landscape'
+      orientation: video.orientation
     });
     setFile(null);
   };
 
-  const deleteVideo = async (id) => {
-    if (!confirm('Are you sure you want to delete this video?')) return;
+  const resetForm = () => {
+    setEditing(null);
+    setForm(EMPTY);
+    setFile(null);
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const save = async (e) => {
+    e.preventDefault();
+    if (!file && !editing) {
+      showToast('Video file is required');
+      return;
+    }
+
+    setUploading(true);
     try {
-      await api.delete(`/videos/admin/${id}`);
-      showToast('Video deleted successfully');
-      loadVideos();
+      const formData = new FormData();
+      formData.append('title', form.title);
+      if (file) formData.append('file', file);
+      if (form.productId) formData.append('productId', form.productId);
+      if (form.posterUrl) formData.append('posterUrl', form.posterUrl);
+      formData.append('enabled', form.enabled);
+      formData.append('sortOrder', form.sortOrder);
+      formData.append('orientation', form.orientation);
+
+      const data = editing
+        ? (await api.put(`/videos/admin/${editing}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            skipTransform: true
+          })).data
+        : (await api.post('/videos/admin', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            skipTransform: true
+          })).data;
+
+      showToast(data.message);
+      if (data.success) {
+        resetForm();
+        load();
+      }
     } catch (err) {
-      showToast('Failed to delete video');
+      showToast(err?.response?.data?.message || 'Failed to save video');
+    } finally {
+      setUploading(false);
     }
   };
 
   const toggleEnabled = async (id) => {
     try {
-      await api.put(`/videos/admin/${id}/toggle`);
-      showToast('Video status updated');
-      loadVideos();
+      const { data } = await api.put(`/videos/admin/${id}/toggle`);
+      showToast(data.message);
+      if (data.success) load();
     } catch (err) {
-      showToast('Failed to update video status');
+      showToast('Failed to toggle video status');
+    }
+  };
+
+  const deleteVideo = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this video?')) return;
+    try {
+      const { data } = await api.delete(`/videos/admin/${id}`);
+      showToast(data.message);
+      if (data.success) load();
+    } catch (err) {
+      showToast('Failed to delete video');
     }
   };
 
   return (
-    <div>
-      <div className="admin-card">
-        <h3 style={{ marginBottom: 12 }}>{editing ? 'Edit Video' : 'Upload New Video'}</h3>
-        <form onSubmit={saveVideo}>
-          <div className="fg">
-            <label>Video Title</label>
-            <input
-              type="text"
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder="Farm Tour Video"
-              required
-            />
-          </div>
-          
-          <div className="fg">
-            <label>Video File (MP4/WebM/OGG)</label>
-            <input
-              type="file"
-              accept="video/mp4,video/webm,video/ogg"
-              onChange={(e) => setFile(e.target.files[0])}
-              required={!editing}
-            />
-            {file && <p style={{ fontSize: '.75rem', color: 'var(--muted)', marginTop: 4 }}>Selected: {file.name}</p>}
-            {!editing && <p style={{ fontSize: '.7rem', color: 'var(--muted)', marginTop: 4 }}>High-quality video recommended</p>}
-          </div>
+    <div className="admin-card">
+      <h3>Videos Management</h3>
+      
+      <form onSubmit={save} className="admin-form">
+        <div className="fg">
+          <label>Video Title *</label>
+          <input
+            type="text"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            required
+          />
+        </div>
 
-          <div className="frow">
-            <div className="fg">
-              <label>Sort Order</label>
-              <input
-                type="number"
-                value={form.sortOrder}
-                onChange={(e) => setForm({ ...form, sortOrder: parseInt(e.target.value) || 0 })}
-                min="0"
-              />
-            </div>
-            <div className="fg">
-              <label>Orientation</label>
-              <select
-                value={form.orientation}
-                onChange={(e) => setForm({ ...form, orientation: e.target.value })}
-              >
-                <option value="landscape">Landscape (16:9)</option>
-                <option value="portrait">Portrait (9:16)</option>
-              </select>
-            </div>
-          </div>
-          
+        <div className="fg">
+          <label>Video File {!editing && '*'}</label>
+          <input
+            type="file"
+            accept="video/*"
+            onChange={handleFileChange}
+            required={!editing}
+          />
+          {editing && !file && <small>Current video will be kept if no new file is selected</small>}
+        </div>
+
+        <div className="fg">
+          <label>Link to Product (Optional)</label>
+          <select
+            value={form.productId}
+            onChange={(e) => setForm({ ...form, productId: e.target.value })}
+          >
+            <option value="">No Product</option>
+            {products.map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="fg">
+          <label>Poster Image URL (Optional)</label>
+          <input
+            type="text"
+            value={form.posterUrl}
+            onChange={(e) => setForm({ ...form, posterUrl: e.target.value })}
+            placeholder="https://example.com/poster.jpg"
+          />
+        </div>
+
+        <div className="frow">
           <div className="fg">
-            <label>
-              <input
-                type="checkbox"
-                checked={form.enabled}
-                onChange={(e) => setForm({ ...form, enabled: e.target.checked })}
-                style={{ marginRight: 8 }}
-              />
-              Enabled (show on website)
-            </label>
+            <label>Sort Order</label>
+            <input
+              type="number"
+              value={form.sortOrder}
+              onChange={(e) => setForm({ ...form, sortOrder: parseInt(e.target.value) })}
+            />
           </div>
-          
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn btn-primary" type="submit">
-              {editing ? 'Update Video' : 'Upload Video'}
+          <div className="fg">
+            <label>Orientation</label>
+            <select
+              value={form.orientation}
+              onChange={(e) => setForm({ ...form, orientation: e.target.value })}
+            >
+              <option value="landscape">Landscape</option>
+              <option value="portrait">Portrait</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="fg">
+          <label>
+            <input
+              type="checkbox"
+              checked={form.enabled}
+              onChange={(e) => setForm({ ...form, enabled: e.target.checked })}
+            />
+            {' '}Enabled
+          </label>
+        </div>
+
+        <div className="admin-ctrl">
+          <button type="submit" className="btn-buy" disabled={uploading}>
+            {uploading ? 'Saving...' : (editing ? 'Update' : 'Add Video')}
+          </button>
+          {editing && (
+            <button type="button" className="btn-e" onClick={resetForm}>
+              Cancel
             </button>
-            {editing && <button className="btn btn-secondary" onClick={resetForm}>Cancel</button>}
-          </div>
-        </form>
-      </div>
+          )}
+        </div>
+      </form>
 
-      <div className="admin-card">
-        <h3 style={{ marginBottom: 12 }}>All Videos</h3>
+      <div className="admin-list">
+        <h4>Existing Videos ({videos.length})</h4>
         {videos.length === 0 ? (
-          <p style={{ color: 'var(--muted)', textAlign: 'center', padding: 20 }}>No videos uploaded yet</p>
+          <div className="empty-grid">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <p>No videos added yet</p>
+          </div>
         ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Status</th>
-                <th>Sort</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {videos.map((video) => (
-                <tr key={video.id}>
-                  <td>
-                    {video.title}
-                    {video.pending && <span style={{ marginLeft: 8, padding: '2px 6px', backgroundColor: '#fef3c7', color: '#92400e', borderRadius: 4, fontSize: '0.7rem' }}>Pending</span>}
-                  </td>
-                  <td>
-                    <span style={{
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      fontSize: '.7rem',
-                      background: video.enabled ? '#ecfdf5' : '#f3f4f6',
-                      color: video.enabled ? '#065f46' : '#6b7280'
-                    }}>
-                      {video.enabled ? 'Enabled' : 'Disabled'}
-                    </span>
-                  </td>
-                  <td>{video.sortOrder}</td>
-                  <td>
-                    <button className="btn-e" onClick={() => editVideo(video)}>Edit</button>
-                    <button className="btn-e" onClick={() => toggleEnabled(video.id)}>
-                      {video.enabled ? 'Disable' : 'Enable'}
-                    </button>
-                    <button className="btn-d" onClick={() => deleteVideo(video.id)}>Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="admin-list-items">
+            {videos.sort((a, b) => a.sortOrder - b.sortOrder).map(video => (
+              <div key={video.id} className="admin-list-item">
+                <div className="admin-list-item-content">
+                  <h5>{video.title}</h5>
+                  {video.product && (
+                    <p className="admin-list-item-sub">Product: {video.product.name} - ₹{video.product.price}</p>
+                  )}
+                  <p className="admin-list-item-sub">Sort: {video.sortOrder} | {video.orientation}</p>
+                  <p className="admin-list-item-sub">Status: {video.enabled ? 'Enabled' : 'Disabled'}</p>
+                  {video.pending && <span className="badge-pending">Pending Approval</span>}
+                </div>
+                <div className="admin-list-item-actions">
+                  <button className="btn-e" onClick={() => startEdit(video)}>Edit</button>
+                  <button className="btn-e" onClick={() => toggleEnabled(video.id)}>
+                    {video.enabled ? 'Disable' : 'Enable'}
+                  </button>
+                  <button className="btn-d" onClick={() => deleteVideo(video.id)}>Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>
