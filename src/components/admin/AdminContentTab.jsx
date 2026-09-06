@@ -9,6 +9,8 @@ export default function AdminContentTab() {
   const showToast = useToast();
 
   const [slideForm, setSlideForm] = useState({ imageUrl: '', caption: '', subText: '' });
+  const [slideFile, setSlideFile] = useState(null);
+  const [uploadingSlide, setUploadingSlide] = useState(false);
   const [faqForm, setFaqForm] = useState({ question: '', answer: '' });
   const [zoneForm, setZoneForm] = useState({ pincode: '', area: '', city: '', state: '', charge: '' });
   const [blockForm, setBlockForm] = useState({ title: '', content: '', icon: '', customIcon: '', style: 'info', backgroundColor: '#f8fafb', textColor: '#2d5a27' });
@@ -31,12 +33,52 @@ export default function AdminContentTab() {
 
   const addSlide = async (e) => {
     e.preventDefault();
+    
+    // Check if either URL or file is provided
+    if (!slideFile && !slideForm.imageUrl) {
+      showToast('Please provide either an Image URL or upload an image file');
+      return;
+    }
+
+    setUploadingSlide(true);
     try {
-      const { data } = await api.post('/admin/slides', slideForm);
+      let finalImageUrl = slideForm.imageUrl;
+      
+      // If file is provided, upload it first
+      if (slideFile) {
+        const formData = new FormData();
+        formData.append('file', slideFile);
+        
+        const { data } = await api.post('/admin/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          skipTransform: true
+        });
+        
+        if (data.success && data.url) {
+          finalImageUrl = data.url;
+          showToast('Image uploaded successfully');
+        } else {
+          showToast(data.message || 'Failed to upload image');
+          return;
+        }
+      }
+      
+      // Now create the slide with the final image URL
+      const { data } = await api.post('/admin/slides', { 
+        imageUrl: finalImageUrl,
+        caption: slideForm.caption,
+        subText: slideForm.subText
+      });
       showToast(data.message || 'Slide added successfully');
-      if (data.success) { setSlideForm({ imageUrl: '', caption: '', subText: '' }); reload(); }
+      if (data.success) { 
+        setSlideForm({ imageUrl: '', caption: '', subText: '' }); 
+        setSlideFile(null);
+        reload(); 
+      }
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to add slide');
+    } finally {
+      setUploadingSlide(false);
     }
   };
   const removeSlide = async (id) => {
@@ -203,17 +245,84 @@ export default function AdminContentTab() {
       <div className="admin-card">
         <h3>Hero Slides</h3>
         <form onSubmit={addSlide} style={{ marginTop: 10 }}>
-          <div className="frow">
-            <div className="fg"><label>Image URL</label><input required value={slideForm.imageUrl} onChange={(e) => setSlideForm({ ...slideForm, imageUrl: e.target.value })} /></div>
-            <div className="fg"><label>Caption</label><input value={slideForm.caption} onChange={(e) => setSlideForm({ ...slideForm, caption: e.target.value })} /></div>
+          <div className="fg">
+            <label>Image Source</label>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <input 
+                  type="radio" 
+                  name="imageSource" 
+                  checked={!slideFile} 
+                  onChange={() => setSlideFile(null)}
+                />
+                <span>URL</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <input 
+                  type="radio" 
+                  name="imageSource" 
+                  checked={!!slideFile} 
+                  onChange={() => setSlideFile({})}
+                />
+                <span>Upload</span>
+              </label>
+            </div>
           </div>
+          
+          {!slideFile ? (
+            <div className="fg">
+              <label>Image URL</label>
+              <input 
+                placeholder="https://example.com/image.jpg" 
+                value={slideForm.imageUrl} 
+                onChange={(e) => setSlideForm({ ...slideForm, imageUrl: e.target.value })} 
+              />
+            </div>
+          ) : (
+            <div className="fg">
+              <label>Upload Image</label>
+              <input 
+                type="file" 
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files[0]) {
+                    setSlideFile(e.target.files[0]);
+                  }
+                }}
+              />
+              {slideFile && (
+                <small style={{ color: 'var(--muted)', marginTop: 4 }}>
+                  Selected: {slideFile.name}
+                </small>
+              )}
+            </div>
+          )}
+          
+          <div className="fg"><label>Caption</label><input value={slideForm.caption} onChange={(e) => setSlideForm({ ...slideForm, caption: e.target.value })} /></div>
           <div className="fg"><label>Sub Text</label><input value={slideForm.subText} onChange={(e) => setSlideForm({ ...slideForm, subText: e.target.value })} /></div>
-          <button className="btn btn-primary">Add Slide</button>
+          <button className="btn btn-primary" disabled={uploadingSlide}>
+            {uploadingSlide ? 'Adding Slide...' : 'Add Slide'}
+          </button>
         </form>
         <table className="data-table" style={{ marginTop: 12 }}>
           <tbody>
             {slides.map((s) => (
-              <tr key={s.id}><td>{s.caption}</td><td><button className="btn-d" onClick={() => removeSlide(s.id)}>Delete</button></td></tr>
+              <tr key={s.id}>
+                <td>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {s.imageUrl && (
+                      <img 
+                        src={s.imageUrl} 
+                        alt={s.caption} 
+                        style={{ width: 60, height: 40, objectFit: 'cover', borderRadius: 4 }}
+                        onError={(e) => e.target.style.display = 'none'}
+                      />
+                    )}
+                    <span>{s.caption}</span>
+                  </div>
+                </td>
+                <td><button className="btn-d" onClick={() => removeSlide(s.id)}>Delete</button></td>
+              </tr>
             ))}
           </tbody>
         </table>
