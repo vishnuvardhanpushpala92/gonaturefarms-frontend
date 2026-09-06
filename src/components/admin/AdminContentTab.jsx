@@ -11,6 +11,7 @@ export default function AdminContentTab() {
   const [slideForm, setSlideForm] = useState({ imageUrl: '', caption: '', subText: '' });
   const [slideFile, setSlideFile] = useState(null);
   const [uploadingSlide, setUploadingSlide] = useState(false);
+  const [editingSlide, setEditingSlide] = useState(null);
   const [faqForm, setFaqForm] = useState({ question: '', answer: '' });
   const [zoneForm, setZoneForm] = useState({ pincode: '', area: '', city: '', state: '', charge: '' });
   const [blockForm, setBlockForm] = useState({ title: '', content: '', icon: '', customIcon: '', style: 'info', backgroundColor: '#f8fafb', textColor: '#2d5a27' });
@@ -80,6 +81,76 @@ export default function AdminContentTab() {
     } finally {
       setUploadingSlide(false);
     }
+  };
+
+  const startEditSlide = (slide) => {
+    setEditingSlide(slide);
+    setSlideForm({
+      imageUrl: slide.imageUrl,
+      caption: slide.caption,
+      subText: slide.subText
+    });
+    setSlideFile(null);
+  };
+
+  const updateSlide = async (e) => {
+    e.preventDefault();
+    
+    if (!editingSlide) return;
+    
+    // Check if either URL or file is provided
+    if (!slideFile && !slideForm.imageUrl) {
+      showToast('Please provide either an Image URL or upload an image file');
+      return;
+    }
+
+    setUploadingSlide(true);
+    try {
+      let finalImageUrl = slideForm.imageUrl;
+      
+      // If file is provided, upload it first
+      if (slideFile) {
+        const formData = new FormData();
+        formData.append('file', slideFile);
+        
+        const { data } = await api.post('/admin/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          skipTransform: true
+        });
+        
+        if (data.success && data.url) {
+          finalImageUrl = data.url;
+          showToast('Image uploaded successfully');
+        } else {
+          showToast(data.message || 'Failed to upload image');
+          return;
+        }
+      }
+      
+      // Now update the slide with the final image URL
+      const { data } = await api.put(`/admin/slides/${editingSlide.id}`, { 
+        imageUrl: finalImageUrl,
+        caption: slideForm.caption,
+        subText: slideForm.subText
+      });
+      showToast(data.message || 'Slide updated successfully');
+      if (data.success) { 
+        setEditingSlide(null);
+        setSlideForm({ imageUrl: '', caption: '', subText: '' }); 
+        setSlideFile(null);
+        reload(); 
+      }
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to update slide');
+    } finally {
+      setUploadingSlide(false);
+    }
+  };
+
+  const cancelEditSlide = () => {
+    setEditingSlide(null);
+    setSlideForm({ imageUrl: '', caption: '', subText: '' });
+    setSlideFile(null);
   };
   const removeSlide = async (id) => {
     try {
@@ -244,7 +315,7 @@ export default function AdminContentTab() {
     <div>
       <div className="admin-card">
         <h3>Hero Slides</h3>
-        <form onSubmit={addSlide} style={{ marginTop: 10 }}>
+        <form onSubmit={editingSlide ? updateSlide : addSlide} style={{ marginTop: 10 }}>
           <div className="fg">
             <label>Image Source</label>
             <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
@@ -300,28 +371,37 @@ export default function AdminContentTab() {
           
           <div className="fg"><label>Caption (Optional)</label><input value={slideForm.caption} onChange={(e) => setSlideForm({ ...slideForm, caption: e.target.value })} placeholder="Optional caption text" /></div>
           <div className="fg"><label>Sub Text (Optional)</label><input value={slideForm.subText} onChange={(e) => setSlideForm({ ...slideForm, subText: e.target.value })} placeholder="Optional sub text" /></div>
-          <button className="btn btn-primary" disabled={uploadingSlide}>
-            {uploadingSlide ? 'Adding Slide...' : 'Add Slide'}
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-primary" disabled={uploadingSlide}>
+              {uploadingSlide ? (editingSlide ? 'Updating Slide...' : 'Adding Slide...') : (editingSlide ? 'Update Slide' : 'Add Slide')}
+            </button>
+            {editingSlide && (
+              <button type="button" className="btn btn-secondary" onClick={cancelEditSlide}>Cancel</button>
+            )}
+          </div>
         </form>
         <table className="data-table" style={{ marginTop: 12 }}>
+          <thead>
+            <tr><th>Image</th><th>Caption</th><th>Actions</th></tr>
+          </thead>
           <tbody>
             {slides.map((s) => (
               <tr key={s.id}>
                 <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {s.imageUrl && (
-                      <img 
-                        src={s.imageUrl} 
-                        alt={s.caption} 
-                        style={{ width: 60, height: 40, objectFit: 'cover', borderRadius: 4 }}
-                        onError={(e) => e.target.style.display = 'none'}
-                      />
-                    )}
-                    <span>{s.caption}</span>
-                  </div>
+                  {s.imageUrl && (
+                    <img 
+                      src={s.imageUrl} 
+                      alt={s.caption} 
+                      style={{ width: 60, height: 40, objectFit: 'cover', borderRadius: 4 }}
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                  )}
                 </td>
-                <td><button className="btn-d" onClick={() => removeSlide(s.id)}>Delete</button></td>
+                <td>{s.caption || '-'}</td>
+                <td>
+                  <button className="btn btn-secondary" style={{ marginRight: 8, fontSize: '0.8rem' }} onClick={() => startEditSlide(s)}>Edit</button>
+                  <button className="btn-d" onClick={() => removeSlide(s.id)}>Delete</button>
+                </td>
               </tr>
             ))}
           </tbody>

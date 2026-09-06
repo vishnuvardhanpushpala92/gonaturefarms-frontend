@@ -32,6 +32,15 @@ export default function HeroSlider() {
           </div>
         </div>
       ))}
+      <div className="slider-nav">
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            className={`snav${i === index ? ' active' : ''}`}
+            onClick={() => setIndex(i)}
+          />
+        ))}
+      </div>
     </div>
   );
 }
