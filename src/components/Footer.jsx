@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSite } from '../context/SiteContext.jsx';
 import { useLocation } from 'react-router-dom';
+import api from '../api/client';
 
 export default function Footer({ onOpenSupport }) {
   const { settings, footerLinks } = useSite();
@@ -9,11 +10,15 @@ export default function Footer({ onOpenSupport }) {
 
   const footerFontSize = settings.ftr_font_size || '14';
 
+  // Testimonials state
+  const [testimonials, setTestimonials] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   // Group footer links by category
   const quickLinks = footerLinks.filter(link => link.category === 'QUICK_LINKS');
   const customerCareLinks = footerLinks.filter(link => link.category === 'CUSTOMER_CARE');
 
-  // Default navigation links that should always be available
+  // Default navigation links that should always be available (removed About Us)
   const defaultLinks = [
     { name: 'Home', url: '/' },
     { name: 'Back to Top', url: 'scroll' }
@@ -21,6 +26,50 @@ export default function Footer({ onOpenSupport }) {
 
   // Combine default links with admin-added quick links
   const allQuickLinks = [...defaultLinks, ...quickLinks];
+
+  // Load testimonials
+  useEffect(() => {
+    loadTestimonials();
+  }, []);
+
+  const loadTestimonials = async () => {
+    try {
+      const res = await api.get('/testimonials');
+      if (res.data && res.data.success) {
+        setTestimonials(Array.isArray(res.data.testimonials) ? res.data.testimonials : []);
+      } else {
+        console.error('API returned success=false:', res.data);
+        setTestimonials([]);
+      }
+    } catch (err) {
+      console.error('Failed to load testimonials:', err);
+      setTestimonials([]);
+    }
+  };
+
+  const scrollLeft = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  const scrollRight = () => {
+    if (currentIndex < testimonials.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  const renderStars = (rating) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      if (i <= rating) {
+        stars.push(<span key={i} className="star filled">★</span>);
+      } else {
+        stars.push(<span key={i} className="star empty">☆</span>);
+      }
+    }
+    return stars;
+  };
 
   const handleLinkClick = (url, e) => {
     e.preventDefault();
@@ -56,8 +105,76 @@ export default function Footer({ onOpenSupport }) {
   };
 
   return (
-    <footer style={{ backgroundColor: isAdminPage ? undefined : (settings.ftr_bg || undefined), color: isAdminPage ? undefined : (settings.ftr_text || undefined), fontSize: `${footerFontSize}px` }}>
-      <div className="footer-main">
+    <footer style={{ 
+      backgroundColor: isAdminPage ? undefined : (settings.ftr_bg || undefined), 
+      color: isAdminPage ? undefined : (settings.ftr_text || undefined), 
+      fontSize: `${footerFontSize}px`,
+      margin: 0,
+      padding: 0
+    }}>
+      {/* Testimonials Section - Integrated at top of footer */}
+      {testimonials.length > 0 && (
+        <div className="customer-testimonials-section" style={{ margin: 0, padding: '60px 20px' }}>
+          <div className="customer-testimonials-container">
+            <div className="customer-testimonials-header">
+              <h2 className="customer-testimonials-title">Listen From Our Customers</h2>
+            </div>
+            
+            <div className="customer-testimonials-slider">
+              <button 
+                className="customer-testimonials-nav customer-testimonials-nav-left" 
+                onClick={scrollLeft}
+                disabled={currentIndex === 0}
+              >
+                <span>‹</span>
+              </button>
+              
+              <div className="customer-testimonials-content">
+                <div className="customer-testimonials-stars">
+                  {renderStars(testimonials[currentIndex].rating)}
+                </div>
+                <p className="customer-testimonials-quote">
+                  "{testimonials[currentIndex].quote}"
+                </p>
+                <div className="customer-testimonials-author">
+                  {testimonials[currentIndex].avatarUrl && (
+                    <img 
+                      src={testimonials[currentIndex].avatarUrl} 
+                      alt={testimonials[currentIndex].customerName}
+                      className="customer-testimonials-avatar"
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                  )}
+                  <span className="customer-testimonials-name">
+                    {testimonials[currentIndex].customerName}
+                  </span>
+                </div>
+              </div>
+              
+              <button 
+                className="customer-testimonials-nav customer-testimonials-nav-right" 
+                onClick={scrollRight}
+                disabled={currentIndex === testimonials.length - 1}
+              >
+                <span>›</span>
+              </button>
+            </div>
+            
+            <div className="customer-testimonials-dots">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  className={`customer-testimonials-dot ${index === currentIndex ? 'active' : ''}`}
+                  onClick={() => setCurrentIndex(index)}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Original Footer Content */}
+      <div className="footer-main" style={{ marginTop: 0, paddingTop: '40px' }}>
         <div className="footer-brand">
           <h3>{settings.site_name || 'Go Nature Farms'}</h3>
           <p>{settings.footer_desc || 'Bringing the purest organic produce directly from our farms to your table.'}</p>

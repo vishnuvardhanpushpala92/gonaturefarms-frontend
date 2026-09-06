@@ -114,8 +114,8 @@ body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);overflo
   .play-icon{font-size:40px;}
 }
 
-/* ── CUSTOMER TESTIMONIALS ───────────────────────────────────── */
-.customer-testimonials-section{background:linear-gradient(135deg, #ff9800 0%, #f57c00 100%);padding:60px 20px;margin:40px 0;}
+/* ── CUSTOMER TESTIMONIALS (Integrated in Footer) ───────────────────────────────────── */
+.customer-testimonials-section{background:linear-gradient(135deg, #ff9800 0%, #f57c00 100%);margin:0;padding:60px 20px;}
 .customer-testimonials-container{max-width:1240px;margin:0 auto;text-align:center;}
 .customer-testimonials-header{margin-bottom:30px;}
 .customer-testimonials-title{font-size:2rem;font-weight:700;color:#fff;margin:0;position:relative;display:inline-block;}
@@ -141,7 +141,7 @@ body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);overflo
 .customer-testimonials-dot:hover{background:#fff;}
 .customer-testimonials-dot.active{background:#fff;border-color:#fff;}
 @media(max-width:768px){
-  .customer-testimonials-section{padding:40px 15px;margin:30px 0;}
+  .customer-testimonials-section{padding:40px 15px;}
   .customer-testimonials-title{font-size:1.5rem;}
   .customer-testimonials-slider{padding:0 45px;}
   .customer-testimonials-content{padding:30px 20px;}

@@ -13,25 +13,10 @@ export default function AdminFooterTab() {
   const [editingLink, setEditingLink] = useState(null);
   const [newLink, setNewLink] = useState({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0 });
   const [saving, setSaving] = useState(false);
-  
-  // About Us content state
-  const [aboutUsContent, setAboutUsContent] = useState({
-    slug: 'about-us',
-    title: '',
-    description: '',
-    imageUrl: '',
-    personName: '',
-    personRole: '',
-    personImageUrl: '',
-    optionalLink: ''
-  });
-  const [loadingAboutUs, setLoadingAboutUs] = useState(false);
-  const [savingAboutUs, setSavingAboutUs] = useState(false);
 
   useEffect(() => {
     setForm(settings);
     loadFooterLinks();
-    loadAboutUsContent();
   }, [settings]);
 
   const loadFooterLinks = async () => {
@@ -44,50 +29,6 @@ export default function AdminFooterTab() {
       showToast('Failed to load footer links');
     } finally {
       setLoadingLinks(false);
-    }
-  };
-
-  const loadAboutUsContent = async () => {
-    setLoadingAboutUs(true);
-    try {
-      const { data } = await api.get('/site-content/admin?slug=about-us');
-      if (data.content) {
-        setAboutUsContent(data.content);
-      }
-    } catch (err) {
-      console.error('Failed to load About Us content:', err);
-      // Keep default values on error
-    } finally {
-      setLoadingAboutUs(false);
-    }
-  };
-
-  const saveAboutUsContent = async (e) => {
-    e.preventDefault();
-    setSavingAboutUs(true);
-    try {
-      // Check if content already exists by trying to get it (admin endpoint to see pending too)
-      const { data: existingData } = await api.get('/site-content/admin?slug=about-us');
-
-      if (existingData.content && existingData.content.id) {
-        // Update existing content
-        await api.put(`/site-content/${existingData.content.id}`, aboutUsContent);
-        showToast('About Us content updated successfully');
-      } else {
-        // Create new content
-        await api.post('/site-content', aboutUsContent);
-        showToast('About Us content created successfully');
-      }
-    } catch (err) {
-      // If check fails, try to create directly
-      try {
-        await api.post('/site-content', aboutUsContent);
-        showToast('About Us content created successfully');
-      } catch (createErr) {
-        showToast(createErr?.response?.data?.message || 'Failed to save About Us content');
-      }
-    } finally {
-      setSavingAboutUs(false);
     }
   };
 
@@ -350,80 +291,6 @@ export default function AdminFooterTab() {
             </tbody>
           </table>
         </div>
-      </div>
-
-      <div className="admin-card">
-        <h3 style={{ marginBottom: 12 }}>About Us Page Content</h3>
-        <form onSubmit={saveAboutUsContent}>
-          <div className="fg">
-            <label>Page Title</label>
-            <input
-              type="text"
-              value={aboutUsContent.title || ''}
-              onChange={(e) => setAboutUsContent({ ...aboutUsContent, title: e.target.value })}
-              placeholder="About Us"
-            />
-          </div>
-          <div className="fg">
-            <label>Description</label>
-            <textarea
-              value={aboutUsContent.description || ''}
-              onChange={(e) => setAboutUsContent({ ...aboutUsContent, description: e.target.value })}
-              placeholder="Enter the About Us description..."
-              rows={6}
-            />
-          </div>
-          <div className="fg">
-            <label>Hero Image URL</label>
-            <input
-              type="text"
-              value={aboutUsContent.imageUrl || ''}
-              onChange={(e) => setAboutUsContent({ ...aboutUsContent, imageUrl: e.target.value })}
-              placeholder="https://example.com/image.jpg"
-            />
-          </div>
-          <div className="frow">
-            <div className="fg">
-              <label>Person Name</label>
-              <input
-                type="text"
-                value={aboutUsContent.personName || ''}
-                onChange={(e) => setAboutUsContent({ ...aboutUsContent, personName: e.target.value })}
-                placeholder="John Doe"
-              />
-            </div>
-            <div className="fg">
-              <label>Person Role</label>
-              <input
-                type="text"
-                value={aboutUsContent.personRole || ''}
-                onChange={(e) => setAboutUsContent({ ...aboutUsContent, personRole: e.target.value })}
-                placeholder="Founder & CEO"
-              />
-            </div>
-          </div>
-          <div className="fg">
-            <label>Person Image URL</label>
-            <input
-              type="text"
-              value={aboutUsContent.personImageUrl || ''}
-              onChange={(e) => setAboutUsContent({ ...aboutUsContent, personImageUrl: e.target.value })}
-              placeholder="https://example.com/person.jpg"
-            />
-          </div>
-          <div className="fg">
-            <label>Optional Link (for image)</label>
-            <input
-              type="text"
-              value={aboutUsContent.optionalLink || ''}
-              onChange={(e) => setAboutUsContent({ ...aboutUsContent, optionalLink: e.target.value })}
-              placeholder="https://example.com/learn-more"
-            />
-          </div>
-          <button className="btn btn-primary" disabled={savingAboutUs}>
-            {savingAboutUs ? 'Saving...' : 'Save About Us Content'}
-          </button>
-        </form>
       </div>
     </div>
   );
