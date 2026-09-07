@@ -47,14 +47,14 @@ export default function ReviewModal({ product, onClose }) {
       {user && (
         <form onSubmit={submit} style={{ marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid var(--border)' }}>
           <div className="fg">
-            <label>Your Rating</label>
-            <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+            <label htmlFor="review-rating">Your Rating</label>
+            <select id="review-rating" name="rating" value={rating} onChange={(e) => setRating(Number(e.target.value))}>
               {[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{n} ★</option>)}
             </select>
           </div>
           <div className="fg">
-            <label>Your Review</label>
-            <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Share your experience..." />
+            <label htmlFor="review-comment">Your Review</label>
+            <textarea id="review-comment" name="comment" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Share your experience..." />
           </div>
           <button className="btn btn-primary" disabled={busy}>{busy ? 'Submitting...' : 'Submit Review'}</button>
         </form>

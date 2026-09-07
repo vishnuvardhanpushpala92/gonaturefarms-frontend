@@ -394,8 +394,10 @@ export default function AuthModal({ open, onClose }) {
             </p>
             <form onSubmit={handleAddressSetup}>
               <div className="fg">
-                <label>Address Type</label>
+                <label htmlFor="address-type">Address Type</label>
                 <select 
+                  id="address-type"
+                  name="addressType"
                   value={addressForm.addressType} 
                   onChange={(e) => setAddressForm({ ...addressForm, addressType: e.target.value })}
                 >
@@ -404,31 +406,31 @@ export default function AuthModal({ open, onClose }) {
                 </select>
               </div>
               <div className="fg">
-                <label>Name</label>
-                <input required value={addressForm.name} onChange={(e) => setAddressForm({ ...addressForm, name: e.target.value })} />
+                <label htmlFor="address-name">Name</label>
+                <input id="address-name" name="name" required value={addressForm.name} onChange={(e) => setAddressForm({ ...addressForm, name: e.target.value })} />
               </div>
               <div className="fg">
-                <label>Address Line</label>
-                <textarea required value={addressForm.addressLine} onChange={(e) => setAddressForm({ ...addressForm, addressLine: e.target.value })} />
+                <label htmlFor="address-line">Address Line</label>
+                <textarea id="address-line" name="addressLine" required value={addressForm.addressLine} onChange={(e) => setAddressForm({ ...addressForm, addressLine: e.target.value })} />
               </div>
               <div className="frow">
                 <div className="fg">
-                  <label>City</label>
-                  <input required value={addressForm.city} onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} />
+                  <label htmlFor="address-city">City</label>
+                  <input id="address-city" name="city" required value={addressForm.city} onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} />
                 </div>
                 <div className="fg">
-                  <label>State</label>
-                  <input required value={addressForm.state} onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })} />
+                  <label htmlFor="address-state">State</label>
+                  <input id="address-state" name="state" required value={addressForm.state} onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })} />
                 </div>
               </div>
               <div className="frow">
                 <div className="fg">
-                  <label>Pincode</label>
-                  <input required value={addressForm.pincode} onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value })} />
+                  <label htmlFor="address-pincode">Pincode</label>
+                  <input id="address-pincode" name="pincode" required value={addressForm.pincode} onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value })} />
                 </div>
                 <div className="fg">
-                  <label>Phone</label>
-                  <input required value={addressForm.phone} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} />
+                  <label htmlFor="address-phone">Phone</label>
+                  <input id="address-phone" name="phone" required value={addressForm.phone} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} />
                 </div>
               </div>
               <button type="submit" className="btn btn-primary btn-block">Save Address</button>
@@ -450,8 +452,10 @@ export default function AuthModal({ open, onClose }) {
                 <h4 style={{ marginBottom: 12 }}>{editingAddressId ? 'Edit Address' : 'Add New Address'}</h4>
                 <form onSubmit={saveAddress}>
                   <div className="fg">
-                    <label>Address Type</label>
+                    <label htmlFor="edit-address-type">Address Type</label>
                     <select 
+                      id="edit-address-type"
+                      name="addressType"
                       value={addressForm.addressType} 
                       onChange={(e) => setAddressForm({ ...addressForm, addressType: e.target.value })}
                     >
@@ -460,16 +464,20 @@ export default function AuthModal({ open, onClose }) {
                     </select>
                   </div>
                   <div className="fg">
-                    <label>Name</label>
+                    <label htmlFor="edit-address-name">Name</label>
                     <input 
+                      id="edit-address-name"
+                      name="name"
                       required 
                       value={addressForm.name} 
                       onChange={(e) => setAddressForm({ ...addressForm, name: e.target.value })} 
                     />
                   </div>
                   <div className="fg">
-                    <label>Address Line</label>
+                    <label htmlFor="edit-address-line">Address Line</label>
                     <textarea 
+                      id="edit-address-line"
+                      name="addressLine"
                       required 
                       value={addressForm.addressLine} 
                       onChange={(e) => setAddressForm({ ...addressForm, addressLine: e.target.value })} 
@@ -477,16 +485,20 @@ export default function AuthModal({ open, onClose }) {
                   </div>
                   <div className="frow">
                     <div className="fg">
-                      <label>City</label>
+                      <label htmlFor="edit-address-city">City</label>
                       <input 
+                        id="edit-address-city"
+                        name="city"
                         required 
                         value={addressForm.city} 
                         onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} 
                       />
                     </div>
                     <div className="fg">
-                      <label>State</label>
+                      <label htmlFor="edit-address-state">State</label>
                       <input 
+                        id="edit-address-state"
+                        name="state"
                         required 
                         value={addressForm.state} 
                         onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })} 
@@ -495,16 +507,20 @@ export default function AuthModal({ open, onClose }) {
                   </div>
                   <div className="frow">
                     <div className="fg">
-                      <label>Pincode</label>
+                      <label htmlFor="edit-address-pincode">Pincode</label>
                       <input 
+                        id="edit-address-pincode"
+                        name="pincode"
                         required 
                         value={addressForm.pincode} 
                         onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value })} 
                       />
                     </div>
                     <div className="fg">
-                      <label>Phone</label>
+                      <label htmlFor="edit-address-phone">Phone</label>
                       <input 
+                        id="edit-address-phone"
+                        name="phone"
                         required 
                         value={addressForm.phone} 
                         onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} 
@@ -635,37 +651,39 @@ export default function AuthModal({ open, onClose }) {
               {!isLogin && (
                 <>
                   <div className="fg">
-                    <label>Name</label>
-                    <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                    <label htmlFor="auth-name">Name</label>
+                    <input id="auth-name" name="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
                   </div>
                   <div className="fg">
-                    <label>Username (optional)</label>
-                    <input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="Choose a username" />
+                    <label htmlFor="auth-username">Username (optional)</label>
+                    <input id="auth-username" name="username" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="Choose a username" />
                   </div>
                 </>
               )}
               {isLogin ? (
                 <div className="fg">
-                  <label>Phone Number</label>
-                  <input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="10-digit phone number" />
+                  <label htmlFor="auth-phone">Phone Number</label>
+                  <input id="auth-phone" name="phone" required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="10-digit phone number" />
                 </div>
               ) : (
                 <>
                   <div className="fg">
-                    <label>Phone (required)</label>
-                    <input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="10-digit phone number" />
+                    <label htmlFor="auth-phone">Phone (required)</label>
+                    <input id="auth-phone" name="phone" required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="10-digit phone number" />
                   </div>
                   <div className="fg">
-                    <label>Email (optional)</label>
-                    <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" />
+                    <label htmlFor="auth-email">Email (optional)</label>
+                    <input id="auth-email" name="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" />
                   </div>
                 </>
               )}
               {!isLogin && (
                 <>
                   <div className="fg">
-                    <label>Security Question</label>
+                    <label htmlFor="auth-security-question">Security Question</label>
                     <select 
+                      id="auth-security-question"
+                      name="securityQuestion"
                       required 
                       value={form.securityQuestion} 
                       onChange={(e) => setForm({ ...form, securityQuestion: e.target.value })}
@@ -678,15 +696,17 @@ export default function AuthModal({ open, onClose }) {
                     </select>
                   </div>
                   <div className="fg">
-                    <label>Security Answer</label>
-                    <input required value={form.securityAnswer} onChange={(e) => setForm({ ...form, securityAnswer: e.target.value })} />
+                    <label htmlFor="auth-security-answer">Security Answer</label>
+                    <input id="auth-security-answer" name="securityAnswer" required value={form.securityAnswer} onChange={(e) => setForm({ ...form, securityAnswer: e.target.value })} />
                   </div>
                 </>
               )}
               <div className="fg">
-                <label>Password</label>
+                <label htmlFor="auth-password">Password</label>
                 <div style={{ position: 'relative' }}>
                   <input 
+                    id="auth-password"
+                    name="password"
                     required 
                     type={showPassword ? "text" : "password"} 
                     value={form.password} 
@@ -714,9 +734,11 @@ export default function AuthModal({ open, onClose }) {
               </div>
               {!isLogin && (
                 <div className="fg">
-                  <label>Confirm Password</label>
+                  <label htmlFor="auth-confirm-password">Confirm Password</label>
                   <div style={{ position: 'relative' }}>
                     <input 
+                      id="auth-confirm-password"
+                      name="confirmPassword"
                       required 
                       type={showConfirmPassword ? "text" : "password"} 
                       value={form.confirmPassword} 

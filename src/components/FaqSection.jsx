@@ -9,7 +9,7 @@ export default function FaqSection() {
   if (!faqs.length) return null;
 
   return (
-    <div className="section reveal">
+    <div className="section reveal last-section">
       <div className="section-head"><h2>Frequently Asked Questions <span></span></h2></div>
       {faqs.map((f) => (
         <div className="faq-row" key={f.id} onClick={() => setOpenId(openId === f.id ? null : f.id)} style={{ cursor: 'pointer' }}>

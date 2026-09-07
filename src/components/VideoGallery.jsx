@@ -75,7 +75,7 @@ export default function VideoGallery() {
   if (videos.length === 0) return null;
 
   return (
-    <section className="section video-section">
+    <section className="section video-section last-section">
       <div className="section-head">
         <h2>
           Watch and Buy

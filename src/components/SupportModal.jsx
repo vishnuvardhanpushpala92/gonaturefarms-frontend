@@ -42,18 +42,18 @@ export default function SupportModal({ open, onClose }) {
       <form onSubmit={submit}>
         {schema.map((f) => (
           <div className="fg" key={f.key}>
-            <label>{f.label}{f.required && ' *'}</label>
+            <label htmlFor={`support-${f.key}`}>{f.label}{f.required && ' *'}</label>
             {f.type === 'textarea' ? (
-              <textarea required={f.required} value={fields[f.key] || ''}
+              <textarea id={`support-${f.key}`} name={f.key} required={f.required} value={fields[f.key] || ''}
                         onChange={(e) => setFields({ ...fields, [f.key]: e.target.value })} />
             ) : f.type === 'select' ? (
-              <select required={f.required} value={fields[f.key] || ''}
+              <select id={`support-${f.key}`} name={f.key} required={f.required} value={fields[f.key] || ''}
                       onChange={(e) => setFields({ ...fields, [f.key]: e.target.value })}>
                 <option value="">Select...</option>
                 {(f.options || []).map((opt) => <option key={opt} value={opt}>{opt}</option>)}
               </select>
             ) : (
-              <input type={f.type || 'text'} required={f.required} value={fields[f.key] || ''}
+              <input id={`support-${f.key}`} name={f.key} type={f.type || 'text'} required={f.required} value={fields[f.key] || ''}
                      onChange={(e) => setFields({ ...fields, [f.key]: e.target.value })} />
             )}
           </div>

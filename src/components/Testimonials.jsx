@@ -12,7 +12,7 @@ export default function Testimonials() {
   if (!reviews.length) return null;
 
   return (
-    <div className="testimonials-section reveal">
+    <div className="testimonials-section reveal last-section">
       <div className="section-head"><h2>What Our Customers Say <span></span></h2></div>
       <div className="pgrid">
         {reviews.map((r) => (

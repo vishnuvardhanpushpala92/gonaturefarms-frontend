@@ -98,7 +98,7 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
       <div className="nav-right">
         <div className="search-wrap">
           <svg fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-          <input type="text" placeholder="Search products..." value={search} onChange={(e) => onSearch(e.target.value)} />
+          <input id="header-search" name="search" type="text" placeholder="Search products..." value={search} onChange={(e) => onSearch(e.target.value)} />
         </div>
         <button className="hbtn" onClick={handleOpenCart}>
           <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
@@ -138,7 +138,7 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
         }}>
           <div className="search-wrap" style={{ marginBottom: '8px' }}>
             <svg fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-            <input type="text" placeholder="Search products..." value={search} onChange={(e) => onSearch(e.target.value)} />
+            <input id="mobile-search" name="search" type="text" placeholder="Search products..." value={search} onChange={(e) => onSearch(e.target.value)} />
           </div>
           <button className="hbtn" onClick={handleOpenCart} style={{ width: '100%', justifyContent: 'flex-start', padding: '12px' }}>
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>

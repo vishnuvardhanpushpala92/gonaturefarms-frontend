@@ -21,31 +21,27 @@ export default function ScrollingBlocks() {
       boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
       margin: '0'
     }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '20px'
-      }}>
-        {displayBlocks.map((block, index) => (
+      <div className="features-grid">
+        {displayBlocks.map((block) => (
           <div
             key={block.id}
+            className="feature-item"
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
+              justifyContent: 'center',
+              gap: '8px',
               color: textColor,
-              fontSize: '0.9rem',
+              fontSize: '0.85rem',
               fontWeight: '500',
-              padding: '0 15px',
-              borderRight: index < displayBlocks.length - 1 ? '1px solid #e0e0e0' : 'none'
+              padding: '8px',
+              textAlign: 'center'
             }}
           >
             <span style={{ fontSize: '1.1rem', minWidth: '20px' }}>
               {block.icon || '🌿'}
             </span>
-            <span style={{ textAlign: 'center' }}>
+            <span>
               {block.title}
             </span>
           </div>

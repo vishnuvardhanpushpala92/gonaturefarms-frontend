@@ -50,7 +50,7 @@ export default function ProductGrid({ search, onOpenReviews }) {
   if (uniqueCurrent.length === 0 && uniqueFuture.length === 0) return null;
 
   return (
-    <div className="section first-section">
+    <div className="section first-section last-section">
       <div className="section-head reveal">
         <h2>Fresh Products <span></span></h2>
       </div>
