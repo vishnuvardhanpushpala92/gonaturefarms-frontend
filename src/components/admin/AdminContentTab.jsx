@@ -109,14 +109,19 @@ export default function AdminContentTab() {
         }
       }
       
-      // Send imageUrl for backward compatibility with backend
+      // Send only imageUrl for backward compatibility with backend
+      // Backend doesn't support desktopImage, tabletImage, mobileImage yet
+      const finalImageUrl = finalDesktopImage || finalTabletImage || finalMobileImage;
+      
+      if (!finalImageUrl) {
+        showToast('Please provide at least one image URL or upload an image file');
+        return;
+      }
+      
       const payload = {
-        imageUrl: finalDesktopImage || finalTabletImage || finalMobileImage,
-        desktopImage: finalDesktopImage,
-        tabletImage: finalTabletImage,
-        mobileImage: finalMobileImage,
-        caption: slideForm.caption,
-        subText: slideForm.subText
+        imageUrl: finalImageUrl,
+        caption: slideForm.caption || '',
+        subText: slideForm.subText || ''
       };
       
       const { data } = await api.post('/admin/slides', payload);
@@ -214,14 +219,19 @@ export default function AdminContentTab() {
         }
       }
       
-      // Send imageUrl for backward compatibility with backend
+      // Send only imageUrl for backward compatibility with backend
+      // Backend doesn't support desktopImage, tabletImage, mobileImage yet
+      const finalImageUrl = finalDesktopImage || finalTabletImage || finalMobileImage;
+      
+      if (!finalImageUrl) {
+        showToast('Please provide at least one image URL or upload an image file');
+        return;
+      }
+      
       const payload = {
-        imageUrl: finalDesktopImage || finalTabletImage || finalMobileImage,
-        desktopImage: finalDesktopImage,
-        tabletImage: finalTabletImage,
-        mobileImage: finalMobileImage,
-        caption: slideForm.caption,
-        subText: slideForm.subText
+        imageUrl: finalImageUrl,
+        caption: slideForm.caption || '',
+        subText: slideForm.subText || ''
       };
       
       const { data } = await api.put(`/admin/slides/${editingSlide.id}`, payload);
