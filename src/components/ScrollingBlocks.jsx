@@ -1,35 +1,12 @@
 import React from 'react';
 import { useSite } from '../context/SiteContext.jsx';
-import api from '../api/client';
-import { useEffect, useState } from 'react';
 
 export default function ScrollingBlocks() {
   const { blocks } = useSite();
-  const [publicBlocks, setPublicBlocks] = useState([]);
 
-  // Fetch public blocks separately to ensure we get active ones
-  useEffect(() => {
-    const fetchPublicBlocks = async () => {
-      try {
-        const response = await api.get('/admin/scroll-content');
-        setPublicBlocks(response.data.blocks || []);
-      } catch (err) {
-        console.error('Failed to fetch public blocks:', err);
-        setPublicBlocks([]);
-      }
-    };
-    fetchPublicBlocks();
-  }, []);
+  const displayBlocks = blocks.slice(0, 6);
 
-  const displayBlocks = publicBlocks.slice(0, 6);
-
-  console.log('Display blocks:', displayBlocks);
-  console.log('Public blocks length:', publicBlocks.length);
-
-  if (!displayBlocks || displayBlocks.length === 0) {
-    console.log('No blocks to display, returning null');
-    return null;
-  }
+  if (!displayBlocks || displayBlocks.length === 0) return null;
 
   // Get background color from first block or use default light color
   const backgroundColor = displayBlocks[0]?.backgroundColor || '#f8fafb';
