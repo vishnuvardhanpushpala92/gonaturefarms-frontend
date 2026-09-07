@@ -17,6 +17,7 @@ export default function AdminContentTab() {
   const [blockForm, setBlockForm] = useState({ title: '', content: '', icon: '', customIcon: '', style: 'info', backgroundColor: '#f8fafb', textColor: '#2d5a27' });
   const [editingBlock, setEditingBlock] = useState(null);
   const [adminFaqs, setAdminFaqs] = useState([]);
+  const [adminBlocks, setAdminBlocks] = useState([]);
 
   // Load admin FAQs (including pending)
   const loadAdminFaqs = async () => {
@@ -28,8 +29,19 @@ export default function AdminContentTab() {
     }
   };
 
+  // Load admin blocks (including pending)
+  const loadAdminBlocks = async () => {
+    try {
+      const { data } = await api.get('/admin/scroll-content/admin-list');
+      setAdminBlocks(data.blocks || []);
+    } catch (err) {
+      console.error('Failed to load admin blocks:', err);
+    }
+  };
+
   React.useEffect(() => {
     loadAdminFaqs();
+    loadAdminBlocks();
   }, []);
 
   const addSlide = async (e) => {
@@ -215,7 +227,7 @@ export default function AdminContentTab() {
     e.preventDefault();
     
     // Check if we already have 6 items
-    if (blocks.length >= 6) {
+    if (adminBlocks.length >= 6) {
       showToast('Maximum 6 features allowed. Delete existing items first.');
       return;
     }
@@ -243,6 +255,7 @@ export default function AdminContentTab() {
       showToast(data.message || 'Feature added successfully');
       if (data.success) { 
         setBlockForm({ title: '', content: '', icon: '', customIcon: '', style: 'info', backgroundColor: '#f8fafb', textColor: '#2d5a27' }); 
+        loadAdminBlocks();
         reload(); 
       }
     } catch (err) {
@@ -277,9 +290,10 @@ export default function AdminContentTab() {
       const { data } = await api.put(`/admin/scroll-content/${editingBlock.id}`, payload);
       showToast(data.message || 'Feature updated successfully');
       if (data.success) { 
+        setBlockForm({ title: '', content: '', icon: '', customIcon: '', style: 'info', backgroundColor: '#f8fafb', textColor: '#2d5a27' });
         setEditingBlock(null);
-        setBlockForm({ title: '', content: '', icon: '', customIcon: '', style: 'info', backgroundColor: '#f8fafb', textColor: '#2d5a27' }); 
-        reload(); 
+        loadAdminBlocks();
+        reload();
       }
     } catch (err) {
       showToast(err?.userMessage || err?.response?.data?.message || 'Failed to update feature');
@@ -308,6 +322,7 @@ export default function AdminContentTab() {
     try {
       const { data } = await api.delete(`/admin/scroll-content/${id}`);
       showToast(data.message || 'Feature deleted successfully');
+      loadAdminBlocks();
       reload();
     } catch (err) {
       console.error('Delete block error:', err);
@@ -528,21 +543,21 @@ export default function AdminContentTab() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn btn-primary" disabled={blocks.length >= 6 && !editingBlock}>
-              {editingBlock ? 'Update Feature' : (blocks.length >= 6 ? 'Maximum 6 items reached' : 'Add Feature')}
+            <button className="btn btn-primary" disabled={adminBlocks.length >= 6 && !editingBlock}>
+              {editingBlock ? 'Update Feature' : (adminBlocks.length >= 6 ? 'Maximum 6 items reached' : 'Add Feature')}
             </button>
             {editingBlock && (
               <button type="button" className="btn btn-secondary" onClick={cancelEdit}>Cancel</button>
             )}
           </div>
         </form>
-        {blocks.length > 0 && (
+        {adminBlocks.length > 0 && (
           <table className="data-table" style={{ marginTop: 12 }}>
             <thead>
               <tr><th>Icon</th><th>Title</th><th>Background</th><th>Action</th></tr>
             </thead>
             <tbody>
-              {blocks.map((b, index) => (
+              {adminBlocks.map((b, index) => (
                 <tr key={b.id}>
                   <td style={{ fontSize: '1.2rem' }}>{b.icon}</td>
                   <td>{b.title}</td>
@@ -556,14 +571,14 @@ export default function AdminContentTab() {
                     <button className="btn btn-secondary" style={{ marginRight: 8, fontSize: '0.8rem' }} onClick={() => startEdit(b)}>Edit</button>
                     <button className="btn-d" onClick={() => removeBlock(b.id)}>Delete</button>
                     {index > 0 && <button className="btn btn-secondary" style={{ marginLeft: 8, fontSize: '0.8rem' }} onClick={() => moveBlock(b.id, -1)}>↑</button>}
-                    {index < blocks.length - 1 && <button className="btn btn-secondary" style={{ marginLeft: 8, fontSize: '0.8rem' }} onClick={() => moveBlock(b.id, 1)}>↓</button>}
+                    {index < adminBlocks.length - 1 && <button className="btn btn-secondary" style={{ marginLeft: 8, fontSize: '0.8rem' }} onClick={() => moveBlock(b.id, 1)}>↓</button>}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
-        {blocks.length === 0 && (
+        {adminBlocks.length === 0 && (
           <p style={{ color: 'var(--muted)', textAlign: 'center', marginTop: 12 }}>No features added yet. Add up to 6 items.</p>
         )}
       </div>
