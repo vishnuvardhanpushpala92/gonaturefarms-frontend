@@ -8,6 +8,7 @@ import { useToast } from '../context/ToastContext.jsx';
 export default function VideoGallery({ onOpenCart }) {
   const [videos, setVideos] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [loading, setLoading] = useState(true);
   const carouselRef = useRef(null);
   const videoRef = useRef(null);
   const { isAuthenticated } = useAuth();
@@ -19,8 +20,10 @@ export default function VideoGallery({ onOpenCart }) {
   }, []);
 
   const loadVideos = async () => {
+    setLoading(true);
     try {
       const res = await api.get('/videos');
+      console.log('Videos API response:', res.data);
       if (res.data && res.data.success) {
         setVideos(Array.isArray(res.data.videos) ? res.data.videos : []);
       } else {
@@ -30,6 +33,8 @@ export default function VideoGallery({ onOpenCart }) {
     } catch (err) {
       console.error('Failed to load videos:', err);
       setVideos([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -102,7 +107,37 @@ export default function VideoGallery({ onOpenCart }) {
     return () => window.removeEventListener('keydown', handleEscape);
   }, []);
 
-  if (videos.length === 0) return null;
+  if (loading) {
+    return (
+      <section className="section video-section last-section">
+        <div className="section-head">
+          <h2>
+            Watch and Buy
+            <span />
+          </h2>
+        </div>
+        <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+          Loading videos...
+        </div>
+      </section>
+    );
+  }
+
+  if (videos.length === 0) {
+    return (
+      <section className="section video-section last-section">
+        <div className="section-head">
+          <h2>
+            Watch and Buy
+            <span />
+          </h2>
+        </div>
+        <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+          No videos available at the moment.
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="section video-section last-section">
