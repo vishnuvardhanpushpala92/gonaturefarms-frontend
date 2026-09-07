@@ -8,8 +8,9 @@ export default function AdminContentTab() {
   const { slides, faqs, zones, blocks, reload } = useSite();
   const showToast = useToast();
 
-  const [slideForm, setSlideForm] = useState({ imageUrl: '', caption: '', subText: '' });
+  const [slideForm, setSlideForm] = useState({ desktopImage: '', tabletImage: '', mobileImage: '', caption: '', subText: '' });
   const [slideFile, setSlideFile] = useState(null);
+  const [slideFileType, setSlideFileType] = useState('desktop'); // 'desktop', 'tablet', or 'mobile'
   const [uploadingSlide, setUploadingSlide] = useState(false);
   const [editingSlide, setEditingSlide] = useState(null);
   const [faqForm, setFaqForm] = useState({ question: '', answer: '' });
@@ -47,15 +48,17 @@ export default function AdminContentTab() {
   const addSlide = async (e) => {
     e.preventDefault();
     
-    // Check if either URL or file is provided
-    if (!slideFile && !slideForm.imageUrl) {
-      showToast('Please provide either an Image URL or upload an image file');
+    // Check if at least one image is provided
+    if (!slideForm.desktopImage && !slideForm.tabletImage && !slideForm.mobileImage && !slideFile) {
+      showToast('Please provide at least one image (Desktop, Tablet, or Mobile)');
       return;
     }
 
     setUploadingSlide(true);
     try {
-      let finalImageUrl = slideForm.imageUrl;
+      let finalDesktopImage = slideForm.desktopImage;
+      let finalTabletImage = slideForm.tabletImage;
+      let finalMobileImage = slideForm.mobileImage;
       
       // If file is provided, upload it first
       if (slideFile) {
@@ -68,7 +71,14 @@ export default function AdminContentTab() {
         });
         
         if (data.success && data.url) {
-          finalImageUrl = data.url;
+          // Set the uploaded URL to the appropriate field based on slideFileType
+          if (slideFileType === 'desktop') {
+            finalDesktopImage = data.url;
+          } else if (slideFileType === 'tablet') {
+            finalTabletImage = data.url;
+          } else if (slideFileType === 'mobile') {
+            finalMobileImage = data.url;
+          }
           showToast('Image uploaded successfully');
         } else {
           showToast(data.message || 'Failed to upload image');
@@ -76,16 +86,19 @@ export default function AdminContentTab() {
         }
       }
       
-      // Now create the slide with the final image URL
+      // Now create the slide with the image URLs
       const { data } = await api.post('/admin/slides', { 
-        imageUrl: finalImageUrl,
+        desktopImage: finalDesktopImage,
+        tabletImage: finalTabletImage,
+        mobileImage: finalMobileImage,
         caption: slideForm.caption,
         subText: slideForm.subText
       });
       showToast(data.message || 'Slide added successfully');
       if (data.success) { 
-        setSlideForm({ imageUrl: '', caption: '', subText: '' }); 
+        setSlideForm({ desktopImage: '', tabletImage: '', mobileImage: '', caption: '', subText: '' }); 
         setSlideFile(null);
+        setSlideFileType('desktop');
         reload(); 
       }
     } catch (err) {
@@ -98,11 +111,14 @@ export default function AdminContentTab() {
   const startEditSlide = (slide) => {
     setEditingSlide(slide);
     setSlideForm({
-      imageUrl: slide.imageUrl,
+      desktopImage: slide.desktopImage || slide.imageUrl || '',
+      tabletImage: slide.tabletImage || '',
+      mobileImage: slide.mobileImage || '',
       caption: slide.caption,
       subText: slide.subText
     });
     setSlideFile(null);
+    setSlideFileType('desktop');
   };
 
   const updateSlide = async (e) => {
@@ -110,15 +126,17 @@ export default function AdminContentTab() {
     
     if (!editingSlide) return;
     
-    // Check if either URL or file is provided
-    if (!slideFile && !slideForm.imageUrl) {
-      showToast('Please provide either an Image URL or upload an image file');
+    // Check if at least one image is provided
+    if (!slideForm.desktopImage && !slideForm.tabletImage && !slideForm.mobileImage && !slideFile) {
+      showToast('Please provide at least one image (Desktop, Tablet, or Mobile)');
       return;
     }
 
     setUploadingSlide(true);
     try {
-      let finalImageUrl = slideForm.imageUrl;
+      let finalDesktopImage = slideForm.desktopImage;
+      let finalTabletImage = slideForm.tabletImage;
+      let finalMobileImage = slideForm.mobileImage;
       
       // If file is provided, upload it first
       if (slideFile) {
@@ -131,7 +149,14 @@ export default function AdminContentTab() {
         });
         
         if (data.success && data.url) {
-          finalImageUrl = data.url;
+          // Set the uploaded URL to the appropriate field based on slideFileType
+          if (slideFileType === 'desktop') {
+            finalDesktopImage = data.url;
+          } else if (slideFileType === 'tablet') {
+            finalTabletImage = data.url;
+          } else if (slideFileType === 'mobile') {
+            finalMobileImage = data.url;
+          }
           showToast('Image uploaded successfully');
         } else {
           showToast(data.message || 'Failed to upload image');
@@ -139,17 +164,20 @@ export default function AdminContentTab() {
         }
       }
       
-      // Now update the slide with the final image URL
+      // Now update the slide with the image URLs
       const { data } = await api.put(`/admin/slides/${editingSlide.id}`, { 
-        imageUrl: finalImageUrl,
+        desktopImage: finalDesktopImage,
+        tabletImage: finalTabletImage,
+        mobileImage: finalMobileImage,
         caption: slideForm.caption,
         subText: slideForm.subText
       });
       showToast(data.message || 'Slide updated successfully');
       if (data.success) { 
         setEditingSlide(null);
-        setSlideForm({ imageUrl: '', caption: '', subText: '' }); 
+        setSlideForm({ desktopImage: '', tabletImage: '', mobileImage: '', caption: '', subText: '' }); 
         setSlideFile(null);
+        setSlideFileType('desktop');
         reload(); 
       }
     } catch (err) {
@@ -157,8 +185,9 @@ export default function AdminContentTab() {
       if (err?.response?.status === 404) {
         showToast('This slide no longer exists. It may have been deleted.');
         setEditingSlide(null);
-        setSlideForm({ imageUrl: '', caption: '', subText: '' });
+        setSlideForm({ desktopImage: '', tabletImage: '', mobileImage: '', caption: '', subText: '' });
         setSlideFile(null);
+        setSlideFileType('desktop');
         reload();
       } else {
         showToast(err?.response?.data?.message || 'Failed to update slide');
@@ -170,8 +199,9 @@ export default function AdminContentTab() {
 
   const cancelEditSlide = () => {
     setEditingSlide(null);
-    setSlideForm({ imageUrl: '', caption: '', subText: '' });
+    setSlideForm({ desktopImage: '', tabletImage: '', mobileImage: '', caption: '', subText: '' });
     setSlideFile(null);
+    setSlideFileType('desktop');
   };
   const removeSlide = async (id) => {
     try {
@@ -341,57 +371,58 @@ export default function AdminContentTab() {
         <h3>Hero Slides</h3>
         <form onSubmit={editingSlide ? updateSlide : addSlide} style={{ marginTop: 10 }}>
           <div className="fg">
-            <label>Image Source</label>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <input 
-                  type="radio" 
-                  name="imageSource" 
-                  checked={!slideFile} 
-                  onChange={() => setSlideFile(null)}
-                />
-                <span>URL</span>
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <input 
-                  type="radio" 
-                  name="imageSource" 
-                  checked={!!slideFile} 
-                  onChange={() => setSlideFile({})}
-                />
-                <span>Upload</span>
-              </label>
-            </div>
+            <label>Desktop Hero Image (1920 × 700 recommended)</label>
+            <input 
+              placeholder="https://example.com/desktop-image.jpg" 
+              value={slideForm.desktopImage} 
+              onChange={(e) => setSlideForm({ ...slideForm, desktopImage: e.target.value })} 
+            />
           </div>
           
-          {!slideFile ? (
-            <div className="fg">
-              <label>Image URL</label>
-              <input 
-                placeholder="https://example.com/image.jpg" 
-                value={slideForm.imageUrl} 
-                onChange={(e) => setSlideForm({ ...slideForm, imageUrl: e.target.value })} 
-              />
-            </div>
-          ) : (
-            <div className="fg">
-              <label>Upload Image</label>
-              <input 
-                type="file" 
-                accept="image/*"
-                onChange={(e) => {
-                  if (e.target.files[0]) {
-                    setSlideFile(e.target.files[0]);
-                  }
-                }}
-              />
-              {slideFile && (
-                <small style={{ color: 'var(--muted)', marginTop: 4 }}>
-                  Selected: {slideFile.name}
-                </small>
-              )}
-            </div>
-          )}
+          <div className="fg">
+            <label>Tablet Hero Image (1200 × 800 recommended)</label>
+            <input 
+              placeholder="https://example.com/tablet-image.jpg" 
+              value={slideForm.tabletImage} 
+              onChange={(e) => setSlideForm({ ...slideForm, tabletImage: e.target.value })} 
+            />
+          </div>
+          
+          <div className="fg">
+            <label>Mobile Hero Image (750 × 1000 recommended)</label>
+            <input 
+              placeholder="https://example.com/mobile-image.jpg" 
+              value={slideForm.mobileImage} 
+              onChange={(e) => setSlideForm({ ...slideForm, mobileImage: e.target.value })} 
+            />
+          </div>
+          
+          <div className="fg">
+            <label>Or Upload Image</label>
+            <select 
+              value={slideFileType} 
+              onChange={(e) => setSlideFileType(e.target.value)}
+              style={{ marginBottom: 8 }}
+            >
+              <option value="desktop">Upload for Desktop</option>
+              <option value="tablet">Upload for Tablet</option>
+              <option value="mobile">Upload for Mobile</option>
+            </select>
+            <input 
+              type="file" 
+              accept="image/*"
+              onChange={(e) => {
+                if (e.target.files[0]) {
+                  setSlideFile(e.target.files[0]);
+                }
+              }}
+            />
+            {slideFile && (
+              <small style={{ color: 'var(--muted)', marginTop: 4 }}>
+                Selected for {slideFileType}: {slideFile.name}
+              </small>
+            )}
+          </div>
           
           <div className="fg"><label>Caption (Optional)</label><input value={slideForm.caption} onChange={(e) => setSlideForm({ ...slideForm, caption: e.target.value })} placeholder="Optional caption text" /></div>
           <div className="fg"><label>Sub Text (Optional)</label><input value={slideForm.subText} onChange={(e) => setSlideForm({ ...slideForm, subText: e.target.value })} placeholder="Optional sub text" /></div>
@@ -412,9 +443,9 @@ export default function AdminContentTab() {
             {slides.map((s) => (
               <tr key={s.id}>
                 <td>
-                  {s.imageUrl && (
+                  {(s.desktopImage || s.imageUrl) && (
                     <img 
-                      src={s.imageUrl} 
+                      src={s.desktopImage || s.imageUrl} 
                       alt={s.caption} 
                       style={{ width: 60, height: 40, objectFit: 'cover', borderRadius: 4 }}
                       onError={(e) => e.target.style.display = 'none'}
