@@ -203,7 +203,15 @@ export default function VideoGallery({ onOpenCart }) {
                       src={video.product.imgUrl || ''} 
                       alt={video.product.name}
                       className="video-product-image"
-                      onError={(e) => e.target.style.display = 'none'}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.style.background = '#f3f4f6';
+                        e.target.parentElement.innerHTML = `
+                          <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:#f3f4f6;border-radius:8px;color:#999;font-size:12px;">
+                            No Image
+                          </div>
+                        `;
+                      }}
                     />
                     <div className="video-product-details">
                       <p className="video-product-name">{video.product.name}</p>
