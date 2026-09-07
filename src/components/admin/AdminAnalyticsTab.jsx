@@ -8,6 +8,8 @@ export default function AdminAnalyticsTab() {
   const [loading, setLoading] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [committing, setCommitting] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const showToast = useToast();
 
   const loadAnalytics = async () => {
@@ -68,18 +70,35 @@ export default function AdminAnalyticsTab() {
     }
   };
 
-  const clearDashboard = () => {
-    if (!window.confirm('Are you sure you want to clear the dashboard view? This will reset the displayed data.')) {
+  const clearDashboard = async () => {
+    if (!window.confirm('Are you sure you want to clear the dashboard view? This will save the current data under today\'s date and reset the display.')) {
       return;
     }
-    // Clear local state without making an API call
-    setData(null);
-    showToast('Dashboard cleared. Click refresh to load data again.');
+    try {
+      const saveDate = new Date().toISOString().slice(0, 10);
+      const { data: response } = await api.post('/admin/analytics/save', {
+        date: saveDate,
+        data: data
+      });
+      if (response.success) {
+        setData(null);
+        showToast(`Dashboard data saved under ${saveDate}. Click refresh to load data again.`);
+      } else {
+        showToast(response.message || 'Failed to save dashboard data');
+      }
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to save dashboard data');
+    }
   };
 
   const exportToExcel = async () => {
     try {
+      const params = {};
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
+      
       const response = await api.get('/admin/analytics/export', {
+        params,
         responseType: 'blob',
         skipTransform: true,
         timeout: 60000
@@ -89,7 +108,8 @@ export default function AdminAnalyticsTab() {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `analytics_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      const dateSuffix = startDate && endDate ? `_${startDate}_to_${endDate}` : `_${new Date().toISOString().slice(0, 10)}`;
+      link.setAttribute('download', `analytics_export${dateSuffix}.xlsx`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -108,7 +128,7 @@ export default function AdminAnalyticsTab() {
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
+      <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <button
           className="btn btn-primary"
           onClick={handleCommit}
@@ -125,7 +145,22 @@ export default function AdminAnalyticsTab() {
           {committing ? 'Committing...' : `Commit Changes (${pendingCount})`}
         </button>
         <button className="btn btn-danger" onClick={clearDashboard}>Clear Dashboard</button>
-        <button className="btn btn-primary" onClick={exportToExcel}>Export to Excel</button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginLeft: 'auto' }}>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            style={{ padding: '8px', borderRadius: 'var(--r-pill)', border: '1px solid var(--border)' }}
+          />
+          <span>to</span>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            style={{ padding: '8px', borderRadius: 'var(--r-pill)', border: '1px solid var(--border)' }}
+          />
+          <button className="btn btn-primary" onClick={exportToExcel}>Export to Excel</button>
+        </div>
       </div>
       <div className="stat-cards">
         <div className="stat-card"><div className="stat-num">{totals.totalOrders}</div><div className="stat-lbl">Orders</div></div>

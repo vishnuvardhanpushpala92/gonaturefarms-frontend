@@ -351,13 +351,16 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;
   .section{padding:24px 32px;}
 }
 @media(min-width:1024px){
-  .section{max-width:1024px;}
+  .section{max-width:1200px;}
 }
 @media(min-width:1280px){
-  .section{max-width:1280px;}
+  .section{max-width:1400px;}
 }
 @media(min-width:1440px){
-  .section{max-width:1240px;}
+  .section{max-width:1600px;}
+}
+@media(min-width:1920px){
+  .section{max-width:1800px;}
 }
 .section.first-section{padding-top:0;}
 .section.last-section{padding-bottom:0;}
