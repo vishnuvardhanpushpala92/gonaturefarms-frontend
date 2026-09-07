@@ -10,7 +10,40 @@
   --ftr-bg:#111111;--ftr-text:#e5e7eb;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);overflow-x:hidden;line-height:1.6;}
+html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);overflow-x:hidden;line-height:1.6;width:100%;min-height:100vh;}
+
+/* ── RESPONSIVE CONTAINER SYSTEM ───────────────────────────── */
+.container{width:100%;margin:0 auto;padding-left:16px;padding-right:16px;}
+@media(min-width:768px){
+  .container{padding-left:24px;padding-right:24px;}
+}
+@media(min-width:1024px){
+  .container{max-width:1024px;}
+}
+@media(min-width:1280px){
+  .container{max-width:1280px;}
+}
+@media(min-width:1440px){
+  .container{max-width:1440px;}
+}
+
+/* Full-width sections */
+.full-width{width:100%;max-width:none;}
+
+/* Content sections with centered layout */
+.content-section{width:100%;margin:0 auto;padding-left:16px;padding-right:16px;}
+@media(min-width:768px){
+  .content-section{padding-left:24px;padding-right:24px;max-width:768px;}
+}
+@media(min-width:1024px){
+  .content-section{max-width:1024px;}
+}
+@media(min-width:1280px){
+  .content-section{max-width:1280px;}
+}
+@media(min-width:1440px){
+  .content-section{max-width:1240px;}
+}
 
 /* ── CONFETTI ──────────────────────────────────────────────── */
 #confettiCanvas{position:fixed;inset:0;pointer-events:none;z-index:99999;}
@@ -270,7 +303,7 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;
 }
 
 /* ── HERO SLIDER ────────────────────────────────────────────── */
-.slider-wrap{position:relative;width:100%;overflow:hidden;background:#1a2e17;}
+.slider-wrap{position:relative;width:100%;max-width:none;overflow:hidden;background:#1a2e17;}
 .slide{position:absolute;inset:0;opacity:0;transition:opacity 1s ease;display:flex;align-items:center;justify-content:center;}
 .slide.active{opacity:1;}
 .slide-image{display:block;width:100%;height:auto;max-width:100%;object-fit:contain;object-position:center;}
@@ -286,13 +319,17 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;
   .slider-wrap{min-height:200px;}
   .slide-content{bottom:10%;left:5%;max-width:90%;}
 }
-@media(min-width:768px) and (max-width:1199px){
+@media(min-width:768px) and (max-width:1023px){
   .slider-wrap{min-height:300px;}
   .slide-content{bottom:12%;left:6%;max-width:70%;}
 }
-@media(min-width:1200px){
+@media(min-width:1024px) and (max-width:1439px){
   .slider-wrap{min-height:400px;}
   .slide-content{bottom:15%;left:8%;max-width:560px;}
+}
+@media(min-width:1440px){
+  .slider-wrap{min-height:500px;}
+  .slide-content{bottom:15%;left:8%;max-width:600px;}
 }
 
 /* ── PROMO STRIP ────────────────────────────────────────────── */
@@ -303,7 +340,19 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;
 @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
 /* ── SECTION WRAPPER ────────────────────────────────────────── */
-.section{max-width:1240px;margin:0 auto;padding:16px 24px;}
+.section{width:100%;margin:0 auto;padding:16px 24px;}
+@media(min-width:768px){
+  .section{padding:24px 32px;}
+}
+@media(min-width:1024px){
+  .section{max-width:1024px;}
+}
+@media(min-width:1280px){
+  .section{max-width:1280px;}
+}
+@media(min-width:1440px){
+  .section{max-width:1240px;}
+}
 .section.first-section{padding-top:0;}
 
 @media(max-width:767px){
@@ -327,16 +376,14 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;
 /* ── PRODUCT GRID ───────────────────────────────────────────── */
 .pgrid{display:grid!important;gap:12px!important;width:100%!important;overflow-x:hidden!important;grid-template-columns:repeat(2,1fr)!important;}
 
-@media(min-width:768px){
-  .pgrid{grid-template-columns:repeat(3,1fr)!important;gap:16px!important;}
+@media(min-width:768px) and (max-width:1023px){
+  .pgrid{grid-template-columns:repeat(2,1fr)!important;gap:16px!important;}
 }
-
-@media(min-width:1024px){
-  .pgrid{grid-template-columns:repeat(4,1fr)!important;gap:20px!important;}
+@media(min-width:1024px) and (max-width:1439px){
+  .pgrid{grid-template-columns:repeat(3,1fr)!important;gap:20px!important;}
 }
-
-@media(min-width:1280px){
-  .pgrid{gap:24px!important;}
+@media(min-width:1440px){
+  .pgrid{grid-template-columns:repeat(4,1fr)!important;gap:24px!important;}
 }
 .pcard{background:#fff;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border);transition:all .35s cubic-bezier(.4,0,.2,1);position:relative;box-shadow:var(--shadow);display:flex;flex-direction:column;}
 .pcard:hover{transform:translateY(-6px);box-shadow:var(--shadow-md);border-color:var(--accent);}
@@ -774,7 +821,7 @@ footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition
 .tswatch span{font-size:.56rem;color:rgba(255,255,255,.9);font-weight:700;background:rgba(0,0,0,.2);border-radius:2px;padding:1px 3px;}
 
 /* ── RESPONSIVE ─────────────────────────────────────────────── */
-@media(max-width:768px){
+@media(max-width:767px){
   header{padding:0 4%;height:auto;padding:12px 4%;}
   .brand-text h1{font-size:1.2rem;}
   .brand-text span{font-size:.55rem;}
@@ -811,7 +858,21 @@ footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition
   .cart-item{padding:12px;gap:10px;}
   .cart-item img{width:48px;height:48px;}
   .qbtn{width:24px;height:24px;font-size:.85rem;}
-  .modal-box{max-width:90vw;padding:18px;}
+}
+@media(min-width:768px) and (max-width:1023px){
+  header{padding:0 5%;}
+  .section{padding:32px 24px;}
+  .pgrid{grid-template-columns:repeat(2,1fr)!important;}
+}
+@media(min-width:1024px) and (max-width:1439px){
+  header{padding:0 5%;}
+  .section{padding:40px 32px;}
+  .pgrid{grid-template-columns:repeat(3,1fr)!important;}
+}
+@media(min-width:1440px){
+  header{padding:0 5%;}
+  .section{padding:48px 32px;}
+  .pgrid{grid-template-columns:repeat(4,1fr)!important;}
 }
 @media(max-width:480px){
   header{padding:10px 3%;}
@@ -821,6 +882,7 @@ footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition
   .brand-text span{font-size:.5rem;}
   .nav-right{gap:4px;}
   .hbtn{padding:5px 10px;font-size:.7rem;}
+  .modal-box{max-width:90vw;padding:18px;}
   .hbtn svg{width:14px;height:14px;}
   .pgrid{grid-template-columns:repeat(2,1fr)!important;gap:10px!important;}
   .pcard-img{height:130px;}
