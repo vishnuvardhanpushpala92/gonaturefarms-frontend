@@ -83,7 +83,7 @@ export default function AdminWhatsAppTab() {
         scheduledAt: form.scheduledAt || new Date().toISOString()
       };
 
-      console.log('Sending WhatsApp payload:', payload);
+      // Sending WhatsApp message
 
       const { data } = await api.post('/admin/whatsapp/send', payload);
       showToast(data.message);

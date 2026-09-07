@@ -9,6 +9,7 @@ export default function VideoGallery({ onOpenCart }) {
   const [videos, setVideos] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const carouselRef = useRef(null);
   const videoRef = useRef(null);
   const { isAuthenticated } = useAuth();
@@ -16,22 +17,24 @@ export default function VideoGallery({ onOpenCart }) {
   const showToast = useToast();
 
   useEffect(() => {
-    loadVideos();
+    setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    loadVideos();
+  }, [mounted]);
 
   const loadVideos = async () => {
     setLoading(true);
     try {
       const res = await api.get('/videos');
-      console.log('Videos API response:', res.data);
       if (res.data && res.data.success) {
         setVideos(Array.isArray(res.data.videos) ? res.data.videos : []);
       } else {
-        console.error('API returned success=false:', res.data);
         setVideos([]);
       }
     } catch (err) {
-      console.error('Failed to load videos:', err);
       setVideos([]);
     } finally {
       setLoading(false);
@@ -51,12 +54,15 @@ export default function VideoGallery({ onOpenCart }) {
   };
 
   const openVideo = (video) => {
-    setSelectedVideo(video);
+    if (mounted) {
+      setSelectedVideo(video);
+    }
   };
 
-  // Get video URL (removed cache-buster to prevent infinite re-renders)
+  // Get video URL with proper caching handling
   const getVideoUrl = (filePath) => {
     if (!filePath) return '';
+    // Return clean URL to avoid caching issues
     return filePath;
   };
 
@@ -65,8 +71,10 @@ export default function VideoGallery({ onOpenCart }) {
     if (!url) return false;
     try {
       const urlObj = new URL(url);
+      // Only check for external domains, not during SSR
+      if (typeof window === 'undefined') return false;
       const currentDomain = window.location.hostname;
-      return urlObj.hostname !== currentDomain && 
+      return urlObj.hostname !== currentDomain &&
              !urlObj.hostname.includes('cloudinary.com') &&
              !urlObj.hostname.includes('gonaturefarms');
     } catch {
@@ -120,7 +128,7 @@ export default function VideoGallery({ onOpenCart }) {
     return () => window.removeEventListener('keydown', handleEscape);
   }, []);
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <section className="section video-section last-section">
         <div className="section-head">
@@ -173,7 +181,7 @@ export default function VideoGallery({ onOpenCart }) {
                   muted
                   loop
                   playsInline
-                  preload="metadata"
+                  preload="none"
                   poster={getPosterUrl(video)}
                   src={getVideoUrl(video.filePath)}
                   style={{ 
@@ -183,6 +191,7 @@ export default function VideoGallery({ onOpenCart }) {
                     backgroundColor: '#000' 
                   }}
                   onError={(e) => {
+                    if (!mounted) return;
                     e.target.style.display = 'none';
                     e.target.parentElement.style.background = '#f0f0f0';
                     const errorDiv = document.createElement('div');
@@ -217,6 +226,7 @@ export default function VideoGallery({ onOpenCart }) {
                         alt={video.product.name}
                         className="video-product-image"
                         onError={(e) => {
+                          if (!mounted) return;
                           e.target.style.display = 'none';
                           e.target.parentElement.style.background = '#f3f4f6';
                           const errorDiv = document.createElement('div');
@@ -226,7 +236,7 @@ export default function VideoGallery({ onOpenCart }) {
                         }}
                       />
                     ) : (
-                      <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:#f3f4f6;border-radius:8px;color:#999;font-size:12px;">
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', background: '#f3f4f6', borderRadius: '8px', color: '#999', fontSize: '12px' }}>
                         No Image
                       </div>
                     )}
@@ -252,7 +262,7 @@ export default function VideoGallery({ onOpenCart }) {
         </button>
       </div>
 
-      {selectedVideo && (
+      {selectedVideo && mounted && (
         <div className="video-modal" onClick={closeVideo}>
           <div className="video-modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="video-modal-close" onClick={closeVideo}>×</button>
@@ -260,9 +270,10 @@ export default function VideoGallery({ onOpenCart }) {
               crossOrigin="anonymous"
               ref={videoRef}
               controls
-              autoPlay
+              preload="none"
               src={getVideoUrl(selectedVideo.filePath)}
               style={{ width: '100%', maxHeight: '80vh', borderRadius: '12px' }}
+              onLoadedData={() => videoRef.current?.play()}
             />
             <div className="video-modal-title">
               <h3>{selectedVideo.title}</h3>

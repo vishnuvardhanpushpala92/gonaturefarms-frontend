@@ -318,20 +318,7 @@ export default function CheckoutModal({ open, onClose }) {
         }))
       };
       
-      console.log('=== ORDER PAYLOAD ===');
-      console.log('Customer Name:', payload.customerName);
-      console.log('Phone:', payload.phone);
-      console.log('Email:', payload.email);
-      console.log('Address:', payload.address);
-      console.log('Area:', payload.area);
-      console.log('City:', payload.city);
-      console.log('State:', payload.state);
-      console.log('Pincode:', payload.pincode);
-      console.log('Payment Method:', payload.paymentMethod);
-      console.log('Payment UTR:', payload.paymentUtr);
-      console.log('Items:', payload.items);
-      console.log('User ID:', payload.userId);
-      console.log('Total:', payload.total);
+      // Order payload prepared for submission
       
       const { data } = await api.post('/orders', payload);
       

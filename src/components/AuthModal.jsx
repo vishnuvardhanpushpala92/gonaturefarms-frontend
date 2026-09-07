@@ -159,11 +159,6 @@ export default function AuthModal({ open, onClose }) {
           securityAnswer: form.securityAnswer
         };
         
-        console.log('=== REGISTRATION PAYLOAD ===');
-        console.log('Payload:', registerPayload);
-        console.log('Payload as JSON:', JSON.stringify(registerPayload, null, 2));
-        console.log('===========================');
-        
         // Remove skipTransform to allow camelCase to snake_case conversion
         const result = await register(registerPayload);
         showToast('Registration successful');
@@ -177,12 +172,9 @@ export default function AuthModal({ open, onClose }) {
         setForm({ name: '', username: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
         
         // Verify authentication is complete before showing address setup
-        console.log('Checking authentication after registration...');
         const checkAuth = setInterval(() => {
           const token = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
           const userStr = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
-          console.log('Token check:', token ? 'exists' : 'missing');
-          console.log('User check:', userStr ? 'exists' : 'missing');
           
           if (token && userStr) {
             clearInterval(checkAuth);
@@ -194,19 +186,10 @@ export default function AuthModal({ open, onClose }) {
         // Fallback after 2 seconds to show address setup anyway
         setTimeout(() => {
           clearInterval(checkAuth);
-          console.log('Fallback: showing address setup after timeout');
           setShowAddressSetup(true);
         }, 2000);
       }
     } catch (err) {
-      console.error('=== REGISTRATION ERROR FULL ===');
-      console.error('Error object:', err);
-      console.error('Error response:', err.response);
-      console.error('Error response data:', err.response?.data);
-      console.error('Error user message:', err.userMessage);
-      console.error('Error response data message:', err.response?.data?.message);
-      console.error('============================');
-      
       // Handle specific registration errors
       let errorMessage = err?.userMessage || err?.response?.data?.message || 'Error';
       
@@ -260,11 +243,6 @@ export default function AuthModal({ open, onClose }) {
     const token = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
     const userStr = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
     
-    console.log('=== ADDRESS SETUP AUTH CHECK ===');
-    console.log('Token:', token ? 'exists' : 'missing');
-    console.log('User:', userStr ? 'exists' : 'missing');
-    console.log('================================');
-    
     if (!token || !userStr) {
       showToast('Authentication not complete. Please try again.');
       // Try to refresh authentication
@@ -272,9 +250,8 @@ export default function AuthModal({ open, onClose }) {
         const retryToken = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
         const retryUser = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
         if (retryToken && retryUser) {
-          console.log('Retry successful - authentication found');
+          // Retry successful
         } else {
-          console.log('Retry failed - no authentication found');
           onClose();
         }
       }, 500);
@@ -283,7 +260,6 @@ export default function AuthModal({ open, onClose }) {
     
     try {
       const payload = { ...addressForm, isDefault: true };
-      console.log('Saving address with payload:', payload);
       const { data } = await api.post('/addresses', payload);
       if (data.success) {
         showToast('Address saved successfully and will be used for your orders');
