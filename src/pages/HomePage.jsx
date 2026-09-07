@@ -3,11 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header.jsx';
 import HeroSlider from '../components/HeroSlider.jsx';
 import PromoStrip from '../components/PromoStrip.jsx';
-import TrustBadges from '../components/TrustBadges.jsx';
 import ProductGrid from '../components/ProductGrid.jsx';
 import VideoGallery from '../components/VideoGallery.jsx';
-import FaqSection from '../components/FaqSection.jsx';
-import Testimonials from '../components/Testimonials.jsx';
 import Footer from '../components/Footer.jsx';
 import CartDrawer from '../components/CartDrawer.jsx';
 import CheckoutModal from '../components/CheckoutModalNew.jsx';
@@ -96,16 +93,11 @@ export default function HomePage() {
         <HeroSlider />
         <PromoStrip />
         <ScrollingBlocks />
-        <TrustBadges />
       </div>
       <div id="products">
         <ProductGrid search={search} onOpenReviews={setReviewProduct} />
       </div>
       <VideoGallery />
-      <Testimonials />
-      <div id="about">
-        <FaqSection />
-      </div>
       <Footer onOpenSupport={() => setSupportOpen(true)} />
 
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }} />
