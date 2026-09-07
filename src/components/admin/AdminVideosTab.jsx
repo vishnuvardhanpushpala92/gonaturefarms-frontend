@@ -97,6 +97,27 @@ export default function AdminVideosTab() {
     }
   };
 
+  const approveVideo = async (id) => {
+    try {
+      const { data } = await api.put(`/videos/admin/${id}/approve`);
+      showToast(data.message);
+      if (data.success) load();
+    } catch (err) {
+      showToast('Failed to approve video');
+    }
+  };
+
+  const rejectVideo = async (id) => {
+    if (!window.confirm('Are you sure you want to reject this video?')) return;
+    try {
+      const { data } = await api.put(`/videos/admin/${id}/reject`);
+      showToast(data.message);
+      if (data.success) load();
+    } catch (err) {
+      showToast('Failed to reject video');
+    }
+  };
+
   const deleteVideo = async (id) => {
     if (!window.confirm('Are you sure you want to delete this video?')) return;
     try {
@@ -224,6 +245,12 @@ export default function AdminVideosTab() {
                   {video.pending && <span className="badge-pending">Pending Approval</span>}
                 </div>
                 <div className="admin-list-item-actions">
+                  {video.pending && (
+                    <>
+                      <button className="btn-sm bsm-g" onClick={() => approveVideo(video.id)}>Approve</button>
+                      <button className="btn-sm bsm-r" onClick={() => rejectVideo(video.id)}>Reject</button>
+                    </>
+                  )}
                   <button className="btn-e" onClick={() => startEdit(video)}>Edit</button>
                   <button className="btn-e" onClick={() => toggleEnabled(video.id)}>
                     {video.enabled ? 'Disable' : 'Enable'}
