@@ -9,8 +9,9 @@ export default function AdminContentTab() {
   const showToast = useToast();
 
   const [slideForm, setSlideForm] = useState({ desktopImage: '', tabletImage: '', mobileImage: '', caption: '', subText: '' });
-  const [slideFile, setSlideFile] = useState(null);
-  const [slideFileType, setSlideFileType] = useState('desktop'); // 'desktop', 'tablet', or 'mobile'
+  const [desktopFile, setDesktopFile] = useState(null);
+  const [tabletFile, setTabletFile] = useState(null);
+  const [mobileFile, setMobileFile] = useState(null);
   const [uploadingSlide, setUploadingSlide] = useState(false);
   const [editingSlide, setEditingSlide] = useState(null);
   const [faqForm, setFaqForm] = useState({ question: '', answer: '' });
@@ -49,7 +50,7 @@ export default function AdminContentTab() {
     e.preventDefault();
     
     // Check if at least one image is provided
-    if (!slideForm.desktopImage && !slideForm.tabletImage && !slideForm.mobileImage && !slideFile) {
+    if (!slideForm.desktopImage && !slideForm.tabletImage && !slideForm.mobileImage && !desktopFile && !tabletFile && !mobileFile) {
       showToast('Please provide at least one image (Desktop, Tablet, or Mobile)');
       return;
     }
@@ -60,45 +61,71 @@ export default function AdminContentTab() {
       let finalTabletImage = slideForm.tabletImage;
       let finalMobileImage = slideForm.mobileImage;
       
-      // If file is provided, upload it first
-      if (slideFile) {
+      // Upload desktop file if provided
+      if (desktopFile) {
         const formData = new FormData();
-        formData.append('file', slideFile);
-        
+        formData.append('file', desktopFile);
         const { data } = await api.post('/admin/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
           skipTransform: true
         });
-        
         if (data.success && data.url) {
-          // Set the uploaded URL to the appropriate field based on slideFileType
-          if (slideFileType === 'desktop') {
-            finalDesktopImage = data.url;
-          } else if (slideFileType === 'tablet') {
-            finalTabletImage = data.url;
-          } else if (slideFileType === 'mobile') {
-            finalMobileImage = data.url;
-          }
-          showToast('Image uploaded successfully');
+          finalDesktopImage = data.url;
         } else {
-          showToast(data.message || 'Failed to upload image');
+          showToast(data.message || 'Failed to upload desktop image');
           return;
         }
       }
       
-      // Now create the slide with the image URLs
-      const { data } = await api.post('/admin/slides', { 
+      // Upload tablet file if provided
+      if (tabletFile) {
+        const formData = new FormData();
+        formData.append('file', tabletFile);
+        const { data } = await api.post('/admin/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          skipTransform: true
+        });
+        if (data.success && data.url) {
+          finalTabletImage = data.url;
+        } else {
+          showToast(data.message || 'Failed to upload tablet image');
+          return;
+        }
+      }
+      
+      // Upload mobile file if provided
+      if (mobileFile) {
+        const formData = new FormData();
+        formData.append('file', mobileFile);
+        const { data } = await api.post('/admin/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          skipTransform: true
+        });
+        if (data.success && data.url) {
+          finalMobileImage = data.url;
+        } else {
+          showToast(data.message || 'Failed to upload mobile image');
+          return;
+        }
+      }
+      
+      // Send imageUrl for backward compatibility with backend
+      const payload = {
+        imageUrl: finalDesktopImage || finalTabletImage || finalMobileImage,
         desktopImage: finalDesktopImage,
         tabletImage: finalTabletImage,
         mobileImage: finalMobileImage,
         caption: slideForm.caption,
         subText: slideForm.subText
-      });
+      };
+      
+      const { data } = await api.post('/admin/slides', payload);
       showToast(data.message || 'Slide added successfully');
       if (data.success) { 
         setSlideForm({ desktopImage: '', tabletImage: '', mobileImage: '', caption: '', subText: '' }); 
-        setSlideFile(null);
-        setSlideFileType('desktop');
+        setDesktopFile(null);
+        setTabletFile(null);
+        setMobileFile(null);
         reload(); 
       }
     } catch (err) {
@@ -117,8 +144,9 @@ export default function AdminContentTab() {
       caption: slide.caption,
       subText: slide.subText
     });
-    setSlideFile(null);
-    setSlideFileType('desktop');
+    setDesktopFile(null);
+    setTabletFile(null);
+    setMobileFile(null);
   };
 
   const updateSlide = async (e) => {
@@ -127,7 +155,7 @@ export default function AdminContentTab() {
     if (!editingSlide) return;
     
     // Check if at least one image is provided
-    if (!slideForm.desktopImage && !slideForm.tabletImage && !slideForm.mobileImage && !slideFile) {
+    if (!slideForm.desktopImage && !slideForm.tabletImage && !slideForm.mobileImage && !desktopFile && !tabletFile && !mobileFile) {
       showToast('Please provide at least one image (Desktop, Tablet, or Mobile)');
       return;
     }
@@ -138,46 +166,72 @@ export default function AdminContentTab() {
       let finalTabletImage = slideForm.tabletImage;
       let finalMobileImage = slideForm.mobileImage;
       
-      // If file is provided, upload it first
-      if (slideFile) {
+      // Upload desktop file if provided
+      if (desktopFile) {
         const formData = new FormData();
-        formData.append('file', slideFile);
-        
+        formData.append('file', desktopFile);
         const { data } = await api.post('/admin/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
           skipTransform: true
         });
-        
         if (data.success && data.url) {
-          // Set the uploaded URL to the appropriate field based on slideFileType
-          if (slideFileType === 'desktop') {
-            finalDesktopImage = data.url;
-          } else if (slideFileType === 'tablet') {
-            finalTabletImage = data.url;
-          } else if (slideFileType === 'mobile') {
-            finalMobileImage = data.url;
-          }
-          showToast('Image uploaded successfully');
+          finalDesktopImage = data.url;
         } else {
-          showToast(data.message || 'Failed to upload image');
+          showToast(data.message || 'Failed to upload desktop image');
           return;
         }
       }
       
-      // Now update the slide with the image URLs
-      const { data } = await api.put(`/admin/slides/${editingSlide.id}`, { 
+      // Upload tablet file if provided
+      if (tabletFile) {
+        const formData = new FormData();
+        formData.append('file', tabletFile);
+        const { data } = await api.post('/admin/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          skipTransform: true
+        });
+        if (data.success && data.url) {
+          finalTabletImage = data.url;
+        } else {
+          showToast(data.message || 'Failed to upload tablet image');
+          return;
+        }
+      }
+      
+      // Upload mobile file if provided
+      if (mobileFile) {
+        const formData = new FormData();
+        formData.append('file', mobileFile);
+        const { data } = await api.post('/admin/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          skipTransform: true
+        });
+        if (data.success && data.url) {
+          finalMobileImage = data.url;
+        } else {
+          showToast(data.message || 'Failed to upload mobile image');
+          return;
+        }
+      }
+      
+      // Send imageUrl for backward compatibility with backend
+      const payload = {
+        imageUrl: finalDesktopImage || finalTabletImage || finalMobileImage,
         desktopImage: finalDesktopImage,
         tabletImage: finalTabletImage,
         mobileImage: finalMobileImage,
         caption: slideForm.caption,
         subText: slideForm.subText
-      });
+      };
+      
+      const { data } = await api.put(`/admin/slides/${editingSlide.id}`, payload);
       showToast(data.message || 'Slide updated successfully');
       if (data.success) { 
         setEditingSlide(null);
         setSlideForm({ desktopImage: '', tabletImage: '', mobileImage: '', caption: '', subText: '' }); 
-        setSlideFile(null);
-        setSlideFileType('desktop');
+        setDesktopFile(null);
+        setTabletFile(null);
+        setMobileFile(null);
         reload(); 
       }
     } catch (err) {
@@ -186,8 +240,9 @@ export default function AdminContentTab() {
         showToast('This slide no longer exists. It may have been deleted.');
         setEditingSlide(null);
         setSlideForm({ desktopImage: '', tabletImage: '', mobileImage: '', caption: '', subText: '' });
-        setSlideFile(null);
-        setSlideFileType('desktop');
+        setDesktopFile(null);
+        setTabletFile(null);
+        setMobileFile(null);
         reload();
       } else {
         showToast(err?.response?.data?.message || 'Failed to update slide');
@@ -200,8 +255,9 @@ export default function AdminContentTab() {
   const cancelEditSlide = () => {
     setEditingSlide(null);
     setSlideForm({ desktopImage: '', tabletImage: '', mobileImage: '', caption: '', subText: '' });
-    setSlideFile(null);
-    setSlideFileType('desktop');
+    setDesktopFile(null);
+    setTabletFile(null);
+    setMobileFile(null);
   };
   const removeSlide = async (id) => {
     try {
@@ -377,6 +433,21 @@ export default function AdminContentTab() {
               value={slideForm.desktopImage} 
               onChange={(e) => setSlideForm({ ...slideForm, desktopImage: e.target.value })} 
             />
+            <input 
+              type="file" 
+              accept="image/*"
+              onChange={(e) => {
+                if (e.target.files[0]) {
+                  setDesktopFile(e.target.files[0]);
+                }
+              }}
+              style={{ marginTop: 4 }}
+            />
+            {desktopFile && (
+              <small style={{ color: 'var(--muted)', marginTop: 4 }}>
+                Selected: {desktopFile.name}
+              </small>
+            )}
           </div>
           
           <div className="fg">
@@ -386,6 +457,21 @@ export default function AdminContentTab() {
               value={slideForm.tabletImage} 
               onChange={(e) => setSlideForm({ ...slideForm, tabletImage: e.target.value })} 
             />
+            <input 
+              type="file" 
+              accept="image/*"
+              onChange={(e) => {
+                if (e.target.files[0]) {
+                  setTabletFile(e.target.files[0]);
+                }
+              }}
+              style={{ marginTop: 4 }}
+            />
+            {tabletFile && (
+              <small style={{ color: 'var(--muted)', marginTop: 4 }}>
+                Selected: {tabletFile.name}
+              </small>
+            )}
           </div>
           
           <div className="fg">
@@ -395,31 +481,19 @@ export default function AdminContentTab() {
               value={slideForm.mobileImage} 
               onChange={(e) => setSlideForm({ ...slideForm, mobileImage: e.target.value })} 
             />
-          </div>
-          
-          <div className="fg">
-            <label>Or Upload Image</label>
-            <select 
-              value={slideFileType} 
-              onChange={(e) => setSlideFileType(e.target.value)}
-              style={{ marginBottom: 8 }}
-            >
-              <option value="desktop">Upload for Desktop</option>
-              <option value="tablet">Upload for Tablet</option>
-              <option value="mobile">Upload for Mobile</option>
-            </select>
             <input 
               type="file" 
               accept="image/*"
               onChange={(e) => {
                 if (e.target.files[0]) {
-                  setSlideFile(e.target.files[0]);
+                  setMobileFile(e.target.files[0]);
                 }
               }}
+              style={{ marginTop: 4 }}
             />
-            {slideFile && (
+            {mobileFile && (
               <small style={{ color: 'var(--muted)', marginTop: 4 }}>
-                Selected for {slideFileType}: {slideFile.name}
+                Selected: {mobileFile.name}
               </small>
             )}
           </div>
