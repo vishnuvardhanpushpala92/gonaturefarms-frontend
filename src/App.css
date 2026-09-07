@@ -227,7 +227,7 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);ov
 a{text-decoration:none;color:inherit;}
 
 /* ── HEADER ────────────────────────────────────────────────── */
-header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:900;border-bottom:1px solid var(--border);height:68px;display:flex;align-items:center;justify-content:space-between;transition:background .3s;}
+header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;border-bottom:1px solid var(--border);height:68px;display:flex;align-items:center;justify-content:space-between;transition:background .3s;}
 .brand-text h1{font-family:'Playfair Display',serif;font-size:clamp(1rem, 2.5vw, 1.45rem);font-weight:800;color:var(--hdr-brand-color,var(--p));line-height:1.15;letter-spacing:.3px;}
 .brand{display:flex;align-items:center;gap:12px;cursor:pointer;}
 #main-logo{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--p);}
@@ -270,23 +270,24 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:900;b
 }
 
 /* ── HERO SLIDER ────────────────────────────────────────────── */
-.slider-wrap{position:relative;width:100%;max-width:1600px;margin:0 auto;height:500px;overflow:hidden;background:#1a2e17;}
+.slider-wrap{position:relative;width:100%;max-width:1600px;margin:0 auto;aspect-ratio:16/9;overflow:hidden;background:#1a2e17;z-index:1;}
 .slide{position:absolute;inset:0;opacity:0;transition:opacity 1s ease;background-size:cover;background-position:center;background-repeat:no-repeat;}
 .slide.active{opacity:1;}
-.slide-image{width:100%;height:100%;display:block;object-fit:cover;object-position:center;}
+.slide-image{width:100%;height:100%;display:block;object-fit:cover;object-position:center;position:absolute;top:0;left:0;}
 .slide-mask{position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,.55) 0%,rgba(0,0,0,.15) 60%,transparent 100%);}
 .slide-content{position:absolute;bottom:15%;left:8%;color:#fff;max-width:560px;}
 .slide-content h2{font-family:'Playfair Display',serif;font-size:clamp(1.5rem, 5vw, 2.8rem);line-height:1.2;margin-bottom:10px;text-shadow:0 2px 8px rgba(0,0,0,.3);}
 .slide-content p{font-size:clamp(0.75rem, 2vw, 0.92rem);opacity:.88;letter-spacing:.5px;}
-.slider-nav{position:absolute;bottom:20px;right:6%;display:flex;gap:7px;}
+.slider-nav{position:absolute;bottom:20px;right:6%;display:flex;gap:7px;z-index:2;}
 .snav{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.4);border:none;cursor:pointer;transition:all .3s;}
 .snav.active{background:#fff;width:26px;border-radius:4px;}
-@media(max-width:768px){
-  .slider-wrap{height:350px;}
-  .slide-content{bottom:10%;left:5%;max-width:90%;}
+@media(min-width:600px) and (max-width:1024px){
+  .slider-wrap{aspect-ratio:4/3;}
+  .slide-content{bottom:12%;left:6%;max-width:70%;}
 }
-@media(min-width:769px) and (max-width:1024px){
-  .slider-wrap{height:400px;}
+@media(max-width:599px){
+  .slider-wrap{aspect-ratio:4/5;height:100svh;max-height:none;}
+  .slide-content{bottom:10%;left:5%;max-width:90%;}
 }
 
 /* ── PROMO STRIP ────────────────────────────────────────────── */
@@ -746,7 +747,7 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:900;b
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
 /* ── FOOTER ─────────────────────────────────────────────────── */
-footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition:background .3s;}
+footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition:background .3s;position:relative;z-index:10;}
 .footer-main{max-width:1240px;margin:0 auto;padding:48px 24px;display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;}
 .footer-brand h3{font-family:'Playfair Display',serif;font-size:1.2rem;color:#fff;margin-bottom:8px;}
 .footer-brand p{font-size:.8rem;line-height:1.7;color:#9ca3af;}
@@ -777,7 +778,6 @@ footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition
   .hbtn{padding:6px 12px;font-size:.72rem;}
   .cart-drawer{width:100%;right:-100%;}
   .slide-content h2{font-size:1.8rem;}
-  .slider-wrap{min-height:280px;max-height:500px;}
   .footer-main{grid-template-columns:1fr;gap:24px;}
   .frow{flex-direction:column;gap:8px;}
   .section{padding:40px 16px;}
