@@ -141,7 +141,16 @@ export default function AdminContentTab() {
         reload(); 
       }
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to update slide');
+      // Handle 404 error - slide was deleted or doesn't exist
+      if (err?.response?.status === 404) {
+        showToast('This slide no longer exists. It may have been deleted.');
+        setEditingSlide(null);
+        setSlideForm({ imageUrl: '', caption: '', subText: '' });
+        setSlideFile(null);
+        reload();
+      } else {
+        showToast(err?.response?.data?.message || 'Failed to update slide');
+      }
     } finally {
       setUploadingSlide(false);
     }
