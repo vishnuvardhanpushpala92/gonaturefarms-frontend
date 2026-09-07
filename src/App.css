@@ -313,8 +313,8 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;
 
 /* ── HERO SLIDER ────────────────────────────────────────────── */
 .slider-wrap{position:relative;width:100%;max-width:none;overflow:hidden;background:#1a2e17;}
-.slide{position:absolute;inset:0;opacity:0;transition:opacity 1s ease;}
-.slide.active{opacity:1;}
+.slide{position:absolute;inset:0;opacity:0;transition:opacity 1s ease;pointer-events:none;}
+.slide.active{position:relative;opacity:1;pointer-events:auto;}
 .hero-picture{display:block;width:100%;}
 .slide-image{display:block;width:100%;height:auto;}
 .slide-mask{position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,.55) 0%,rgba(0,0,0,.15) 60%,transparent 100%);pointer-events:none;}
