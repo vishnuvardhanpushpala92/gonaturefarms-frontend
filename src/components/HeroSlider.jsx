@@ -21,16 +21,10 @@ export default function HeroSlider() {
           key={slide.id}
           className={`slide${i === index ? ' active' : ''}`}
           style={{ 
+            backgroundImage: slide.imageUrl ? `url(${slide.imageUrl})` : 'none',
             backgroundColor: slide.imageUrl ? 'transparent' : '#2d5a27'
           }}
         >
-          {slide.imageUrl && (
-            <img
-              src={slide.imageUrl}
-              alt={slide.caption || 'Slide'}
-              className="slide-image"
-            />
-          )}
           <div className="slide-mask" />
           <div className="slide-content">
             {slide.caption && <h2>{slide.caption}</h2>}
