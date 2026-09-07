@@ -26,7 +26,7 @@ export function SiteProvider({ children }) {
         api.get('/admin/slides', { timeout: 60000 }),
         api.get('/admin/faqs', { timeout: 60000 }),
         api.get('/admin/zones', { timeout: 60000 }),
-        api.get('/admin/scroll-content', { timeout: 60000 }),
+        api.get('/admin/scroll-content/admin-list', { timeout: 60000 }),
         api.get('/footer-links', { timeout: 60000 })
       ]);
       
