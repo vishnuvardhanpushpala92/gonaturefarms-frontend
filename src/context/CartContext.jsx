@@ -7,19 +7,10 @@ const STORAGE_KEY = 'gnf_cart';
 
 export function CartProvider({ children }) {
   const showToast = useToast();
-  const [items, setItems] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [items, setItems] = useState([]);
 
-  // Save to localStorage whenever items change
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, [items]);
+  // localStorage persistence disabled to prevent cross-tab sync issues
+  // Cart is now session-only (persists only while tab is open)
 
   const addItem = useCallback((product) => {
     setItems((prev) => {

@@ -6,16 +6,14 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   // ✅ FIX: Initialize user as null if they are an admin (forces re-login on every page load)
   const [user, setUser] = useState(() => {
-    const stored = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
+    const stored = sessionStorage.getItem('gnf_user');
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
         if (parsed.role === 'admin') {
           // Clear the admin token immediately to prevent unauthorized fetches!
           sessionStorage.removeItem('gnf_token');
-          localStorage.removeItem('gnf_token');
           sessionStorage.removeItem('gnf_user');
-          localStorage.removeItem('gnf_user');
           return null;
         }
         return parsed;
@@ -27,8 +25,8 @@ export function AuthProvider({ children }) {
   });
 
   const [token, setToken] = useState(() => {
-    const stored = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
-    const storedUser = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
+    const stored = sessionStorage.getItem('gnf_token');
+    const storedUser = sessionStorage.getItem('gnf_user');
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
@@ -43,17 +41,13 @@ export function AuthProvider({ children }) {
   const persist = (t, u) => {
     if (t) {
       sessionStorage.setItem('gnf_token', t);
-      localStorage.setItem('gnf_token', t);
     } else {
       sessionStorage.removeItem('gnf_token');
-      localStorage.removeItem('gnf_token');
     }
     if (u) {
       sessionStorage.setItem('gnf_user', JSON.stringify(u));
-      localStorage.setItem('gnf_user', JSON.stringify(u));
     } else {
       sessionStorage.removeItem('gnf_user');
-      localStorage.removeItem('gnf_user');
     }
     setToken(t);
     setUser(u);
@@ -126,9 +120,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     // Clear only auth tokens, preserve cart
     sessionStorage.removeItem('gnf_token');
-    localStorage.removeItem('gnf_token');
     sessionStorage.removeItem('gnf_user');
-    localStorage.removeItem('gnf_user');
     setToken(null);
     setUser(null);
   }, []);
