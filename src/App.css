@@ -270,25 +270,16 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;
 }
 
 /* ── HERO SLIDER ────────────────────────────────────────────── */
-.slider-wrap{position:relative;width:100%;max-width:1600px;margin:0 auto;aspect-ratio:16/9;overflow:hidden;background:#1a2e17;z-index:1;}
-.slide{position:absolute;inset:0;opacity:0;transition:opacity 1s ease;background-size:cover;background-position:center;background-repeat:no-repeat;}
+.slider-wrap{position:relative;min-height:300px;max-height:700px;overflow:hidden;background:#1a2e17;transition:height 0.5s ease;}
+.slide{position:absolute;inset:0;opacity:0;transition:opacity 1s ease;background-size:contain;background-position:center;background-repeat:no-repeat;}
 .slide.active{opacity:1;}
-.slide-image{width:100%;height:100%;display:block;object-fit:cover;object-position:center;position:absolute;top:0;left:0;}
 .slide-mask{position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,.55) 0%,rgba(0,0,0,.15) 60%,transparent 100%);}
 .slide-content{position:absolute;bottom:15%;left:8%;color:#fff;max-width:560px;}
-.slide-content h2{font-family:'Playfair Display',serif;font-size:clamp(1.5rem, 5vw, 2.8rem);line-height:1.2;margin-bottom:10px;text-shadow:0 2px 8px rgba(0,0,0,.3);}
-.slide-content p{font-size:clamp(0.75rem, 2vw, 0.92rem);opacity:.88;letter-spacing:.5px;}
-.slider-nav{position:absolute;bottom:20px;right:6%;display:flex;gap:7px;z-index:2;}
-.snav{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.4);border:none;cursor:pointer;transition:all .3s;}
+.slide-content h2{font-family:'Playfair Display',serif;font-size:2.8rem;line-height:1.2;margin-bottom:10px;text-shadow:0 2px 8px rgba(0,0,0,.3);}
+.slide-content p{font-size:.92rem;opacity:.88;letter-spacing:.5px;}
+.slider-nav{position:absolute;bottom:20px;right:6%;display:flex;gap:7px;}
+.snav{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.4);border:none;cursor:pointer;transition:all .3s;}
 .snav.active{background:#fff;width:26px;border-radius:4px;}
-@media(min-width:600px) and (max-width:1024px){
-  .slider-wrap{aspect-ratio:4/3;}
-  .slide-content{bottom:12%;left:6%;max-width:70%;}
-}
-@media(max-width:599px){
-  .slider-wrap{aspect-ratio:4/5;height:100svh;max-height:none;}
-  .slide-content{bottom:10%;left:5%;max-width:90%;}
-}
 
 /* ── PROMO STRIP ────────────────────────────────────────────── */
 .promo-strip{background:var(--p);padding:10px 0;overflow:hidden;}

@@ -5,6 +5,8 @@ import { useSite } from '../context/SiteContext.jsx';
 export default function HeroSlider() {
   const { slides } = useSite();
   const [index, setIndex] = useState(0);
+  const [sliderHeight, setSliderHeight] = useState(400);
+  const [loadedImages, setLoadedImages] = useState({});
 
   useEffect(() => {
     if (slides.length < 2) return;
@@ -12,15 +14,46 @@ export default function HeroSlider() {
     return () => clearInterval(timer);
   }, [slides.length]);
 
+  const handleImageLoad = (e, slideId) => {
+    const img = e.target;
+    const aspectRatio = img.naturalWidth / img.naturalHeight;
+    
+    let calculatedHeight;
+    
+    if (aspectRatio >= 1) {
+      const windowWidth = window.innerWidth;
+      calculatedHeight = Math.min(windowWidth / aspectRatio, 700);
+      calculatedHeight = Math.max(calculatedHeight, 300);
+    } else {
+      calculatedHeight = 500;
+    }
+    
+    setLoadedImages(prev => ({ ...prev, [slideId]: calculatedHeight }));
+    
+    if (slides[index]?.id === slideId) {
+      setSliderHeight(calculatedHeight);
+    }
+  };
+
+  useEffect(() => {
+    if (slides[index] && loadedImages[slides[index].id]) {
+      setSliderHeight(loadedImages[slides[index].id]);
+    }
+  }, [index, slides, loadedImages]);
+
   if (!slides.length) return null;
 
   return (
-    <div className="slider-wrap">
+    <div 
+      className="slider-wrap" 
+      style={{ height: `${sliderHeight}px` }}
+    >
       {slides.map((slide, i) => (
         <div
           key={slide.id}
           className={`slide${i === index ? ' active' : ''}`}
           style={{ 
+            backgroundImage: slide.imageUrl ? `url(${slide.imageUrl})` : 'none',
             backgroundColor: slide.imageUrl ? 'transparent' : '#2d5a27'
           }}
         >
@@ -28,7 +61,16 @@ export default function HeroSlider() {
             <img
               src={slide.imageUrl}
               alt={slide.caption || 'Slide'}
-              className="slide-image"
+              style={{ 
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                objectPosition: 'center',
+                opacity: 0,
+                pointerEvents: 'none'
+              }}
+              onLoad={(e) => handleImageLoad(e, slide.id)}
             />
           )}
           <div className="slide-mask" />
