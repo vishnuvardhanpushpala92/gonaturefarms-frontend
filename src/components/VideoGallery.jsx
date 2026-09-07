@@ -185,11 +185,10 @@ export default function VideoGallery({ onOpenCart }) {
                   onError={(e) => {
                     e.target.style.display = 'none';
                     e.target.parentElement.style.background = '#f0f0f0';
-                    e.target.parentElement.innerHTML = `
-                      <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#999;font-size:14px;">
-                        Video Unavailable
-                      </div>
-                    `;
+                    const errorDiv = document.createElement('div');
+                    errorDiv.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:#999;font-size:14px;';
+                    errorDiv.textContent = 'Video Unavailable';
+                    e.target.parentElement.appendChild(errorDiv);
                   }}
                 />
                 <div className="video-play-overlay">
@@ -220,11 +219,10 @@ export default function VideoGallery({ onOpenCart }) {
                         onError={(e) => {
                           e.target.style.display = 'none';
                           e.target.parentElement.style.background = '#f3f4f6';
-                          e.target.parentElement.innerHTML = `
-                            <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:#f3f4f6;border-radius:8px;color:#999;font-size:12px;">
-                              No Image
-                            </div>
-                          `;
+                          const errorDiv = document.createElement('div');
+                          errorDiv.style.cssText = 'display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:#f3f4f6;border-radius:8px;color:#999;font-size:12px;';
+                          errorDiv.textContent = 'No Image';
+                          e.target.parentElement.appendChild(errorDiv);
                         }}
                       />
                     ) : (
