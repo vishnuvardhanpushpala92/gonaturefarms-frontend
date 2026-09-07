@@ -105,28 +105,38 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('colorTheme');
-    return saved || 'nature';
-  });
-
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode');
-    return saved === 'true';
-  });
+  const [theme, setTheme] = useState('nature');
+  const [darkMode, setDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    // Read from localStorage only on client side
+    const savedTheme = localStorage.getItem('colorTheme');
+    const savedDarkMode = localStorage.getItem('darkMode');
+
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
+    if (savedDarkMode === 'true') {
+      setDarkMode(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     localStorage.setItem('colorTheme', theme);
     const themeColors = THEME_PRESETS[theme]?.colors || THEME_PRESETS.nature.colors;
     Object.entries(themeColors).forEach(([key, value]) => {
       document.documentElement.style.setProperty(key, value);
     });
-  }, [theme]);
+  }, [theme, mounted]);
 
   useEffect(() => {
+    if (!mounted) return;
     localStorage.setItem('darkMode', darkMode);
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
+  }, [darkMode, mounted]);
 
   const setThemePreset = (preset) => {
     setTheme(preset);

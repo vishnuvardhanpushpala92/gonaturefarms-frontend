@@ -33,9 +33,16 @@ export default function HomePage() {
   const [blinkLogin, setBlinkLogin] = useState(false);
   const [blinkCart, setBlinkCart] = useState(false);
   const [cartAutoCloseTimer, setCartAutoCloseTimer] = useState(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Ensure component is mounted before accessing localStorage
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Show auth modal on first visit if not authenticated
   useEffect(() => {
+    if (!mounted) return;
     const hasVisited = localStorage.getItem('gnf_visited');
     if (!hasVisited && !isAuthenticated) {
       setAuthOpen(true);
@@ -43,7 +50,7 @@ export default function HomePage() {
       localStorage.setItem('gnf_visited', 'true');
       setTimeout(() => setBlinkLogin(false), 3000);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, mounted]);
 
   // Show auth modal after 10 seconds if not authenticated
   useEffect(() => {

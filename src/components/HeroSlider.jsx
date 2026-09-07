@@ -3,17 +3,22 @@ import { useEffect, useState, useRef } from 'react';
 import { useSite } from '../context/SiteContext.jsx';
 
 export default function HeroSlider() {
-  const { slides } = useSite();
+  const { slides, loaded } = useSite();
   const [index, setIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const sliderRef = useRef(null);
 
   useEffect(() => {
-    if (slides.length < 2) return;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || slides.length < 2) return;
     const timer = setInterval(() => setIndex((i) => (i + 1) % slides.length), 5000);
     return () => clearInterval(timer);
-  }, [slides.length]);
+  }, [slides.length, mounted]);
 
-  if (!slides.length) return null;
+  if (!mounted || !loaded || !slides.length) return null;
 
   // Get image URLs with fallback for backward compatibility
   const getImageUrls = (slide) => ({

@@ -6,6 +6,7 @@ export default function WelcomeBlast() {
   const { settings } = useSite();
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const blastEnabled = settings.blast_enabled === 'true';
   const blastType = settings.blast_type || 'popup';
@@ -18,15 +19,19 @@ export default function WelcomeBlast() {
   const animation = settings.blast_animation || 'fade';
 
   useEffect(() => {
-    if (!blastEnabled || dismissed) return;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || !blastEnabled || dismissed) return;
     const timer = setTimeout(() => setVisible(true), 500);
     return () => clearTimeout(timer);
-  }, [blastEnabled, dismissed]);
+  }, [blastEnabled, dismissed, mounted]);
 
   const handleClose = () => {
     setVisible(false);
     setDismissed(true);
-    if (displayDuration > 0) {
+    if (displayDuration > 0 && mounted) {
       localStorage.setItem('blastDismissed', Date.now().toString());
     }
   };
