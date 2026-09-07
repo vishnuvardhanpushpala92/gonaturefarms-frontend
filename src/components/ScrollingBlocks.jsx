@@ -23,7 +23,13 @@ export default function ScrollingBlocks() {
 
   const displayBlocks = publicBlocks.slice(0, 6);
 
-  if (!displayBlocks || displayBlocks.length === 0) return null;
+  console.log('Display blocks:', displayBlocks);
+  console.log('Public blocks length:', publicBlocks.length);
+
+  if (!displayBlocks || displayBlocks.length === 0) {
+    console.log('No blocks to display, returning null');
+    return null;
+  }
 
   // Get background color from first block or use default light color
   const backgroundColor = displayBlocks[0]?.backgroundColor || '#f8fafb';
