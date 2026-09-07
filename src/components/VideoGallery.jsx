@@ -61,10 +61,24 @@ export default function VideoGallery({ onOpenCart }) {
     return `${filePath}?v=${Date.now()}`;
   };
 
-  // Get poster URL or fallback to product image
+  // Check if image URL is from external domain (may have CORS issues)
+  const isExternalImage = (url) => {
+    if (!url) return false;
+    try {
+      const urlObj = new URL(url);
+      const currentDomain = window.location.hostname;
+      return urlObj.hostname !== currentDomain && 
+             !urlObj.hostname.includes('cloudinary.com') &&
+             !urlObj.hostname.includes('gonaturefarms');
+    } catch {
+      return false;
+    }
+  };
+
+  // Get poster URL or fallback to product image (avoid external images to prevent CORS)
   const getPosterUrl = (video) => {
-    if (video.posterUrl) return video.posterUrl;
-    if (video.product && video.product.imgUrl) return video.product.imgUrl;
+    if (video.posterUrl && !isExternalImage(video.posterUrl)) return video.posterUrl;
+    if (video.product && video.product.imgUrl && !isExternalImage(video.product.imgUrl)) return video.product.imgUrl;
     return ''; // No fallback - will use black background
   };
 
@@ -199,20 +213,26 @@ export default function VideoGallery({ onOpenCart }) {
                       }
                     }}
                   >
-                    <img 
-                      src={video.product.imgUrl || ''} 
-                      alt={video.product.name}
-                      className="video-product-image"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.parentElement.style.background = '#f3f4f6';
-                        e.target.parentElement.innerHTML = `
-                          <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:#f3f4f6;border-radius:8px;color:#999;font-size:12px;">
-                            No Image
-                          </div>
-                        `;
-                      }}
-                    />
+                    {!isExternalImage(video.product.imgUrl) ? (
+                      <img 
+                        src={video.product.imgUrl || ''} 
+                        alt={video.product.name}
+                        className="video-product-image"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.parentElement.style.background = '#f3f4f6';
+                          e.target.parentElement.innerHTML = `
+                            <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:#f3f4f6;border-radius:8px;color:#999;font-size:12px;">
+                              No Image
+                            </div>
+                          `;
+                        }}
+                      />
+                    ) : (
+                      <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:#f3f4f6;border-radius:8px;color:#999;font-size:12px;">
+                        No Image
+                      </div>
+                    )}
                     <div className="video-product-details">
                       <p className="video-product-name">{video.product.name}</p>
                       <p className="video-product-price">₹{video.product.price}</p>
