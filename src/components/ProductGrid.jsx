@@ -46,6 +46,9 @@ export default function ProductGrid({ search, onOpenReviews }) {
   const uniqueCurrent = uniqueProducts(current);
   const uniqueFuture = uniqueProducts(future);
 
+  // Don't render if no products at all
+  if (uniqueCurrent.length === 0 && uniqueFuture.length === 0) return null;
+
   return (
     <div className="section first-section">
       <div className="section-head reveal">
