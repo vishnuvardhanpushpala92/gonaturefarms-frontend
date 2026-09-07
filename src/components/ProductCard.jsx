@@ -22,14 +22,14 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
   const allImages = [product.imgUrl, ...additionalImages].filter(Boolean);
 
   const hasVariants = product.variants && product.variants.length > 0;
-  
-  // Initialize with first variant if available
+
+  // Initialize with first variant if available (only on mount or when product.id changes)
   React.useEffect(() => {
     if (hasVariants && product.variants.length > 0) {
       setSelectedVariant(product.variants[0]);
       setDisplayPrice(product.variants[0].price);
     }
-  }, [product, hasVariants]);
+  }, [product.id, hasVariants]);
 
   const handleVariantChange = (e) => {
     const variantId = parseInt(e.target.value);

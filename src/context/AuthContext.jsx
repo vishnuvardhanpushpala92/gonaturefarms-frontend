@@ -144,15 +144,6 @@ export function AuthProvider({ children }) {
     return null;
   }, [token]);
 
-  useEffect(() => {
-    const onStorage = () => {
-      const t = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
-      if (!t && token) persist(null, null);
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, [token]);
-
   const isAdmin = user?.role === 'admin';
   const isAuthenticated = !!user && !!token;
 

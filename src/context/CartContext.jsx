@@ -21,23 +21,6 @@ export function CartProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  // Sync cart across tabs/windows
-  useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === STORAGE_KEY) {
-        try {
-          const newItems = e.newValue ? JSON.parse(e.newValue) : [];
-          setItems(newItems);
-        } catch (error) {
-          console.error('Error parsing cart from storage event:', error);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
   const addItem = useCallback((product) => {
     setItems((prev) => {
       const prevArray = prev || [];
@@ -73,7 +56,7 @@ export function CartProvider({ children }) {
         }
       ];
     });
-  }, [showToast]);
+  }, []);
 
   const removeItem = useCallback((id, variantId = null) => {
     setItems((prev) => {
