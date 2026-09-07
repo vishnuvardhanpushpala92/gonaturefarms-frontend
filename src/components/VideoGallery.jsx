@@ -54,11 +54,10 @@ export default function VideoGallery({ onOpenCart }) {
     setSelectedVideo(video);
   };
 
-  // Add cache-buster to video URLs to prevent Cloudinary 404s
+  // Get video URL (removed cache-buster to prevent infinite re-renders)
   const getVideoUrl = (filePath) => {
     if (!filePath) return '';
-    // Add cache-buster parameter
-    return `${filePath}?v=${Date.now()}`;
+    return filePath;
   };
 
   // Check if image URL is from external domain (may have CORS issues)

@@ -75,7 +75,7 @@ export default function HomePage() {
         clearTimeout(cartAutoCloseTimer);
       }
     };
-  }, [cartAutoCloseTimer]);
+  }, []);
 
   const handleOpenCart = () => {
     if (!isAuthenticated) {
