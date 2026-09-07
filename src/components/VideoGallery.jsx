@@ -1,12 +1,18 @@
 import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import api from '../api/client';
+import { useAuth } from '../context/AuthContext.jsx';
+import { useCart } from '../context/CartContext.jsx';
+import { useToast } from '../context/ToastContext.jsx';
 
-export default function VideoGallery() {
+export default function VideoGallery({ onOpenCart }) {
   const [videos, setVideos] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const carouselRef = useRef(null);
   const videoRef = useRef(null);
+  const { isAuthenticated } = useAuth();
+  const { addItem } = useCart();
+  const showToast = useToast();
 
   useEffect(() => {
     loadVideos();
@@ -62,6 +68,30 @@ export default function VideoGallery() {
       videoRef.current.pause();
     }
     setSelectedVideo(null);
+  };
+
+  const handleAddToCart = (e, product) => {
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      showToast('Please login or register to add items to cart');
+      return;
+    }
+    if (!product) {
+      showToast('Product not available');
+      return;
+    }
+    addItem(product);
+    // Open cart preview after adding
+    if (onOpenCart) {
+      onOpenCart();
+    }
+  };
+
+  const handleProductClick = (e, product) => {
+    e.stopPropagation();
+    if (!product) return;
+    // For now, just add to cart. In future, could open product detail modal
+    handleAddToCart(e, product);
   };
 
   useEffect(() => {
@@ -121,7 +151,19 @@ export default function VideoGallery() {
               <div className="video-card-info">
                 <h4>{video.title}</h4>
                 {video.product && (
-                  <div className="video-product-info">
+                  <div 
+                    className="video-product-info clickable"
+                    onClick={(e) => handleProductClick(e, video.product)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`View ${video.product.name}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleProductClick(e, video.product);
+                      }
+                    }}
+                  >
                     <img 
                       src={video.product.imgUrl || ''} 
                       alt={video.product.name}
@@ -131,6 +173,13 @@ export default function VideoGallery() {
                     <div className="video-product-details">
                       <p className="video-product-name">{video.product.name}</p>
                       <p className="video-product-price">₹{video.product.price}</p>
+                      <button 
+                        className="video-add-to-cart-btn"
+                        onClick={(e) => handleAddToCart(e, video.product)}
+                        aria-label="Add to cart"
+                      >
+                        Add to Cart
+                      </button>
                     </div>
                   </div>
                 )}
@@ -161,6 +210,13 @@ export default function VideoGallery() {
                 <div className="video-modal-product">
                   <p className="video-modal-product-name">{selectedVideo.product.name}</p>
                   <p className="video-modal-product-price">₹{selectedVideo.product.price}</p>
+                  <button 
+                    className="video-modal-add-to-cart-btn"
+                    onClick={(e) => handleAddToCart(e, selectedVideo.product)}
+                    aria-label="Add to cart"
+                  >
+                    Add to Cart
+                  </button>
                 </div>
               )}
             </div>

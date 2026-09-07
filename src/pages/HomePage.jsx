@@ -32,6 +32,7 @@ export default function HomePage() {
   const [reviewProduct, setReviewProduct] = useState(false);
   const [blinkLogin, setBlinkLogin] = useState(false);
   const [blinkCart, setBlinkCart] = useState(false);
+  const [cartAutoCloseTimer, setCartAutoCloseTimer] = useState(null);
 
   // Show auth modal on first visit if not authenticated
   useEffect(() => {
@@ -67,6 +68,49 @@ export default function HomePage() {
     }
   }, [isAuthenticated, user]);
 
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (cartAutoCloseTimer) {
+        clearTimeout(cartAutoCloseTimer);
+      }
+    };
+  }, [cartAutoCloseTimer]);
+
+  const handleOpenCart = () => {
+    if (!isAuthenticated) {
+      setAuthOpen(true);
+      setBlinkCart(true);
+      setTimeout(() => setBlinkCart(false), 3000);
+      return;
+    }
+    
+    // Clear existing timer if any
+    if (cartAutoCloseTimer) {
+      clearTimeout(cartAutoCloseTimer);
+    }
+    
+    // Open cart
+    setCartOpen(true);
+    
+    // Set 5-second auto-close timer
+    const timer = setTimeout(() => {
+      setCartOpen(false);
+      setCartAutoCloseTimer(null);
+    }, 5000);
+    
+    setCartAutoCloseTimer(timer);
+  };
+
+  const handleCartClose = () => {
+    // Clear timer if manually closed
+    if (cartAutoCloseTimer) {
+      clearTimeout(cartAutoCloseTimer);
+      setCartAutoCloseTimer(null);
+    }
+    setCartOpen(false);
+  };
+
   return (
     <>
       <FlowerBlast />
@@ -74,15 +118,7 @@ export default function HomePage() {
       <Header
         search={search}
         onSearch={setSearch}
-        onOpenCart={() => {
-          if (!isAuthenticated) {
-            setAuthOpen(true);
-            setBlinkCart(true);
-            setTimeout(() => setBlinkCart(false), 3000);
-            return;
-          }
-          setCartOpen(true);
-        }}
+        onOpenCart={handleOpenCart}
         onOpenOrders={() => setOrdersOpen(true)}
         onOpenAuth={() => setAuthOpen(true)}
         onOpenAdmin={() => navigate('/admin')}
@@ -97,25 +133,17 @@ export default function HomePage() {
       <div id="products">
         <ProductGrid search={search} onOpenReviews={setReviewProduct} />
       </div>
-      <VideoGallery />
+      <VideoGallery onOpenCart={handleOpenCart} />
       <Footer onOpenSupport={() => setSupportOpen(true)} />
 
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }} />
+      <CartDrawer open={cartOpen} onClose={handleCartClose} onCheckout={() => { handleCartClose(); setCheckoutOpen(true); }} />
       <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
       <OrdersModal open={ordersOpen} onClose={() => setOrdersOpen(false)} />
       <SupportModal open={supportOpen} onClose={() => setSupportOpen(false)} />
       <ReviewModal product={reviewProduct} onClose={() => setReviewProduct(null)} />
 
-      <FloatingCart onClick={() => {
-        if (!isAuthenticated) {
-          setAuthOpen(true);
-          setBlinkCart(true);
-          setTimeout(() => setBlinkCart(false), 3000);
-          return;
-        }
-        setCartOpen(true);
-      }} blinkCart={blinkCart} />
+      <FloatingCart onClick={handleOpenCart} blinkCart={blinkCart} />
       <button
         className="btn-wa"
         style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 999, borderRadius: '50%', width: 54, height: 54 }}
