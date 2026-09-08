@@ -23,6 +23,7 @@ export default function AuthModal({ open, onClose }) {
   const [originalAddressForm, setOriginalAddressForm] = useState(null);
   const [changeCount, setChangeCount] = useState(0);
   const [formErrors, setFormErrors] = useState({});
+  const [addressFormErrors, setAddressFormErrors] = useState({});
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -202,31 +203,52 @@ export default function AuthModal({ open, onClose }) {
   const handleAddressSetup = async (e) => {
     e.preventDefault();
     
+    // Clear previous errors
+    const errors = {};
+    
     // Validate address fields
     if (!addressForm.name?.trim()) {
-      showToast('Please enter your name');
-      return;
+      errors.name = 'Please enter your name';
     }
     if (!addressForm.addressLine?.trim()) {
-      showToast('Please enter your address');
-      return;
+      errors.addressLine = 'Please enter your address';
     }
     if (!addressForm.city?.trim()) {
-      showToast('Please enter your city');
-      return;
+      errors.city = 'Please enter your city';
     }
     if (!addressForm.state?.trim()) {
-      showToast('Please enter your state');
-      return;
+      errors.state = 'Please enter your state';
     }
     if (!addressForm.pincode?.trim()) {
-      showToast('Please enter your pincode');
-      return;
+      errors.pincode = 'Please enter your pincode';
+    } else if (!/^\d{6}$/.test(addressForm.pincode.trim())) {
+      errors.pincode = 'Invalid pincode. Please enter a valid 6-digit pincode';
     }
     if (!addressForm.phone?.trim()) {
-      showToast('Please enter your phone');
+      errors.phone = 'Please enter your phone';
+    } else if (!/^\d{10}$/.test(addressForm.phone.trim())) {
+      errors.phone = 'Invalid phone number. Please enter a valid 10-digit phone number';
+    }
+    
+    // Check for duplicate address
+    const isDuplicate = addresses.some(addr => 
+      addr.addressLine?.trim() === addressForm.addressLine?.trim() &&
+      addr.city?.trim() === addressForm.city?.trim() &&
+      addr.state?.trim() === addressForm.state?.trim() &&
+      addr.pincode?.trim() === addressForm.pincode?.trim()
+    );
+    
+    if (isDuplicate) {
+      errors.addressLine = 'This address is already registered';
+    }
+    
+    // If there are validation errors, set them and return
+    if (Object.keys(errors).length > 0) {
+      setAddressFormErrors(errors);
       return;
     }
+    
+    setAddressFormErrors({});
     
     // Validate pincode against admin-configured serviceable pincodes
     try {
@@ -236,7 +258,7 @@ export default function AuthModal({ open, onClose }) {
       });
       
       if (!pincodeData.success) {
-        showToast('Cannot be delivered to this location. This pincode is not serviceable.');
+        setAddressFormErrors({ pincode: 'This pincode is not serviceable' });
         return;
       }
     } catch (err) {
@@ -258,6 +280,7 @@ export default function AuthModal({ open, onClose }) {
       if (data.success) {
         showToast('Address saved successfully and will be used for your orders');
         setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
+        setAddressFormErrors({});
         setShowAddressSetup(false);
         onClose();
       }
@@ -272,6 +295,10 @@ export default function AuthModal({ open, onClose }) {
       if (err.response?.status === 401) {
         showToast('Authentication expired. Please login again.');
         onClose();
+      } else if (err.response?.status === 409) {
+        // Conflict - duplicate address
+        const errorMessage = err?.response?.data?.message || 'This address is already registered';
+        setAddressFormErrors({ addressLine: errorMessage });
       } else {
         showToast(err?.userMessage || err?.response?.data?.message || 'Failed to save address');
       }
@@ -280,6 +307,55 @@ export default function AuthModal({ open, onClose }) {
 
   const saveAddress = async (e) => {
     e.preventDefault();
+    
+    // Clear previous errors
+    const errors = {};
+    
+    // Validate address fields
+    if (!addressForm.name?.trim()) {
+      errors.name = 'Please enter your name';
+    }
+    if (!addressForm.addressLine?.trim()) {
+      errors.addressLine = 'Please enter your address';
+    }
+    if (!addressForm.city?.trim()) {
+      errors.city = 'Please enter your city';
+    }
+    if (!addressForm.state?.trim()) {
+      errors.state = 'Please enter your state';
+    }
+    if (!addressForm.pincode?.trim()) {
+      errors.pincode = 'Please enter your pincode';
+    } else if (!/^\d{6}$/.test(addressForm.pincode.trim())) {
+      errors.pincode = 'Invalid pincode. Please enter a valid 6-digit pincode';
+    }
+    if (!addressForm.phone?.trim()) {
+      errors.phone = 'Please enter your phone';
+    } else if (!/^\d{10}$/.test(addressForm.phone.trim())) {
+      errors.phone = 'Invalid phone number. Please enter a valid 10-digit phone number';
+    }
+    
+    // Check for duplicate address (excluding current editing address)
+    const isDuplicate = addresses.some(addr => 
+      addr.id !== editingAddressId &&
+      addr.addressLine?.trim() === addressForm.addressLine?.trim() &&
+      addr.city?.trim() === addressForm.city?.trim() &&
+      addr.state?.trim() === addressForm.state?.trim() &&
+      addr.pincode?.trim() === addressForm.pincode?.trim()
+    );
+    
+    if (isDuplicate) {
+      errors.addressLine = 'This address is already registered';
+    }
+    
+    // If there are validation errors, set them and return
+    if (Object.keys(errors).length > 0) {
+      setAddressFormErrors(errors);
+      return;
+    }
+    
+    setAddressFormErrors({});
+    
     try {
       const payload = {
         ...addressForm,
@@ -297,13 +373,20 @@ export default function AuthModal({ open, onClose }) {
         showToast(editingAddressId ? 'Address updated successfully' : 'Address saved successfully');
         setShowAddressManagement(false);
         setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
+        setAddressFormErrors({});
         setOriginalAddressForm(null);
         setChangeCount(0);
         setEditingAddressId(null);
         loadAddresses();
       }
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to save address');
+      if (err.response?.status === 409) {
+        // Conflict - duplicate address
+        const errorMessage = err?.response?.data?.message || 'This address is already registered';
+        setAddressFormErrors({ addressLine: errorMessage });
+      } else {
+        showToast(err?.response?.data?.message || 'Failed to save address');
+      }
     }
   };
 
@@ -377,30 +460,36 @@ export default function AuthModal({ open, onClose }) {
               </div>
               <div className="fg">
                 <label htmlFor="address-name">Name</label>
-                <input id="address-name" name="name" required value={addressForm.name} onChange={(e) => setAddressForm({ ...addressForm, name: e.target.value })} />
+                <input id="address-name" name="name" required value={addressForm.name} onChange={(e) => { setAddressForm({ ...addressForm, name: e.target.value }); setAddressFormErrors({ ...addressFormErrors, name: '' }); }} />
+                {addressFormErrors.name && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{addressFormErrors.name}</div>}
               </div>
               <div className="fg">
                 <label htmlFor="address-line">Address Line</label>
-                <textarea id="address-line" name="addressLine" required value={addressForm.addressLine} onChange={(e) => setAddressForm({ ...addressForm, addressLine: e.target.value })} />
+                <textarea id="address-line" name="addressLine" required value={addressForm.addressLine} onChange={(e) => { setAddressForm({ ...addressForm, addressLine: e.target.value }); setAddressFormErrors({ ...addressFormErrors, addressLine: '' }); }} />
+                {addressFormErrors.addressLine && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{addressFormErrors.addressLine}</div>}
               </div>
               <div className="frow">
                 <div className="fg">
                   <label htmlFor="address-city">City</label>
-                  <input id="address-city" name="city" required value={addressForm.city} onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} />
+                  <input id="address-city" name="city" required value={addressForm.city} onChange={(e) => { setAddressForm({ ...addressForm, city: e.target.value }); setAddressFormErrors({ ...addressFormErrors, city: '' }); }} />
+                  {addressFormErrors.city && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{addressFormErrors.city}</div>}
                 </div>
                 <div className="fg">
                   <label htmlFor="address-state">State</label>
-                  <input id="address-state" name="state" required value={addressForm.state} onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })} />
+                  <input id="address-state" name="state" required value={addressForm.state} onChange={(e) => { setAddressForm({ ...addressForm, state: e.target.value }); setAddressFormErrors({ ...addressFormErrors, state: '' }); }} />
+                  {addressFormErrors.state && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{addressFormErrors.state}</div>}
                 </div>
               </div>
               <div className="frow">
                 <div className="fg">
                   <label htmlFor="address-pincode">Pincode</label>
-                  <input id="address-pincode" name="pincode" required value={addressForm.pincode} onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value })} />
+                  <input id="address-pincode" name="pincode" required value={addressForm.pincode} onChange={(e) => { setAddressForm({ ...addressForm, pincode: e.target.value }); setAddressFormErrors({ ...addressFormErrors, pincode: '' }); }} />
+                  {addressFormErrors.pincode && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{addressFormErrors.pincode}</div>}
                 </div>
                 <div className="fg">
                   <label htmlFor="address-phone">Phone</label>
-                  <input id="address-phone" name="phone" required value={addressForm.phone} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} />
+                  <input id="address-phone" name="phone" required value={addressForm.phone} onChange={(e) => { setAddressForm({ ...addressForm, phone: e.target.value }); setAddressFormErrors({ ...addressFormErrors, phone: '' }); }} />
+                  {addressFormErrors.phone && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{addressFormErrors.phone}</div>}
                 </div>
               </div>
               <button type="submit" className="btn btn-primary btn-block">Save Address</button>
@@ -440,8 +529,9 @@ export default function AuthModal({ open, onClose }) {
                       name="name"
                       required 
                       value={addressForm.name} 
-                      onChange={(e) => setAddressForm({ ...addressForm, name: e.target.value })} 
+                      onChange={(e) => { setAddressForm({ ...addressForm, name: e.target.value }); setAddressFormErrors({ ...addressFormErrors, name: '' }); }} 
                     />
+                    {addressFormErrors.name && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{addressFormErrors.name}</div>}
                   </div>
                   <div className="fg">
                     <label htmlFor="edit-address-line">Address Line</label>
@@ -450,8 +540,9 @@ export default function AuthModal({ open, onClose }) {
                       name="addressLine"
                       required 
                       value={addressForm.addressLine} 
-                      onChange={(e) => setAddressForm({ ...addressForm, addressLine: e.target.value })} 
+                      onChange={(e) => { setAddressForm({ ...addressForm, addressLine: e.target.value }); setAddressFormErrors({ ...addressFormErrors, addressLine: '' }); }} 
                     />
+                    {addressFormErrors.addressLine && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{addressFormErrors.addressLine}</div>}
                   </div>
                   <div className="frow">
                     <div className="fg">
@@ -461,8 +552,9 @@ export default function AuthModal({ open, onClose }) {
                         name="city"
                         required 
                         value={addressForm.city} 
-                        onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} 
+                        onChange={(e) => { setAddressForm({ ...addressForm, city: e.target.value }); setAddressFormErrors({ ...addressFormErrors, city: '' }); }} 
                       />
+                      {addressFormErrors.city && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{addressFormErrors.city}</div>}
                     </div>
                     <div className="fg">
                       <label htmlFor="edit-address-state">State</label>
@@ -471,8 +563,9 @@ export default function AuthModal({ open, onClose }) {
                         name="state"
                         required 
                         value={addressForm.state} 
-                        onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })} 
+                        onChange={(e) => { setAddressForm({ ...addressForm, state: e.target.value }); setAddressFormErrors({ ...addressFormErrors, state: '' }); }} 
                       />
+                      {addressFormErrors.state && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{addressFormErrors.state}</div>}
                     </div>
                   </div>
                   <div className="frow">
@@ -483,8 +576,9 @@ export default function AuthModal({ open, onClose }) {
                         name="pincode"
                         required 
                         value={addressForm.pincode} 
-                        onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value })} 
+                        onChange={(e) => { setAddressForm({ ...addressForm, pincode: e.target.value }); setAddressFormErrors({ ...addressFormErrors, pincode: '' }); }} 
                       />
+                      {addressFormErrors.pincode && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{addressFormErrors.pincode}</div>}
                     </div>
                     <div className="fg">
                       <label htmlFor="edit-address-phone">Phone</label>
@@ -493,8 +587,9 @@ export default function AuthModal({ open, onClose }) {
                         name="phone"
                         required 
                         value={addressForm.phone} 
-                        onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} 
+                        onChange={(e) => { setAddressForm({ ...addressForm, phone: e.target.value }); setAddressFormErrors({ ...addressFormErrors, phone: '' }); }} 
                       />
+                      {addressFormErrors.phone && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{addressFormErrors.phone}</div>}
                     </div>
                   </div>
                   <div className="fg">
