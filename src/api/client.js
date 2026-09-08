@@ -39,10 +39,22 @@ function transformKeys(data, converter) {
 
 // Attach token to every request
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
+  const ssToken = sessionStorage.getItem('gnf_token');
+  const lsToken = localStorage.getItem('gnf_token');
+  const token = ssToken || lsToken;
+  
+  console.log('[AXIOS INTERCEPTOR] URL:', config.url);
+  console.log('[AXIOS INTERCEPTOR] sessionStorage token:', ssToken ? 'present' : 'missing');
+  console.log('[AXIOS INTERCEPTOR] localStorage token:', lsToken ? 'present' : 'missing');
+  console.log('[AXIOS INTERCEPTOR] Final token:', token ? 'present' : 'missing');
+  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    console.log('[AXIOS INTERCEPTOR] Authorization header attached');
+  } else {
+    console.warn('[AXIOS INTERCEPTOR] NO TOKEN - Authorization header NOT attached');
   }
+  
   if (config.skipTransform) return config;
   if (config.data && !(config.data instanceof FormData)) {
     config.data = transformKeys(config.data, camelToSnake);

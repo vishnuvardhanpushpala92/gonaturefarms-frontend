@@ -243,7 +243,15 @@ export default function AuthModal({ open, onClose }) {
     
     try {
       const payload = { ...addressForm, isDefault: true };
+      console.log('[DEBUG] handleAddressSetup - isAuthenticated:', isAuthenticated);
+      console.log('[DEBUG] handleAddressSetup - user:', user);
+      console.log('[DEBUG] handleAddressSetup - sessionStorage token:', sessionStorage.getItem('gnf_token') ? 'present' : 'missing');
+      console.log('[DEBUG] handleAddressSetup - localStorage token:', localStorage.getItem('gnf_token') ? 'present' : 'missing');
+      
       const { data } = await api.post('/addresses', payload);
+      
+      console.log('[DEBUG] handleAddressSetup - response:', data);
+      
       if (data.success) {
         showToast('Address saved successfully and will be used for your orders');
         setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });
