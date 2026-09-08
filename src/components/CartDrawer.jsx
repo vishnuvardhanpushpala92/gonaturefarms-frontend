@@ -1,8 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 export default function CartDrawer({ open, onClose, onCheckout }) {
+  const navigate = useNavigate();
   const { items, removeItem, updateQty, totals } = useCart();
+  const { t } = useLanguage();
 
   // Helper function to get image URL with proper backend prefix
   const getImageUrl = (imgUrl) => {
@@ -24,26 +28,26 @@ export default function CartDrawer({ open, onClose, onCheckout }) {
       <div className={`drawer-overlay${open ? ' open' : ''}`} onClick={onClose} />
       <div className={`cart-drawer${open ? ' open' : ''}`}>
         <div className="drawer-hdr">
-          <h3>Your Cart</h3>
+          <h3>{t('yourCart')}</h3>
           <button className="close-btn" onClick={onClose} aria-label="Close">✕</button>
         </div>
         <div className="cart-list">
           {items.length === 0 && (
-            <div className="empty-cart"><p>Your cart is empty</p></div>
+            <div className="empty-cart"><p>{t('emptyCart')}</p></div>
           )}
           {items.map((item) => (
-            <div className="cart-item" key={item.id}>
+            <div className="cart-item" key={`${item.id}-${item.variantId || 'default'}`}>
               <img src={getImageUrl(item.img)} alt={item.name} />
               <div className="ci-info">
-                <div className="ci-name">{item.name}</div>
+                <div className="ci-name">{item.name} {item.variantName && <span className="ci-variant">({item.variantName})</span>}</div>
                 <div className="ci-price">₹{item.price} {item.gst > 0 && <span className="ci-gst">+{item.gst}% GST</span>}</div>
                 <div className="ci-qty">
-                  <button className="qbtn" onClick={() => updateQty(item.id, item.qty - 1)}>−</button>
+                  <button className="qbtn" onClick={() => updateQty(item.id, item.qty - 1, item.variantId)}>−</button>
                   <span className="qnum">{item.qty}</span>
-                  <button className="qbtn" onClick={() => updateQty(item.id, item.qty + 1)}>+</button>
+                  <button className="qbtn" onClick={() => updateQty(item.id, item.qty + 1, item.variantId)}>+</button>
                 </div>
               </div>
-              <button className="ci-rm" onClick={() => removeItem(item.id)} aria-label="Remove">🗑</button>
+              <button className="ci-rm" onClick={() => removeItem(item.id, item.variantId)} aria-label="Remove">🗑</button>
             </div>
           ))}
         </div>
@@ -53,9 +57,14 @@ export default function CartDrawer({ open, onClose, onCheckout }) {
             <div className="cs-row"><span>GST</span><span>₹{totals.gstAmount.toFixed(2)}</span></div>
             <div className="cs-row total"><span>Total</span><span>₹{(totals.subtotal + totals.gstAmount).toFixed(2)}</span></div>
           </div>
-          <button className="btn-checkout" disabled={items.length === 0} onClick={onCheckout}>
-            Proceed to Checkout
-          </button>
+          <div className="drawer-actions">
+            <button className="btn-view-cart" disabled={items.length === 0} onClick={() => { onClose(); navigate('/dashboard'); }}>
+              {t('viewCart')}
+            </button>
+            <button className="btn-checkout" disabled={items.length === 0} onClick={onCheckout}>
+              {t('proceedToCheckout')}
+            </button>
+          </div>
         </div>
       </div>
     </>

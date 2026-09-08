@@ -1,5 +1,4 @@
-import React from 'react';
-import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useRef } from 'react';
 import { useToast } from './ToastContext.jsx';
 
 const CartContext = createContext(null);
@@ -8,6 +7,7 @@ const STORAGE_KEY = 'gnf_cart';
 export function CartProvider({ children }) {
   const showToast = useToast();
   const [items, setItems] = useState([]);
+  const onItemAddedRef = useRef(null);
 
   // localStorage persistence disabled to prevent cross-tab sync issues
   // Cart is now session-only (persists only while tab is open)
@@ -23,15 +23,18 @@ export function CartProvider({ children }) {
       if (existing) {
         const newQty = existing.qty + 1;
         const totalItems = prevArray.reduce((sum, i) => sum + (i.id === product.id ? newQty : i.qty), 0);
-        showToast(`${product.name} quantity updated in cart. Cart items: ${totalItems}`);
-        return prevArray.map((i) => {
+        showToast(`Added to cart ✓`);
+        const updated = prevArray.map((i) => {
           const itemKey = i.variantId ? `${i.id}-${i.variantId}` : `${i.id}`;
           return itemKey === cartKey ? { ...i, qty: newQty } : i;
         });
+        // Trigger callback if set
+        if (onItemAddedRef.current) onItemAddedRef.current();
+        return updated;
       }
       const totalItems = prevArray.reduce((sum, i) => sum + i.qty, 0) + 1;
-      showToast(`${product.name} added to cart. Cart items: ${totalItems}`);
-      return [
+      showToast(`Added to cart ✓`);
+      const updated = [
         ...prevArray,
         {
           id: product.id,
@@ -46,8 +49,11 @@ export function CartProvider({ children }) {
           qty: 1
         }
       ];
+      // Trigger callback if set
+      if (onItemAddedRef.current) onItemAddedRef.current();
+      return updated;
     });
-  }, []);
+  }, [showToast]);
 
   const removeItem = useCallback((id, variantId = null) => {
     setItems((prev) => {
@@ -80,6 +86,10 @@ export function CartProvider({ children }) {
 
   const clearCart = useCallback(() => setItems([]), []);
 
+  const setItemAddedCallback = useCallback((callback) => {
+    onItemAddedRef.current = callback;
+  }, []);
+
   const totals = useMemo(() => {
     const itemsArray = items || [];
     const subtotal = itemsArray.reduce((sum, i) => sum + i.price * i.qty, 0);
@@ -93,7 +103,7 @@ export function CartProvider({ children }) {
   }, [items]);
 
   return (
-    <CartContext.Provider value={{ items, cart: items, addItem, removeItem, updateQty, clearCart, totals, count }}>
+    <CartContext.Provider value={{ items, cart: items, addItem, removeItem, updateQty, clearCart, totals, count, setItemAddedCallback }}>
       {children}
     </CartContext.Provider>
   );

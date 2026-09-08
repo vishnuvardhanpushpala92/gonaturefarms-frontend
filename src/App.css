@@ -276,6 +276,15 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);ov
   header{padding:0 16px;}
   .brand img{height:40px;}
   .brand-text h1{font-size:1.2rem;}
+
+  /* Mobile order tracking timeline */
+  .steps{display:none;}
+  .steps-mobile{display:block !important;}
+  .bill{padding:12px;font-size:.85rem;}
+  .bill-hdr h3{font-size:1rem;}
+  .step-num-mobile{width:20px;height:20px;font-size:.65rem;}
+  .step-lbl-mobile{font-size:.8rem;}
+  .bill-body{padding:8px 0;}
 }
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px;}
 a{text-decoration:none;color:inherit;}
@@ -482,8 +491,13 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;
 .cart-summary{background:#f9fafb;border-radius:var(--r);padding:16px;margin-bottom:16px;font-size:.8rem;}
 .cs-row{display:flex;justify-content:space-between;margin-bottom:4px;color:var(--muted);}
 .cs-row.total{font-weight:700;color:var(--text);font-size:.9rem;border-top:1px solid var(--border);margin-top:6px;padding-top:6px;}
-.btn-checkout{width:100%;padding:14px;background:var(--p);color:#fff;border:none;border-radius:var(--r-pill);cursor:pointer;font-weight:700;font-size:.88rem;transition:all .3s;font-family:'Inter',sans-serif;box-shadow:var(--shadow);}
+.drawer-actions{display:flex;gap:8px;margin-top:12px;}
+.btn-view-cart{flex:1;padding:12px;background:var(--bg-secondary);color:var(--text);border:1px solid var(--border);border-radius:var(--r-pill);cursor:pointer;font-weight:600;font-size:.85rem;transition:all .3s;font-family:'Inter',sans-serif;}
+.btn-view-cart:hover{background:var(--bg-tertiary);border-color:var(--p);}
+.btn-view-cart:disabled{opacity:.5;cursor:not-allowed;}
+.btn-checkout{flex:1;padding:12px;background:var(--p);color:#fff;border:none;border-radius:var(--r-pill);cursor:pointer;font-weight:700;font-size:.85rem;transition:all .3s;font-family:'Inter',sans-serif;box-shadow:var(--shadow);}
 .btn-checkout:hover{background:var(--p2);transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.btn-checkout:disabled{opacity:.5;cursor:not-allowed;}
 
 /* ── MODAL SYSTEM ───────────────────────────────────────────── */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1100;backdrop-filter:blur(2px);}
@@ -911,7 +925,17 @@ footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition
   .cart-drawer{width:100%;}
   .drawer-ftr{padding:12px 16px;}
   .cart-summary{padding:12px;}
-  .btn-checkout{padding:12px;font-size:.82rem;}
+  .drawer-actions{flex-direction:column;}
+  .btn-view-cart,.btn-checkout{padding:12px;font-size:.82rem;}
+  .steps{display:none;}
+  .steps-mobile{display:block !important;}
+  .bill{padding:12px;font-size:.85rem;}
+  .bill-hdr h3{font-size:1rem;}
+  .step-num{width:24px;height:24px;font-size:.7rem;}
+  .step-lbl{font-size:.75rem;}
+  .step-num-mobile{width:20px;height:20px;font-size:.65rem;}
+  .step-lbl-mobile{font-size:.8rem;}
+  .bill-body{padding:8px 0;}
   .stat-cards{grid-template-columns:1fr;}
   .admin-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:10px;}
   .admin-tabs::-webkit-scrollbar{height:4px;}

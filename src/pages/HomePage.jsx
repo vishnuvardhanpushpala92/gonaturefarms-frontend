@@ -18,11 +18,13 @@ import FloatingCart from '../components/FloatingCart.jsx';
 import ScrollingBlocks from '../components/ScrollingBlocks.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
+import { useCart } from '../context/CartContext.jsx';
 
 export default function HomePage() {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const showToast = useToast();
+  const { setItemAddedCallback } = useCart();
   const [search, setSearch] = useState('');
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -39,6 +41,14 @@ export default function HomePage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Set up cart callback to automatically open drawer when item is added
+  useEffect(() => {
+    const callback = () => {
+      setCartOpen(true);
+    };
+    setItemAddedCallback(callback);
+  }, [setItemAddedCallback]);
 
   // Show auth modal on first visit if not authenticated
   useEffect(() => {

@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Modal from './Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import api from '../api/client.js';
 
 export default function AuthModal({ open, onClose }) {
   const { login, register, forgotPassword, resetPasswordWithSecurityQuestion, user, isAuthenticated, logout } = useAuth();
   const showToast = useToast();
+  const { t } = useLanguage();
   
   const [isLogin, setIsLogin] = useState(true);
   const [forgotOpen, setForgotOpen] = useState(false);
@@ -65,6 +67,25 @@ export default function AuthModal({ open, onClose }) {
     return re.test(phone);
   };
 
+  const validatePassword = (password) => {
+    if (!password || password.length < 8) {
+      return 'Password must be at least 8 characters';
+    }
+    if (!/[A-Z]/.test(password)) {
+      return 'Password must contain at least one uppercase letter';
+    }
+    if (!/[a-z]/.test(password)) {
+      return 'Password must contain at least one lowercase letter';
+    }
+    if (!/[0-9]/.test(password)) {
+      return 'Password must contain at least one number';
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      return 'Password must contain at least one special character';
+    }
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -81,9 +102,12 @@ export default function AuthModal({ open, onClose }) {
       errors.phone = 'Please enter a valid 10-digit phone number';
     }
     
-    // Password validation for registration (must be at least 6 characters)
-    if (!isLogin && form.password && form.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
+    // Strong password validation for registration
+    if (!isLogin && form.password) {
+      const passwordError = validatePassword(form.password);
+      if (passwordError) {
+        errors.password = passwordError;
+      }
     }
     
     // Password confirmation for registration
@@ -141,9 +165,17 @@ export default function AuthModal({ open, onClose }) {
           console.error('Login error:', loginErr);
           const errorMessage = loginErr?.response?.data?.message || loginErr?.userMessage || 'Login failed. Please try again.';
           
-          // Provide specific error messages
+          // Provide specific error messages and handle user not found
           if (errorMessage.includes('User not found')) {
-            showToast('User not found. Please check your phone number or register a new account.');
+            showToast('User not found. Switching to registration...');
+            // Automatically switch to registration and pre-fill phone
+            setIsLogin(false);
+            setForm({
+              ...form,
+              phone: form.phone,
+              password: '',
+              confirmPassword: ''
+            });
           } else if (errorMessage.includes('Incorrect password')) {
             showToast('Incorrect password. Please try again.');
           } else {
@@ -252,14 +284,16 @@ export default function AuthModal({ open, onClose }) {
     
     // Validate pincode against admin-configured serviceable pincodes
     try {
-      const { data: pincodeData } = await api.get('/admin/zones/validate', { 
-        params: { pincode: addressForm.pincode.trim() },
+      const { data: pincodeData } = await api.get('/admin/settings/serviceable-pincodes', { 
         timeout: 60000 
       });
       
-      if (!pincodeData.success) {
-        setAddressFormErrors({ pincode: 'This pincode is not serviceable' });
-        return;
+      if (pincodeData.success && pincodeData.serviceable_pincodes) {
+        const serviceablePincodes = pincodeData.serviceable_pincodes.split(',').map(p => p.trim());
+        if (!serviceablePincodes.includes(addressForm.pincode.trim())) {
+          setAddressFormErrors({ pincode: 'This pincode is not serviceable' });
+          return;
+        }
       }
     } catch (err) {
       // If pincode validation fails, still proceed with address save
@@ -438,7 +472,7 @@ export default function AuthModal({ open, onClose }) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title={showAddressSetup ? 'Setup Your Address' : (showAddressManagement ? 'Manage Addresses' : (isAuthenticated ? 'My Account' : (isLogin ? 'Login' : 'Register')))}>
+    <Modal open={open} onClose={onClose} title={showAddressSetup ? 'Setup Your Address' : (showAddressManagement ? 'Manage Addresses' : (isAuthenticated ? 'My Account' : (isLogin ? t('login') : t('register'))))}>
       <div className="mbody">
         {showAddressSetup ? (
           <>
@@ -702,7 +736,7 @@ export default function AuthModal({ open, onClose }) {
               📍 Manage Addresses
             </button>
             <button className="btn btn-danger btn-block" onClick={logout}>
-              Logout
+              {t('logout')}
             </button>
             <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.85rem', color: 'var(--muted)' }}>
               <button type="button" onClick={() => setIsLogin(true)} style={{ background: 'none', border: 'none', color: 'var(--p)', cursor: 'pointer', fontWeight: '600' }}>
@@ -847,14 +881,14 @@ export default function AuthModal({ open, onClose }) {
               )}
               
               <button type="submit" className="btn btn-primary btn-block">
-                {isLogin ? 'Login' : 'Create Account'}
+                {isLogin ? t('login') : 'Create Account'}
               </button>
             </form>
             
             <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.85rem' }}>
               {isLogin ? "Don't have an account?" : "Already have an account?"}
               <button type="button" onClick={() => setIsLogin(!isLogin)} style={{ background: 'none', border: 'none', color: 'var(--p)', cursor: 'pointer', fontWeight: '600', marginLeft: '4px' }}>
-                {isLogin ? 'Register' : 'Login'}
+                {isLogin ? t('register') : t('login')}
               </button>
             </p>
           </>

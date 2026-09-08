@@ -2,6 +2,7 @@ import React from 'react';
 import { useState } from 'react';
 import Modal from './Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import api from '../api/client';
 
 const STATUS_STEPS = ['Placed', 'Confirmed', 'Processing', 'Packed', 'Shipped', 'OutForDelivery', 'Delivered'];
@@ -20,6 +21,7 @@ const STATUS_LABELS = {
 
 export default function OrdersModal({ open, onClose }) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [phone, setPhone] = useState('');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -99,21 +101,21 @@ export default function OrdersModal({ open, onClose }) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Track Orders" wide>
+    <Modal open={open} onClose={onClose} title={t('trackOrders')} wide>
       {user ? (
         <button className="btn btn-secondary" style={{ marginBottom: 14 }} onClick={loadMyOrders}>
-          View My Orders
+          {t('viewMyOrders')}
         </button>
       ) : (
         <form onSubmit={lookupByPhone} style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
           <input placeholder="Enter your phone number" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ flex: 1, padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)' }} />
-          <button className="btn btn-primary">Track</button>
+          <button className="btn btn-primary">{t('trackOrders')}</button>
         </form>
       )}
 
       {loading && <p>Loading...</p>}
 
-      {!loading && searched && orders.length === 0 && <p>No orders found.</p>}
+      {!loading && searched && orders.length === 0 && <p>{t('noOrdersFound')}</p>}
 
       {orders.map((o) => {
         const normalizedStatus = o.status === 'Pending' ? 'Placed' : o.status;
@@ -179,6 +181,65 @@ export default function OrdersModal({ open, onClose }) {
                           }}
                         >
                           {STATUS_LABELS[s] || s}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Mobile Vertical Timeline */}
+              {!isCancelled && !isPaymentPending && (
+                <div className="steps-mobile" style={{ margin: '14px 0', display: 'none' }}>
+                  {STATUS_STEPS.map((s, i) => {
+                    const isComplete = i <= stepIdx;
+                    const isCurrent = i === stepIdx;
+                    return (
+                      <div className="step-mobile" key={s} style={{ 
+                        display: 'flex', 
+                        alignItems: 'flex-start', 
+                        marginBottom: '12px',
+                        gap: '12px'
+                      }}>
+                        <div 
+                          className={`step-num-mobile${isComplete ? ' done' : ''}${isCurrent ? ' active' : ''}`}
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '.7rem',
+                            fontWeight: 600,
+                            flexShrink: 0,
+                            background: isComplete ? 'var(--p)' : (isCurrent ? 'var(--accent)' : '#e5e7eb'),
+                            color: isComplete ? '#fff' : (isCurrent ? 'var(--text)' : '#9ca3af')
+                          }}
+                        >
+                          {isComplete ? '●' : '○'}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div 
+                            className={`step-lbl-mobile${isCurrent ? ' active' : ''}`}
+                            style={{
+                              fontSize: '.85rem',
+                              color: isCurrent ? 'var(--p)' : (isComplete ? 'var(--text)' : '#9ca3af'),
+                              fontWeight: isCurrent ? 600 : 400,
+                              marginBottom: '2px'
+                            }}
+                          >
+                            {STATUS_LABELS[s] || s}
+                          </div>
+                          {isCurrent && (
+                            <div style={{ 
+                              fontSize: '.75rem', 
+                              color: '#6b7280',
+                              fontStyle: 'italic'
+                            }}>
+                              Current status
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
