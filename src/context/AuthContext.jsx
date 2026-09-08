@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import api from '../api/client';
 
 const TIMER_START_TIME = 'admin_timer_start';
@@ -8,14 +8,12 @@ const TIMER_EXPIRED = 'admin_timer_expired';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  // ✅ FIX: Initialize user as null if they are an admin (forces re-login on every page load)
   const [user, setUser] = useState(() => {
     const stored = sessionStorage.getItem('gnf_user');
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
         if (parsed.role === 'admin') {
-          // Clear the admin token immediately to prevent unauthorized fetches!
           sessionStorage.removeItem('gnf_token');
           sessionStorage.removeItem('gnf_user');
           return null;
@@ -34,13 +32,21 @@ export function AuthProvider({ children }) {
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
-        if (parsed.role === 'admin') return null; // No token for admins on fresh load
+        if (parsed.role === 'admin') return null;
       } catch (e) {
         return null;
       }
     }
     return stored;
   });
+
+  // Timer state
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [showWarning, setShowWarning] = useState(false);
+  const [isTimerActive, setIsTimerActive] = useState(false);
+  const [isSessionExpired, setIsSessionExpired] = useState(false);
+  const intervalRef = useRef(null);
+  const showWarningRef = useRef(false);
 
   const persist = (t, u) => {
     if (t) {
@@ -86,6 +92,8 @@ export function AuthProvider({ children }) {
       const { data } = await api.post('/auth/admin-login', { username, password }, { timeout: 60000 });
       if (data.success) {
         persist(data.token, data.user);
+        // Auto-start timer with default 30 minutes
+        startAdminTimer(30);
         return { success: true };
       } else {
         return { success: false, message: data.message || 'Admin login failed' };
@@ -127,6 +135,8 @@ export function AuthProvider({ children }) {
     sessionStorage.removeItem('gnf_user');
     setToken(null);
     setUser(null);
+    // Clear timer
+    stopAdminTimer();
   }, []);
 
   const refreshMe = useCallback(async () => {
@@ -143,35 +153,189 @@ export function AuthProvider({ children }) {
   const isAdmin = user?.role === 'admin';
   const isAuthenticated = !!user && !!token;
 
-  // Check if admin timer is active
-  const isTimerActive = useCallback(() => {
-    if (!isAdmin || !isAuthenticated) return false;
+  // Start admin session timer
+  const startAdminTimer = useCallback((minutes) => {
+    if (!isAdmin || !isAuthenticated) return;
     
+    // Clear existing intervals
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    
+    const durationMs = minutes * 60 * 1000;
+    const startTime = Date.now();
+    
+    // Save to localStorage for persistence across navigation
     try {
-      const expired = localStorage.getItem(TIMER_EXPIRED);
-      if (expired === 'true') return false;
-      
-      const startTime = localStorage.getItem(TIMER_START_TIME);
-      const duration = localStorage.getItem(TIMER_DURATION);
-      
-      if (!startTime || !duration) return false;
-      
-      const startTimeMs = parseInt(startTime, 10);
-      const durationMs = parseInt(duration, 10) * 60 * 1000;
-      
-      if (isNaN(startTimeMs) || isNaN(durationMs)) return false;
-      
-      const elapsed = Date.now() - startTimeMs;
+      localStorage.setItem(TIMER_START_TIME, startTime.toString());
+      localStorage.setItem(TIMER_DURATION, minutes.toString());
+      localStorage.setItem(TIMER_EXPIRED, 'false');
+    } catch (e) {
+      console.error('Failed to save timer to localStorage:', e);
+    }
+    
+    setTimeLeft(durationMs);
+    setIsTimerActive(true);
+    setShowWarning(false);
+    showWarningRef.current = false;
+    setIsSessionExpired(false);
+    
+    // Start countdown interval
+    intervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
       const remaining = durationMs - elapsed;
       
-      return remaining > 0;
+      if (remaining <= 0) {
+        // Timer expired
+        clearInterval(intervalRef.current);
+        setIsTimerActive(false);
+        setIsSessionExpired(true);
+        try {
+          localStorage.setItem(TIMER_EXPIRED, 'true');
+          localStorage.removeItem(TIMER_START_TIME);
+          localStorage.removeItem(TIMER_DURATION);
+        } catch (e) {
+          console.error('Failed to update timer in localStorage:', e);
+        }
+        // Auto logout on expiration
+        logout();
+      } else {
+        setTimeLeft(remaining);
+        
+        // Show warning at 1 minute remaining
+        if (remaining <= 60000 && !showWarningRef.current) {
+          showWarningRef.current = true;
+          setShowWarning(true);
+        }
+      }
+    }, 1000);
+  }, [isAdmin, isAuthenticated, logout]);
+
+  // Stop admin session timer
+  const stopAdminTimer = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    
+    setIsTimerActive(false);
+    setIsSessionExpired(false);
+    setTimeLeft(0);
+    setShowWarning(false);
+    showWarningRef.current = false;
+    
+    // Clear localStorage
+    try {
+      localStorage.removeItem(TIMER_START_TIME);
+      localStorage.removeItem(TIMER_DURATION);
+      localStorage.removeItem(TIMER_EXPIRED);
     } catch (e) {
-      return false;
+      console.error('Failed to clear timer from localStorage:', e);
     }
-  }, [isAdmin, isAuthenticated]);
+  }, []);
+
+  // Check for existing timer on mount
+  useEffect(() => {
+    if (!isAdmin || !isAuthenticated) {
+      stopAdminTimer();
+      return;
+    }
+
+    try {
+      const expired = localStorage.getItem(TIMER_EXPIRED);
+      const startTime = localStorage.getItem(TIMER_START_TIME);
+      const duration = localStorage.getItem(TIMER_DURATION);
+
+      if (expired === 'true') {
+        setIsSessionExpired(true);
+        setIsTimerActive(false);
+        logout();
+        return;
+      }
+
+      if (startTime && duration) {
+        const startTimeMs = parseInt(startTime, 10);
+        const durationMs = parseInt(duration, 10) * 60 * 1000;
+        
+        if (isNaN(startTimeMs) || isNaN(durationMs)) {
+          localStorage.removeItem(TIMER_START_TIME);
+          localStorage.removeItem(TIMER_DURATION);
+          return;
+        }
+        
+        const elapsed = Date.now() - startTimeMs;
+        const remaining = durationMs - elapsed;
+
+        if (remaining <= 0) {
+          // Timer expired while away
+          setIsSessionExpired(true);
+          setIsTimerActive(false);
+          localStorage.setItem(TIMER_EXPIRED, 'true');
+          localStorage.removeItem(TIMER_START_TIME);
+          localStorage.removeItem(TIMER_DURATION);
+          logout();
+        } else {
+          // Timer still running, restore it
+          setIsTimerActive(true);
+          setTimeLeft(remaining);
+          setIsSessionExpired(false);
+          
+          // Continue the countdown
+          intervalRef.current = setInterval(() => {
+            const newElapsed = Date.now() - startTimeMs;
+            const newRemaining = durationMs - newElapsed;
+            
+            if (newRemaining <= 0) {
+              clearInterval(intervalRef.current);
+              setIsTimerActive(false);
+              setIsSessionExpired(true);
+              localStorage.setItem(TIMER_EXPIRED, 'true');
+              localStorage.removeItem(TIMER_START_TIME);
+              localStorage.removeItem(TIMER_DURATION);
+              logout();
+            } else {
+              setTimeLeft(newRemaining);
+              
+              if (newRemaining <= 60000 && !showWarningRef.current) {
+                showWarningRef.current = true;
+                setShowWarning(true);
+              }
+            }
+          }, 1000);
+        }
+      }
+    } catch (e) {
+      console.error('Timer initialization error:', e);
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isAdmin, isAuthenticated, logout, stopAdminTimer]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, isAdmin, isAuthenticated, register, login, adminLogin, logout, refreshMe, forgotPassword, resetPassword, resetPasswordWithSecurityQuestion, isTimerActive }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      isAdmin, 
+      isAuthenticated, 
+      register, 
+      login, 
+      adminLogin, 
+      logout, 
+      refreshMe, 
+      forgotPassword, 
+      resetPassword, 
+      resetPasswordWithSecurityQuestion,
+      timeLeft,
+      showWarning,
+      isTimerActive,
+      isSessionExpired,
+      startAdminTimer,
+      stopAdminTimer
+    }}>
       {children}
     </AuthContext.Provider>
   );

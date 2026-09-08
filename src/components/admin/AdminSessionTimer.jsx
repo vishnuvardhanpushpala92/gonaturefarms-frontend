@@ -1,35 +1,22 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useSite } from '../../context/SiteContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 import { useLocation } from 'react-router-dom';
 
-// LocalStorage keys
-const TIMER_START_TIME = 'admin_timer_start';
-const TIMER_DURATION = 'admin_timer_duration';
-const TIMER_EXPIRED = 'admin_timer_expired';
-
 export default function AdminSessionTimer() {
-  const { logout, isAdmin, isAuthenticated } = useAuth();
+  const { logout, isAdmin, isAuthenticated, timeLeft, showWarning, isTimerActive, isSessionExpired, startAdminTimer, stopAdminTimer } = useAuth();
   const { settings, reload, updateSettings } = useSite();
   const showToast = useToast();
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
   
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [showWarning, setShowWarning] = useState(false);
-  const [isTimerActive, setIsTimerActive] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isSessionExpired, setIsSessionExpired] = useState(false);
   const [inputMinutes, setInputMinutes] = useState('');
   const [showFullControls, setShowFullControls] = useState(false);
   const [position, setPosition] = useState({ x: 10, y: 10 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const intervalRef = useRef(null);
-  const timeoutRef = useRef(null);
-  const warningRef = useRef(null);
-  const showWarningRef = useRef(false);
 
   // Load initial timeout setting
   useEffect(() => {
@@ -39,165 +26,19 @@ export default function AdminSessionTimer() {
     }
   }, [settings]);
 
-  // Check for existing timer from localStorage on mount
-  useEffect(() => {
-    if (!isAdmin || !isAuthenticated) {
-      // Clear timer data if not admin
-      try {
-        localStorage.removeItem(TIMER_START_TIME);
-        localStorage.removeItem(TIMER_DURATION);
-        localStorage.removeItem(TIMER_EXPIRED);
-      } catch (e) {
-        // Ignore localStorage errors
-      }
-      return;
-    }
-
-    try {
-      const startTime = localStorage.getItem(TIMER_START_TIME);
-      const duration = localStorage.getItem(TIMER_DURATION);
-      const expired = localStorage.getItem(TIMER_EXPIRED);
-
-      if (expired === 'true') {
-        setIsSessionExpired(true);
-        setIsTimerActive(false);
-        return;
-      }
-
-      if (startTime && duration) {
-        const startTimeMs = parseInt(startTime, 10);
-        const durationMs = parseInt(duration, 10) * 60 * 1000;
-        
-        if (isNaN(startTimeMs) || isNaN(durationMs)) {
-          // Invalid data, clear it
-          localStorage.removeItem(TIMER_START_TIME);
-          localStorage.removeItem(TIMER_DURATION);
-          return;
-        }
-        
-        const elapsed = Date.now() - startTimeMs;
-        const remaining = durationMs - elapsed;
-
-        if (remaining <= 0) {
-          // Timer expired while away
-          setIsSessionExpired(true);
-          setIsTimerActive(false);
-          localStorage.setItem(TIMER_EXPIRED, 'true');
-          localStorage.removeItem(TIMER_START_TIME);
-          localStorage.removeItem(TIMER_DURATION);
-        } else {
-          // Timer still running
-          setIsTimerActive(true);
-          setTimeLeft(remaining);
-          setIsSessionExpired(false);
-        }
-      }
-    } catch (e) {
-      // Handle any localStorage errors
-      console.error('Timer initialization error:', e);
-    }
-  }, [isAdmin, isAuthenticated]);
-
-  const startTimer = useCallback((minutes) => {
-    if (!isAdmin || !isAuthenticated) return;
-    
-    // Clear existing intervals/timeouts
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    if (warningRef.current) clearTimeout(warningRef.current);
-    
-    const durationMs = minutes * 60 * 1000;
-    const startTime = Date.now();
-    
-    // Save to localStorage for persistence across navigation
-    try {
-      localStorage.setItem(TIMER_START_TIME, startTime.toString());
-      localStorage.setItem(TIMER_DURATION, minutes.toString());
-      localStorage.setItem(TIMER_EXPIRED, 'false');
-    } catch (e) {
-      console.error('Failed to save timer to localStorage:', e);
-    }
-    
-    setTimeLeft(durationMs);
-    setIsTimerActive(true);
-    setShowWarning(false);
-    showWarningRef.current = false;
-    setIsEditing(false);
-    setIsSessionExpired(false);
-    
-    // Start countdown interval
-    intervalRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const remaining = durationMs - elapsed;
-      
-      if (remaining <= 0) {
-        // Timer expired
-        clearInterval(intervalRef.current);
-        setIsTimerActive(false);
-        setIsSessionExpired(true);
-        try {
-          localStorage.setItem(TIMER_EXPIRED, 'true');
-          localStorage.removeItem(TIMER_START_TIME);
-          localStorage.removeItem(TIMER_DURATION);
-        } catch (e) {
-          console.error('Failed to update timer in localStorage:', e);
-        }
-        logout();
-        showToast('Admin session expired. Please login again.');
-      } else {
-        setTimeLeft(remaining);
-        
-        // Show warning at 1 minute remaining
-        if (remaining <= 60000 && !showWarningRef.current) {
-          showWarningRef.current = true;
-          setShowWarning(true);
-          showToast('Session will expire in 1 minute. Please save your work.');
-        }
-      }
-    }, 1000);
-  }, [isAdmin, isAuthenticated, logout, showToast]);
-
-  const stopTimer = useCallback(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    if (warningRef.current) clearTimeout(warningRef.current);
-    
-    setIsTimerActive(false);
-    setIsSessionExpired(false);
-    setTimeLeft(0);
-    setShowWarning(false);
-    showWarningRef.current = false;
-    
-    // Clear localStorage
-    try {
-      localStorage.removeItem(TIMER_START_TIME);
-      localStorage.removeItem(TIMER_DURATION);
-      localStorage.removeItem(TIMER_EXPIRED);
-    } catch (e) {
-      console.error('Failed to clear timer from localStorage:', e);
-    }
-  }, []);
-
-  const deleteTimer = useCallback(() => {
-    stopTimer();
-    setInputMinutes('');
-    setIsEditing(false);
-    showToast('Timer deleted');
-  }, [stopTimer, showToast]);
-
   const handleStart = () => {
     const minutes = parseInt(inputMinutes, 10);
     if (isNaN(minutes) || minutes <= 0) {
       showToast('Please enter a valid time in minutes');
       return;
     }
-    startTimer(minutes);
+    startAdminTimer(minutes);
     showToast(`Timer started for ${minutes} minutes`);
   };
 
   const handleEdit = () => {
     setIsEditing(true);
-    stopTimer();
+    stopAdminTimer();
   };
 
   const handleSave = async () => {
@@ -212,50 +53,12 @@ export default function AdminSessionTimer() {
       await updateSettings({ admin_session_timeout: minutes.toString() });
       showToast('Timer setting saved');
       setIsEditing(false);
+      // Restart timer with new duration
+      startAdminTimer(minutes);
     } catch (err) {
       showToast('Failed to save timer setting');
     }
   };
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (warningRef.current) clearTimeout(warningRef.current);
-    };
-  }, []);
-
-  // Handle tab switching - lock if timer is NOT started (not active) or has expired
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      // Lock if timer is not active (not started) OR if session has expired
-      if (document.hidden && (!isTimerActive || isSessionExpired) && isAdmin && isAuthenticated) {
-        logout();
-        showToast('Session locked. Please login again.');
-      }
-    };
-
-    const handleBeforeUnload = (e) => {
-      // Lock if timer is not active (not started) OR if session has expired
-      if ((!isTimerActive || isSessionExpired) && isAdmin && isAuthenticated) {
-        e.preventDefault();
-        e.returnValue = '';
-        logout();
-      }
-    };
-
-    // Add listeners if timer is not active OR session has expired
-    if (!isTimerActive || isSessionExpired) {
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-      window.addEventListener('beforeunload', handleBeforeUnload);
-    }
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [isTimerActive, isSessionExpired, isAdmin, isAuthenticated, logout, showToast]);
 
   // Handle drag and drop
   const handleMouseDown = (e) => {
@@ -428,23 +231,6 @@ export default function AdminSessionTimer() {
                   >
                     Start
                   </button>
-                  {inputMinutes && (
-                    <button
-                      onClick={deleteTimer}
-                      style={{
-                        padding: '8px 16px',
-                        background: '#dc3545',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: '500'
-                      }}
-                    >
-                      Delete
-                    </button>
-                  )}
                 </div>
               </div>
             ) : isEditing ? (
@@ -528,7 +314,7 @@ export default function AdminSessionTimer() {
                       Edit
                     </button>
                     <button
-                      onClick={stopTimer}
+                      onClick={stopAdminTimer}
                       style={{
                         padding: '6px 12px',
                         background: '#dc3545',
@@ -762,23 +548,6 @@ export default function AdminSessionTimer() {
                 >
                   Start
                 </button>
-                {inputMinutes && (
-                  <button
-                    onClick={deleteTimer}
-                    style={{
-                      padding: '8px 16px',
-                      background: '#dc3545',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    Delete
-                  </button>
-                )}
               </div>
             </div>
           ) : isEditing ? (
@@ -862,7 +631,7 @@ export default function AdminSessionTimer() {
                     Edit
                   </button>
                   <button
-                    onClick={stopTimer}
+                    onClick={stopAdminTimer}
                     style={{
                       padding: '6px 12px',
                       background: '#dc3545',

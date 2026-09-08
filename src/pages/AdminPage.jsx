@@ -20,10 +20,6 @@ import FloatingCart from '../components/FloatingCart.jsx';
 import CartDrawer from '../components/CartDrawer.jsx';
 import CheckoutModal from '../components/CheckoutModalNew.jsx';
 
-const TIMER_START_TIME = 'admin_timer_start';
-const TIMER_DURATION = 'admin_timer_duration';
-const TIMER_EXPIRED = 'admin_timer_expired';
-
 const TABS = [
   { key: 'analytics', label: 'Dashboard' },
   { key: 'products', label: 'Products' },
@@ -42,7 +38,7 @@ const TABS = [
 ];
 
 export default function AdminPage() {
-  const { user, isAdmin, adminLogin, logout, isTimerActive } = useAuth();
+  const { user, isAdmin, adminLogin, logout, isTimerActive, isSessionExpired } = useAuth();
   const showToast = useToast();
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', password: '' });
@@ -50,54 +46,6 @@ export default function AdminPage() {
   const [tab, setTab] = useState('analytics');
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [timerLocked, setTimerLocked] = useState(false);
-
-  // Check timer status on mount and when admin status changes
-  useEffect(() => {
-    if (isAdmin) {
-      const checkTimer = () => {
-        try {
-          const expired = localStorage.getItem(TIMER_EXPIRED);
-          const startTime = localStorage.getItem(TIMER_START_TIME);
-          const duration = localStorage.getItem(TIMER_DURATION);
-          
-          if (expired === 'true') {
-            setTimerLocked(true);
-            return;
-          }
-          
-          if (!startTime || !duration) {
-            setTimerLocked(true);
-            return;
-          }
-          
-          const startTimeMs = parseInt(startTime, 10);
-          const durationMs = parseInt(duration, 10) * 60 * 1000;
-          
-          if (isNaN(startTimeMs) || isNaN(durationMs)) {
-            setTimerLocked(true);
-            return;
-          }
-          
-          const elapsed = Date.now() - startTimeMs;
-          const remaining = durationMs - elapsed;
-          
-          setTimerLocked(remaining <= 0);
-        } catch (e) {
-          setTimerLocked(true);
-        }
-      };
-      
-      checkTimer();
-      
-      // Check timer every second
-      const interval = setInterval(checkTimer, 1000);
-      
-      return () => clearInterval(interval);
-    } else {
-      setTimerLocked(false);
-    }
-  }, [isAdmin]);
 
   // ✅ FIX: Force re-render when admin logs out
   useEffect(() => {
@@ -161,52 +109,6 @@ export default function AdminPage() {
           </form>
           <button className="btn btn-secondary btn-block" style={{ marginTop: 10 }} onClick={() => navigate('/')}>
             Back to Store
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Show lock screen if timer is not active
-  if (timerLocked) {
-    return (
-      <div className="admin-login-shell">
-        <div className="admin-card" style={{ 
-          background: '#fff3cd', 
-          border: '2px solid #ffc107',
-          padding: '24px'
-        }}>
-          <div style={{ textAlign: 'center', marginBottom: 20 }}>
-            <div style={{ fontSize: '48px', marginBottom: 12 }}>🔒</div>
-            <h2 style={{ marginBottom: 4, color: '#856404' }}>Session Locked</h2>
-            <p style={{ color: 'var(--muted)', fontSize: '.8rem', marginBottom: 16 }}>
-              Please start the session timer to access the admin dashboard
-            </p>
-          </div>
-          <div style={{ 
-            padding: '12px',
-            background: '#fff',
-            border: '1px solid #ffc107',
-            borderRadius: '4px',
-            fontSize: '12px',
-            color: '#856404',
-            textAlign: 'center',
-            marginBottom: 16
-          }}>
-            ⚠️ Timer must be active to enable tab switching and prevent automatic logout
-          </div>
-          <button 
-            className="btn btn-secondary btn-block" 
-            onClick={() => navigate('/')}
-            style={{ marginBottom: 10 }}
-          >
-            Back to Store
-          </button>
-          <button 
-            className="btn btn-danger btn-block" 
-            onClick={logout}
-          >
-            Logout
           </button>
         </div>
       </div>
