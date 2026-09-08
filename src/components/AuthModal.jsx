@@ -239,23 +239,18 @@ export default function AuthModal({ open, onClose }) {
       return;
     }
     
-    // Check if user is authenticated before proceeding
-    const token = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
-    const userStr = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
-    
-    if (!token || !userStr) {
-      showToast('Authentication not complete. Please try again.');
-      // Try to refresh authentication
-      setTimeout(() => {
-        const retryToken = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
-        const retryUser = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
-        if (retryToken && retryUser) {
-          // Retry successful
-        } else {
-          onClose();
-        }
-      }, 500);
-      return;
+    // Validate pincode against admin-configured serviceable pincodes
+    try {
+      const { data: pincodeData } = await api.get('/settings/serviceable-pincodes', { timeout: 60000 });
+      const serviceablePincodes = pincodeData?.pincodes || [];
+      
+      if (serviceablePincodes.length > 0 && !serviceablePincodes.includes(addressForm.pincode.trim())) {
+        showToast('Cannot be delivered to this location. This pincode is not serviceable.');
+        return;
+      }
+    } catch (err) {
+      // If pincode validation fails, still proceed with address save
+      console.warn('Could not validate pincode:', err);
     }
     
     try {
