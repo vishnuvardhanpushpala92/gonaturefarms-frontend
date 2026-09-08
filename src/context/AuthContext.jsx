@@ -61,22 +61,28 @@ export function AuthProvider({ children }) {
   const isAuthenticated = !!user && !!token;
 
   const persist = (t, u) => {
+    console.log('[PERSIST] Called with token:', t ? 'present' : 'missing', 'user:', u ? 'present' : 'missing');
     if (t) {
       sessionStorage.setItem('gnf_token', t);
       localStorage.setItem('gnf_token', t);
+      console.log('[PERSIST] Token stored in both storage locations');
     } else {
       sessionStorage.removeItem('gnf_token');
       localStorage.removeItem('gnf_token');
+      console.log('[PERSIST] Token removed from both storage locations');
     }
     if (u) {
       sessionStorage.setItem('gnf_user', JSON.stringify(u));
       localStorage.setItem('gnf_user', JSON.stringify(u));
+      console.log('[PERSIST] User stored in both storage locations');
     } else {
       sessionStorage.removeItem('gnf_user');
       localStorage.removeItem('gnf_user');
+      console.log('[PERSIST] User removed from both storage locations');
     }
     setToken(t);
     setUser(u);
+    console.log('[PERSIST] React state updated');
     // Note: Cart is preserved independently in CartContext
   };
 
@@ -84,7 +90,13 @@ export function AuthProvider({ children }) {
     // Remove confirmPassword from payload as backend doesn't expect it
     const { confirmPassword, ...registerPayload } = payload;
     const { data } = await api.post('/auth/register', registerPayload, { timeout: 60000, ...config });
-    if (data.success) persist(data.token, data.user);
+    if (data.success) {
+      console.log('[REGISTER] Token received from backend:', data.token ? 'present' : 'missing');
+      console.log('[REGISTER] User received from backend:', data.user ? 'present' : 'missing');
+      persist(data.token, data.user);
+      console.log('[REGISTER] After persist - sessionStorage token:', sessionStorage.getItem('gnf_token') ? 'present' : 'missing');
+      console.log('[REGISTER] After persist - localStorage token:', localStorage.getItem('gnf_token') ? 'present' : 'missing');
+    }
     return data;
   }, []);
 
