@@ -50,6 +50,7 @@ export function AuthProvider({ children }) {
   const showWarningRef = useRef(false);
   const startTimeRef = useRef(null);
   const durationRef = useRef(null);
+  const previousPathRef = useRef(window.location.pathname);
 
   const persist = (t, u) => {
     if (t) {
@@ -385,6 +386,32 @@ export function AuthProvider({ children }) {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [isAdmin, isAuthenticated, isTimerActive, isSessionExpired]);
+
+  // Handle route changes - lock when navigating from admin to store
+  useEffect(() => {
+    if (!isAdmin || !isAuthenticated) return;
+
+    const checkRouteChange = () => {
+      const currentPath = window.location.pathname;
+      const previousPath = previousPathRef.current;
+
+      // If was on admin page and now navigating to store or other non-admin page
+      if (previousPath.startsWith('/admin') && !currentPath.startsWith('/admin')) {
+        setIsLocked(true);
+      }
+
+      // Update previous path
+      previousPathRef.current = currentPath;
+    };
+
+    // Check route changes periodically
+    const interval = setInterval(checkRouteChange, 500);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isAdmin, isAuthenticated]);
+
 
   return (
     <AuthContext.Provider value={{ 
