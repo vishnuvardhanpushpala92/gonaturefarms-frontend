@@ -141,9 +141,27 @@ export function AuthProvider({ children }) {
     setToken(null);
     setUser(null);
     setIsLocked(false);
-    // Clear timer
-    stopAdminTimer();
-  }, []);
+    // Clear timer only if admin
+    if (isAdmin) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      setIsTimerActive(false);
+      setIsSessionExpired(false);
+      setTimeLeft(0);
+      setShowWarning(false);
+      showWarningRef.current = false;
+      setHasTimerStarted(false);
+      startTimeRef.current = null;
+      durationRef.current = null;
+      try {
+        localStorage.removeItem(TIMER_START_TIME);
+        localStorage.removeItem(TIMER_DURATION);
+        localStorage.removeItem(TIMER_EXPIRED);
+        localStorage.removeItem(TIMER_STARTED);
+      } catch (e) {
+        console.error('Failed to clear timer from localStorage:', e);
+      }
+    }
+  }, [isAdmin]);
 
   const refreshMe = useCallback(async () => {
     if (!token) return null;
