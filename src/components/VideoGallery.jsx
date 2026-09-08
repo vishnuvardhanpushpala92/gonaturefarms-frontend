@@ -30,7 +30,10 @@ export default function VideoGallery({ onOpenCart }) {
     try {
       const res = await api.get('/videos');
       if (res.data && res.data.success) {
-        setVideos(Array.isArray(res.data.videos) ? res.data.videos : []);
+        const videoArray = Array.isArray(res.data.videos) ? res.data.videos : [];
+        // Sort videos by sortOrder (priority)
+        videoArray.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+        setVideos(videoArray);
       } else {
         setVideos([]);
       }

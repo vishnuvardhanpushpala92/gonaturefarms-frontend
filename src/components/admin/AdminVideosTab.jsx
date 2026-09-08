@@ -180,11 +180,12 @@ export default function AdminVideosTab() {
 
         <div className="frow">
           <div className="fg">
-            <label>Sort Order</label>
+            <label>Priority (Display Order)</label>
             <input
               type="number"
               value={form.sortOrder}
               onChange={(e) => setForm({ ...form, sortOrder: parseInt(e.target.value) })}
+              placeholder="1 = first, 2 = second, etc."
             />
           </div>
           <div className="fg">
@@ -240,7 +241,7 @@ export default function AdminVideosTab() {
                   {video.product && (
                     <p className="admin-list-item-sub">Product: {video.product.name} - ₹{video.product.price}</p>
                   )}
-                  <p className="admin-list-item-sub">Sort: {video.sortOrder} | {video.orientation}</p>
+                  <p className="admin-list-item-sub">Priority: {video.sortOrder} | {video.orientation}</p>
                   <p className="admin-list-item-sub">Status: {video.enabled ? 'Enabled' : 'Disabled'}</p>
                   {video.pending && <span className="badge-pending">Pending Approval</span>}
                 </div>
