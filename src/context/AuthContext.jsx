@@ -157,9 +157,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(() => {
+    console.log('[LOGOUT] Called - isAdmin:', isAdmin);
     // Clear only auth tokens, preserve cart
     sessionStorage.removeItem('gnf_token');
     sessionStorage.removeItem('gnf_user');
+    localStorage.removeItem('gnf_token');
+    localStorage.removeItem('gnf_user');
     setToken(null);
     setUser(null);
     setIsLocked(false);
