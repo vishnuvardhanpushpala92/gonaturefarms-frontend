@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
@@ -23,36 +22,16 @@ export default function VideoGallery({ onOpenCart }) {
   useEffect(() => {
     if (!mounted) return;
     loadVideos();
-  }, [mounted]);
+  }, [mounted, loadVideos]);
 
-  const loadVideos = async () => {
+  const loadVideos = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get('/videos');
       if (res.data && res.data.success) {
-        const videoArray = Array.isArray(res.data.videos) ? res.data.videos : [];
-        // Sort videos by priority (sortOrder)
-        // Videos with valid priority come first, sorted ascending
-        // Videos without priority come after, sorted by creation date
-        videoArray.sort((a, b) => {
-          const aHasPriority = a.sortOrder !== null && a.sortOrder !== undefined;
-          const bHasPriority = b.sortOrder !== null && b.sortOrder !== undefined;
-
-          if (aHasPriority && bHasPriority) {
-            // Both have priority: sort by priority ascending
-            return a.sortOrder - b.sortOrder;
-          } else if (aHasPriority) {
-            // Only A has priority: A comes first
-            return -1;
-          } else if (bHasPriority) {
-            // Only B has priority: B comes first
-            return 1;
-          } else {
-            // Neither has priority: sort by creation date (stable order)
-            return new Date(a.createdAt) - new Date(b.createdAt);
-          }
-        });
-        setVideos(videoArray);
+        // Backend already sorts by priority correctly
+        // Use the order from API response
+        setVideos(Array.isArray(res.data.videos) ? res.data.videos : []);
       } else {
         setVideos([]);
       }
@@ -61,7 +40,7 @@ export default function VideoGallery({ onOpenCart }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const scrollLeft = () => {
     if (carouselRef.current) {

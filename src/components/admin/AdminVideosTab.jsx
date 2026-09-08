@@ -233,7 +233,7 @@ export default function AdminVideosTab() {
           </div>
         ) : (
           <div className="admin-list-items">
-            {videos.sort((a, b) => a.sortOrder - b.sortOrder).map(video => (
+            {videos.map(video => (
               <div key={video.id} className="admin-list-item">
                 <div className="admin-list-item-content">
                   <h5>{video.title}</h5>

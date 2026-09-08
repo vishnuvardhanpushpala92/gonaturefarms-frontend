@@ -1,7 +1,8 @@
-import React from 'react';
-import { useEffect, useState, useCallback } from 'react';
+import React, { memo, useEffect, useState, useCallback } from 'react';
 import api from '../api/client';
 import ProductCard from './ProductCard.jsx';
+
+const ProductCardMemo = memo(ProductCard);
 
 export default function ProductGrid({ search, onOpenReviews }) {
   const [products, setProducts] = useState([]);
@@ -70,7 +71,7 @@ export default function ProductGrid({ search, onOpenReviews }) {
           <div className="empty-grid"><p>No products found</p></div>
         )}
         {uniqueCurrent.map((p) => (
-          <ProductCard key={p.id} product={p} onOpenReviews={onOpenReviews} />
+          <ProductCardMemo key={p.id} product={p} onOpenReviews={onOpenReviews} />
         ))}
       </div>
 
@@ -81,7 +82,7 @@ export default function ProductGrid({ search, onOpenReviews }) {
           </div>
           <div className="pgrid">
             {uniqueFuture.map((p) => (
-              <ProductCard key={p.id} product={p} onOpenReviews={onOpenReviews} />
+              <ProductCardMemo key={p.id} product={p} onOpenReviews={onOpenReviews} />
             ))}
           </div>
         </div>
