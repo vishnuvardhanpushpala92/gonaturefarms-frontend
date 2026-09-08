@@ -19,11 +19,6 @@ export default function VideoGallery({ onOpenCart }) {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (!mounted) return;
-    loadVideos();
-  }, [mounted, loadVideos]);
-
   const loadVideos = useCallback(async () => {
     setLoading(true);
     try {
@@ -41,6 +36,11 @@ export default function VideoGallery({ onOpenCart }) {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    loadVideos();
+  }, [mounted, loadVideos]);
 
   const scrollLeft = () => {
     if (carouselRef.current) {
