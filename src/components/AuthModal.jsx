@@ -243,7 +243,15 @@ export default function AuthModal({ open, onClose }) {
     
     try {
       const payload = { ...addressForm, isDefault: true };
+      console.log('[ADDRESS SAVE] About to save address with payload:', payload);
+      console.log('[ADDRESS SAVE] Token check before API call:');
+      console.log('[ADDRESS SAVE] sessionStorage token:', sessionStorage.getItem('gnf_token') ? 'present' : 'missing');
+      console.log('[ADDRESS SAVE] localStorage token:', localStorage.getItem('gnf_token') ? 'present' : 'missing');
+      
       const { data } = await api.post('/addresses', payload);
+      
+      console.log('[ADDRESS SAVE] Response received:', data);
+      
       if (data.success) {
         showToast('Address saved successfully and will be used for your orders');
         setAddressForm({ addressType: 'Home', name: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false });

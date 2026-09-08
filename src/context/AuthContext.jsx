@@ -59,12 +59,15 @@ export function AuthProvider({ children }) {
   const isAuthenticated = !!user && !!token;
 
   const persist = (t, u) => {
+    console.log('[AUTH] persist called with token:', t ? 'present' : 'missing', 'user:', u ? 'present' : 'missing');
     if (t) {
       sessionStorage.setItem('gnf_token', t);
       localStorage.setItem('gnf_token', t);
+      console.log('[AUTH] Token stored in sessionStorage and localStorage');
     } else {
       sessionStorage.removeItem('gnf_token');
       localStorage.removeItem('gnf_token');
+      console.log('[AUTH] Token removed from sessionStorage and localStorage');
     }
     if (u) {
       sessionStorage.setItem('gnf_user', JSON.stringify(u));
@@ -75,6 +78,7 @@ export function AuthProvider({ children }) {
     }
     setToken(t);
     setUser(u);
+    console.log('[AUTH] React state updated - token:', t ? 'present' : 'missing', 'user:', u ? 'present' : 'missing');
     // Note: Cart is preserved independently in CartContext
   };
 
