@@ -116,7 +116,7 @@ export default function AdminOrdersTab() {
       </div>
 
       <table className="data-table">
-        <thead><tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Payment</th><th></th></tr></thead>
+        <thead><tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Payment</th><th>Transaction ID</th><th></th></tr></thead>
         <tbody>
           {orders.map((o) => (
             <Fragment key={o.orderId}>
@@ -134,6 +134,7 @@ export default function AdminOrdersTab() {
                     {PAYMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </td>
+                <td>{o.paymentUtr || '-'}</td>
                 <td>
                   <button className="btn-e" onClick={() => setExpanded(expanded === o.orderId ? null : o.orderId)}>
                     {expanded === o.orderId ? 'Hide' : 'Details'}
@@ -142,7 +143,7 @@ export default function AdminOrdersTab() {
               </tr>
               {expanded === o.orderId && (
                 <tr>
-                  <td colSpan={6} style={{ background: '#f9fafb', padding: 16 }}>
+                  <td colSpan={7} style={{ background: '#f9fafb', padding: 16 }}>
                     <p><strong>Address:</strong> {o.address}, {o.area}, {o.city}, {o.state} - {o.pincode}</p>
                     <p><strong>Items:</strong></p>
                     <ul style={{ paddingLeft: 20, margin: 0 }}>
