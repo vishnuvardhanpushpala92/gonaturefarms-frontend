@@ -4,6 +4,7 @@ import api from '../api/client';
 const TIMER_START_TIME = 'admin_timer_start';
 const TIMER_DURATION = 'admin_timer_duration';
 const TIMER_EXPIRED = 'admin_timer_expired';
+const TIMER_STARTED = 'admin_timer_started';
 
 const AuthContext = createContext(null);
 
@@ -46,6 +47,7 @@ export function AuthProvider({ children }) {
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isSessionExpired, setIsSessionExpired] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
+  const [hasTimerStarted, setHasTimerStarted] = useState(false);
   const intervalRef = useRef(null);
   const showWarningRef = useRef(false);
   const startTimeRef = useRef(null);
@@ -96,8 +98,7 @@ export function AuthProvider({ children }) {
       const { data } = await api.post('/auth/admin-login', { username, password }, { timeout: 60000 });
       if (data.success) {
         persist(data.token, data.user);
-        // Auto-start timer with default 30 minutes
-        startAdminTimer(30);
+        // Do NOT auto-start timer - timer starts only when admin enters Admin Panel
         return { success: true };
       } else {
         return { success: false, message: data.message || 'Admin login failed' };
@@ -177,6 +178,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem(TIMER_START_TIME, startTime.toString());
       localStorage.setItem(TIMER_DURATION, minutes.toString());
       localStorage.setItem(TIMER_EXPIRED, 'false');
+      localStorage.setItem(TIMER_STARTED, 'true');
     } catch (e) {
       console.error('Failed to save timer to localStorage:', e);
     }
@@ -187,6 +189,7 @@ export function AuthProvider({ children }) {
     showWarningRef.current = false;
     setIsSessionExpired(false);
     setIsLocked(false);
+    setHasTimerStarted(true);
     
     // Start countdown interval
     intervalRef.current = setInterval(() => {
@@ -236,6 +239,7 @@ export function AuthProvider({ children }) {
     setTimeLeft(0);
     setShowWarning(false);
     showWarningRef.current = false;
+    setHasTimerStarted(false);
     startTimeRef.current = null;
     durationRef.current = null;
     
@@ -244,6 +248,7 @@ export function AuthProvider({ children }) {
       localStorage.removeItem(TIMER_START_TIME);
       localStorage.removeItem(TIMER_DURATION);
       localStorage.removeItem(TIMER_EXPIRED);
+      localStorage.removeItem(TIMER_STARTED);
     } catch (e) {
       console.error('Failed to clear timer from localStorage:', e);
     }
@@ -279,8 +284,14 @@ export function AuthProvider({ children }) {
 
     try {
       const expired = localStorage.getItem(TIMER_EXPIRED);
+      const started = localStorage.getItem(TIMER_STARTED);
       const startTime = localStorage.getItem(TIMER_START_TIME);
       const duration = localStorage.getItem(TIMER_DURATION);
+
+      // Restore hasTimerStarted state
+      if (started === 'true') {
+        setHasTimerStarted(true);
+      }
 
       if (expired === 'true') {
         setIsSessionExpired(true);
@@ -375,7 +386,8 @@ export function AuthProvider({ children }) {
 
     const handleVisibilityChange = () => {
       // Lock if timer is not active OR if session has expired when switching away
-      if (document.hidden && (!isTimerActive || isSessionExpired)) {
+      // But only lock if timer has been started (otherwise it's normal behavior)
+      if (document.hidden && (!isTimerActive || isSessionExpired) && hasTimerStarted) {
         setIsLocked(true);
       }
     };
@@ -385,9 +397,9 @@ export function AuthProvider({ children }) {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isAdmin, isAuthenticated, isTimerActive, isSessionExpired]);
+  }, [isAdmin, isAuthenticated, isTimerActive, isSessionExpired, hasTimerStarted]);
 
-  // Handle route changes - lock when returning to admin panel from store
+  // Handle route changes - lock if timer NOT started when navigating away from admin
   useEffect(() => {
     if (!isAdmin || !isAuthenticated) return;
 
@@ -395,8 +407,8 @@ export function AuthProvider({ children }) {
       const currentPath = window.location.pathname;
       const previousPath = previousPathRef.current;
 
-      // If was on non-admin page and now navigating to admin panel
-      if (!previousPath.startsWith('/admin') && currentPath.startsWith('/admin')) {
+      // If was on admin page and timer NOT started, lock when navigating away
+      if (previousPath.startsWith('/admin') && !currentPath.startsWith('/admin') && !hasTimerStarted) {
         setIsLocked(true);
       }
 
@@ -410,7 +422,7 @@ export function AuthProvider({ children }) {
     return () => {
       clearInterval(interval);
     };
-  }, [isAdmin, isAuthenticated]);
+  }, [isAdmin, isAuthenticated, hasTimerStarted]);
 
 
   return (
@@ -432,6 +444,7 @@ export function AuthProvider({ children }) {
       isTimerActive,
       isSessionExpired,
       isLocked,
+      hasTimerStarted,
       startAdminTimer,
       stopAdminTimer,
       unlockAdminSession

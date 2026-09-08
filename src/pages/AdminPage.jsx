@@ -38,7 +38,7 @@ const TABS = [
 ];
 
 export default function AdminPage() {
-  const { user, isAdmin, adminLogin, logout, isTimerActive, isSessionExpired } = useAuth();
+  const { user, isAdmin, adminLogin, logout, isTimerActive, isSessionExpired, startAdminTimer, hasTimerStarted } = useAuth();
   const showToast = useToast();
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', password: '' });
@@ -46,6 +46,13 @@ export default function AdminPage() {
   const [tab, setTab] = useState('analytics');
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+
+  // Start timer when admin enters Admin Panel (if not already started)
+  useEffect(() => {
+    if (isAdmin && !hasTimerStarted && !isSessionExpired) {
+      startAdminTimer(30);
+    }
+  }, [isAdmin, hasTimerStarted, isSessionExpired, startAdminTimer]);
 
   // ✅ FIX: Force re-render when admin logs out
   useEffect(() => {
