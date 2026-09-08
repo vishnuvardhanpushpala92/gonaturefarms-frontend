@@ -61,13 +61,17 @@ export function AuthProvider({ children }) {
   const persist = (t, u) => {
     if (t) {
       sessionStorage.setItem('gnf_token', t);
+      localStorage.setItem('gnf_token', t);
     } else {
       sessionStorage.removeItem('gnf_token');
+      localStorage.removeItem('gnf_token');
     }
     if (u) {
       sessionStorage.setItem('gnf_user', JSON.stringify(u));
+      localStorage.setItem('gnf_user', JSON.stringify(u));
     } else {
       sessionStorage.removeItem('gnf_user');
+      localStorage.removeItem('gnf_user');
     }
     setToken(t);
     setUser(u);
