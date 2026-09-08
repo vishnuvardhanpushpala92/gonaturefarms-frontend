@@ -59,6 +59,13 @@ export default function VideoGallery({ onOpenCart }) {
     }
   };
 
+  const [posterStates, setPosterStates] = useState({});
+
+  const handlePosterError = (videoId) => {
+    if (!mounted) return;
+    setPosterStates(prev => ({ ...prev, [videoId]: 'error' }));
+  };
+
   // Get video URL with proper caching handling
   const getVideoUrl = (filePath) => {
     if (!filePath) return '';
@@ -82,11 +89,40 @@ export default function VideoGallery({ onOpenCart }) {
     }
   };
 
-  // Get poster URL or fallback to product image (avoid external images to prevent CORS)
+  // Generate Cloudinary thumbnail URL from video URL
+  const getCloudinaryThumbnail = (videoUrl) => {
+    if (!videoUrl || !videoUrl.includes('cloudinary.com')) return null;
+    try {
+      // Cloudinary video thumbnail transformation: replace video extension with .jpg and add so_0 to get first frame
+      const url = new URL(videoUrl);
+      const pathParts = url.pathname.split('/');
+      const filename = pathParts[pathParts.length - 1];
+      const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
+      const folderPath = pathParts.slice(0, pathParts.length - 1).join('/');
+      url.pathname = `${folderPath}/${nameWithoutExt}.jpg`;
+      url.searchParams.set('so', '0'); // Get first frame
+      url.searchParams.set('w', '400');
+      url.searchParams.set('h', '300');
+      url.searchParams.set('c', 'fill');
+      return url.toString();
+    } catch {
+      return null;
+    }
+  };
+
+  // Get poster URL with fallbacks
   const getPosterUrl = (video) => {
+    // 1. Try existing poster URL
     if (video.posterUrl && !isExternalImage(video.posterUrl)) return video.posterUrl;
+    // 2. Try product image
     if (video.product && video.product.imgUrl && !isExternalImage(video.product.imgUrl)) return video.product.imgUrl;
-    return ''; // No fallback - will use black background
+    // 3. Try Cloudinary thumbnail from video URL
+    if (video.filePath) {
+      const cloudinaryThumb = getCloudinaryThumbnail(video.filePath);
+      if (cloudinaryThumb) return cloudinaryThumb;
+    }
+    // 4. Return null to use fallback placeholder
+    return null;
   };
 
   const closeVideo = () => {
@@ -173,89 +209,83 @@ export default function VideoGallery({ onOpenCart }) {
           ‹
         </button>
         <div className="video-carousel-track" ref={carouselRef}>
-          {videos.map((video) => (
-            <div key={video.id} className="video-card" onClick={() => openVideo(video)}>
-              <div className="video-card-wrapper">
-                <video
-                  crossOrigin="anonymous"
-                  muted
-                  loop
-                  playsInline
-                  preload="none"
-                  poster={getPosterUrl(video)}
-                  src={getVideoUrl(video.filePath)}
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'cover',
-                    backgroundColor: '#000' 
-                  }}
-                  onError={(e) => {
-                    if (!mounted) return;
-                    e.target.style.display = 'none';
-                    e.target.parentElement.style.background = '#f0f0f0';
-                    const errorDiv = document.createElement('div');
-                    errorDiv.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:#999;font-size:14px;';
-                    errorDiv.textContent = 'Video Unavailable';
-                    e.target.parentElement.appendChild(errorDiv);
-                  }}
-                />
-                <div className="video-play-overlay">
-                  <span className="play-icon">▶</span>
+          {videos.map((video) => {
+            const posterUrl = getPosterUrl(video);
+            const posterState = posterStates[video.id];
+            const showPlaceholder = !posterUrl || posterState === 'error';
+
+            return (
+              <div key={video.id} className="video-card" onClick={() => openVideo(video)}>
+                <div className="video-card-wrapper">
+                  {showPlaceholder ? (
+                    <div className="video-thumbnail-placeholder">
+                      <span className="video-placeholder-icon">🎬</span>
+                    </div>
+                  ) : (
+                    <img
+                      src={posterUrl}
+                      alt={video.title}
+                      className="video-thumbnail"
+                      onError={() => handlePosterError(video.id)}
+                    />
+                  )}
+                  <div className="video-play-overlay">
+                    <span className="play-icon">▶</span>
+                  </div>
+                </div>
+                <div className="video-card-info">
+                  <h4>{video.title}</h4>
+                  {video.product && (
+                    <div
+                      className="video-product-info clickable"
+                      onClick={(e) => handleProductClick(e, video.product)}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`View ${video.product.name}`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleProductClick(e, video.product);
+                        }
+                      }}
+                    >
+                      {!isExternalImage(video.product.imgUrl) ? (
+                        <img
+                          src={video.product.imgUrl || ''}
+                          alt={video.product.name}
+                          className="video-product-image"
+                          onError={(e) => {
+                            if (!mounted) return;
+                            e.target.style.display = 'none';
+                            e.target.parentElement.style.background = '#f3f4f6';
+                            const errorDiv = document.createElement('div');
+                            errorDiv.style.cssText = 'display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:#f3f4f6;border-radius:8px;color:#999;font-size:12px;';
+                            errorDiv.textContent = 'No Image';
+                            e.target.parentElement.appendChild(errorDiv);
+                          }}
+                        />
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', background: '#f3f4f6', borderRadius: '8px', color: '#999', fontSize: '12px' }}>
+                          No Image
+                        </div>
+                      )}
+                      <div className="video-product-details">
+                        <p className="video-product-name">{video.product.name}</p>
+                        <p className="video-product-price">₹{video.product.price}</p>
+                        <button
+                          className="video-add-to-cart-btn"
+                          onClick={(e) => handleAddToCart(e, video.product)}
+                          aria-label="Add to cart"
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="video-card-info">
-                <h4>{video.title}</h4>
-                {video.product && (
-                  <div 
-                    className="video-product-info clickable"
-                    onClick={(e) => handleProductClick(e, video.product)}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`View ${video.product.name}`}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleProductClick(e, video.product);
-                      }
-                    }}
-                  >
-                    {!isExternalImage(video.product.imgUrl) ? (
-                      <img 
-                        src={video.product.imgUrl || ''} 
-                        alt={video.product.name}
-                        className="video-product-image"
-                        onError={(e) => {
-                          if (!mounted) return;
-                          e.target.style.display = 'none';
-                          e.target.parentElement.style.background = '#f3f4f6';
-                          const errorDiv = document.createElement('div');
-                          errorDiv.style.cssText = 'display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:#f3f4f6;border-radius:8px;color:#999;font-size:12px;';
-                          errorDiv.textContent = 'No Image';
-                          e.target.parentElement.appendChild(errorDiv);
-                        }}
-                      />
-                    ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', background: '#f3f4f6', borderRadius: '8px', color: '#999', fontSize: '12px' }}>
-                        No Image
-                      </div>
-                    )}
-                    <div className="video-product-details">
-                      <p className="video-product-name">{video.product.name}</p>
-                      <p className="video-product-price">₹{video.product.price}</p>
-                      <button 
-                        className="video-add-to-cart-btn"
-                        onClick={(e) => handleAddToCart(e, video.product)}
-                        aria-label="Add to cart"
-                      >
-                        Add to Cart
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <button className="video-nav-btn video-nav-right" onClick={scrollRight}>
           ›
