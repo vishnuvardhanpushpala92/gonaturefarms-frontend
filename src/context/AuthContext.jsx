@@ -386,8 +386,7 @@ export function AuthProvider({ children }) {
 
     const handleVisibilityChange = () => {
       // Lock if timer is not active OR if session has expired when switching away
-      // But only lock if timer has been started (otherwise it's normal behavior)
-      if (document.hidden && (!isTimerActive || isSessionExpired) && hasTimerStarted) {
+      if (document.hidden && (!isTimerActive || isSessionExpired)) {
         setIsLocked(true);
       }
     };
@@ -397,7 +396,7 @@ export function AuthProvider({ children }) {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isAdmin, isAuthenticated, isTimerActive, isSessionExpired, hasTimerStarted]);
+  }, [isAdmin, isAuthenticated, isTimerActive, isSessionExpired]);
 
   // Handle route changes - lock if timer NOT started when navigating away from admin
   useEffect(() => {
@@ -408,7 +407,7 @@ export function AuthProvider({ children }) {
       const previousPath = previousPathRef.current;
 
       // If was on admin page and timer NOT started, lock when navigating away
-      if (previousPath.startsWith('/admin') && !currentPath.startsWith('/admin') && !hasTimerStarted) {
+      if (previousPath.startsWith('/admin') && !currentPath.startsWith('/admin') && !isTimerActive) {
         setIsLocked(true);
       }
 
@@ -422,7 +421,7 @@ export function AuthProvider({ children }) {
     return () => {
       clearInterval(interval);
     };
-  }, [isAdmin, isAuthenticated, hasTimerStarted]);
+  }, [isAdmin, isAuthenticated, isTimerActive]);
 
 
   return (
