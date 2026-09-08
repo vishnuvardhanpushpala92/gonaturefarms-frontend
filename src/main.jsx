@@ -8,7 +8,6 @@ import { CartProvider } from './context/CartContext.jsx';
 import { SiteProvider } from './context/SiteContext.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
-import { LanguageProvider } from './context/LanguageContext.jsx';
 import AdminSessionTimer from './components/admin/AdminSessionTimer.jsx';
 import AdminLockOverlay from './components/admin/AdminLockOverlay.jsx';
 
@@ -19,13 +18,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <ToastProvider>
           <AuthProvider>
             <SiteProvider>
-              <LanguageProvider>
-                <CartProvider>
-                  <AdminSessionTimer />
-                  <AdminLockOverlay />
-                  <App />
-                </CartProvider>
-              </LanguageProvider>
+              <CartProvider>
+                <AdminSessionTimer />
+                <AdminLockOverlay />
+                <App />
+              </CartProvider>
             </SiteProvider>
           </AuthProvider>
         </ToastProvider>

@@ -2,7 +2,6 @@ import React from 'react';
 import { useState } from 'react';
 import Modal from './Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
-import { useLanguage } from '../context/LanguageContext.jsx';
 import api from '../api/client';
 
 const STATUS_STEPS = ['Placed', 'Confirmed', 'Processing', 'Packed', 'Shipped', 'OutForDelivery', 'Delivered'];
@@ -21,7 +20,6 @@ const STATUS_LABELS = {
 
 export default function OrdersModal({ open, onClose }) {
   const { user } = useAuth();
-  const { t } = useLanguage();
   const [phone, setPhone] = useState('');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -101,21 +99,21 @@ export default function OrdersModal({ open, onClose }) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title={t('trackOrders')} wide>
+    <Modal open={open} onClose={onClose} title="Track Orders" wide>
       {user ? (
         <button className="btn btn-secondary" style={{ marginBottom: 14 }} onClick={loadMyOrders}>
-          {t('viewMyOrders')}
+          View My Orders
         </button>
       ) : (
         <form onSubmit={lookupByPhone} style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
           <input placeholder="Enter your phone number" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ flex: 1, padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)' }} />
-          <button className="btn btn-primary">{t('trackOrders')}</button>
+          <button className="btn btn-primary">Track</button>
         </form>
       )}
 
       {loading && <p>Loading...</p>}
 
-      {!loading && searched && orders.length === 0 && <p>{t('noOrdersFound')}</p>}
+      {!loading && searched && orders.length === 0 && <p>No orders found.</p>}
 
       {orders.map((o) => {
         const normalizedStatus = o.status === 'Pending' ? 'Placed' : o.status;

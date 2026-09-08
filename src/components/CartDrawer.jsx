@@ -1,12 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
-import { useLanguage } from '../context/LanguageContext.jsx';
 
 export default function CartDrawer({ open, onClose, onCheckout }) {
   const navigate = useNavigate();
   const { items, removeItem, updateQty, totals } = useCart();
-  const { t } = useLanguage();
 
   // Helper function to get image URL with proper backend prefix
   const getImageUrl = (imgUrl) => {
@@ -28,12 +26,12 @@ export default function CartDrawer({ open, onClose, onCheckout }) {
       <div className={`drawer-overlay${open ? ' open' : ''}`} onClick={onClose} />
       <div className={`cart-drawer${open ? ' open' : ''}`}>
         <div className="drawer-hdr">
-          <h3>{t('yourCart')}</h3>
+          <h3>Your Cart</h3>
           <button className="close-btn" onClick={onClose} aria-label="Close">✕</button>
         </div>
         <div className="cart-list">
           {items.length === 0 && (
-            <div className="empty-cart"><p>{t('emptyCart')}</p></div>
+            <div className="empty-cart"><p>Your cart is empty</p></div>
           )}
           {items.map((item) => (
             <div className="cart-item" key={`${item.id}-${item.variantId || 'default'}`}>
@@ -59,10 +57,10 @@ export default function CartDrawer({ open, onClose, onCheckout }) {
           </div>
           <div className="drawer-actions">
             <button className="btn-view-cart" disabled={items.length === 0} onClick={() => { onClose(); navigate('/dashboard'); }}>
-              {t('viewCart')}
+              View Cart
             </button>
             <button className="btn-checkout" disabled={items.length === 0} onClick={onCheckout}>
-              {t('proceedToCheckout')}
+              Proceed to Checkout
             </button>
           </div>
         </div>

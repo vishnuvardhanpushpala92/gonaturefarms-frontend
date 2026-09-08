@@ -2,13 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Modal from './Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
-import { useLanguage } from '../context/LanguageContext.jsx';
 import api from '../api/client.js';
 
 export default function AuthModal({ open, onClose }) {
   const { login, register, forgotPassword, resetPasswordWithSecurityQuestion, user, isAuthenticated, logout } = useAuth();
   const showToast = useToast();
-  const { t } = useLanguage();
   
   const [isLogin, setIsLogin] = useState(true);
   const [forgotOpen, setForgotOpen] = useState(false);
@@ -84,6 +82,17 @@ export default function AuthModal({ open, onClose }) {
       return 'Password must contain at least one special character';
     }
     return null;
+  };
+
+  const getPasswordStrength = (password) => {
+    if (!password) return 0;
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) strength++;
+    return strength;
   };
 
   const handleSubmit = async (e) => {
@@ -472,7 +481,7 @@ export default function AuthModal({ open, onClose }) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title={showAddressSetup ? 'Setup Your Address' : (showAddressManagement ? 'Manage Addresses' : (isAuthenticated ? 'My Account' : (isLogin ? t('login') : t('register'))))}>
+    <Modal open={open} onClose={onClose} title={showAddressSetup ? 'Setup Your Address' : (showAddressManagement ? 'Manage Addresses' : (isAuthenticated ? 'My Account' : (isLogin ? 'Login' : 'Register')))}>
       <div className="mbody">
         {showAddressSetup ? (
           <>
@@ -736,7 +745,7 @@ export default function AuthModal({ open, onClose }) {
               📍 Manage Addresses
             </button>
             <button className="btn btn-danger btn-block" onClick={logout}>
-              {t('logout')}
+              Logout
             </button>
             <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.85rem', color: 'var(--muted)' }}>
               <button type="button" onClick={() => setIsLogin(true)} style={{ background: 'none', border: 'none', color: 'var(--p)', cursor: 'pointer', fontWeight: '600' }}>
@@ -837,6 +846,43 @@ export default function AuthModal({ open, onClose }) {
                   </button>
                 </div>
                 {formErrors.password && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{formErrors.password}</div>}
+                {!isLogin && form.password && (
+                  <div style={{ marginTop: '8px' }}>
+                    <div style={{
+                      height: '4px',
+                      background: '#e5e7eb',
+                      borderRadius: '2px',
+                      overflow: 'hidden',
+                      width: '100%'
+                    }}>
+                      <div style={{
+                        height: '100%',
+                        width: `${(getPasswordStrength(form.password) / 5) * 100}%`,
+                        background: getPasswordStrength(form.password) === 5 ? '#22c55e' : '#f59e0b',
+                        transition: 'width 0.3s ease, background 0.3s ease'
+                      }} />
+                    </div>
+                    <div style={{ marginTop: '6px', fontSize: '0.75rem', color: '#6b7280' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        <span style={{ color: password.length >= 8 ? '#22c55e' : '#9ca3af' }}>
+                          {password.length >= 8 ? '✓' : '○'} Min 8 chars
+                        </span>
+                        <span style={{ color: /[A-Z]/.test(password) ? '#22c55e' : '#9ca3af' }}>
+                          {/[A-Z]/.test(password) ? '✓' : '○'} Uppercase
+                        </span>
+                        <span style={{ color: /[a-z]/.test(password) ? '#22c55e' : '#9ca3af' }}>
+                          {/[a-z]/.test(password) ? '✓' : '○'} Lowercase
+                        </span>
+                        <span style={{ color: /[0-9]/.test(password) ? '#22c55e' : '#9ca3af' }}>
+                          {/[0-9]/.test(password) ? '✓' : '○'} Number
+                        </span>
+                        <span style={{ color: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? '#22c55e' : '#9ca3af' }}>
+                          {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? '✓' : '○'} Special
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               {!isLogin && (
                 <div className="fg">
@@ -881,14 +927,14 @@ export default function AuthModal({ open, onClose }) {
               )}
               
               <button type="submit" className="btn btn-primary btn-block">
-                {isLogin ? t('login') : 'Create Account'}
+                {isLogin ? 'Login' : 'Create Account'}
               </button>
             </form>
             
             <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.85rem' }}>
               {isLogin ? "Don't have an account?" : "Already have an account?"}
               <button type="button" onClick={() => setIsLogin(!isLogin)} style={{ background: 'none', border: 'none', color: 'var(--p)', cursor: 'pointer', fontWeight: '600', marginLeft: '4px' }}>
-                {isLogin ? t('register') : t('login')}
+                {isLogin ? 'Register' : 'Login'}
               </button>
             </p>
           </>
