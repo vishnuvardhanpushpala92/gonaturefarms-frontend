@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../../api/client';
 import { useToast } from '../../context/ToastContext.jsx';
 
-const EMPTY = { title: '', productId: '', posterUrl: '', enabled: true, sortOrder: 0, orientation: 'landscape' };
+const EMPTY = { title: '', productId: '', posterUrl: '', enabled: true, sortOrder: '', orientation: 'landscape' };
 
 export default function AdminVideosTab() {
   const showToast = useToast();
@@ -25,11 +25,11 @@ export default function AdminVideosTab() {
   const startEdit = (video) => {
     setEditing(video.id);
     setForm({
-      title: video.title,
+      title: video.title || '',
       productId: video.productId || '',
       posterUrl: video.posterUrl || '',
       enabled: video.enabled,
-      sortOrder: video.sortOrder,
+      sortOrder: video.sortOrder !== null && video.sortOrder !== undefined ? video.sortOrder : '',
       orientation: video.orientation
     });
     setFile(null);
@@ -57,12 +57,12 @@ export default function AdminVideosTab() {
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('title', form.title);
+      if (form.title) formData.append('title', form.title);
       if (file) formData.append('file', file);
       if (form.productId) formData.append('productId', form.productId);
       if (form.posterUrl) formData.append('posterUrl', form.posterUrl);
       formData.append('enabled', form.enabled);
-      formData.append('sortOrder', form.sortOrder);
+      if (form.sortOrder !== '' && form.sortOrder !== null) formData.append('sortOrder', form.sortOrder);
       formData.append('orientation', form.orientation);
 
       const data = editing
@@ -135,12 +135,11 @@ export default function AdminVideosTab() {
       
       <form onSubmit={save} className="admin-form">
         <div className="fg">
-          <label>Video Title *</label>
+          <label>Video Title (Optional)</label>
           <input
             type="text"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            required
           />
         </div>
 
