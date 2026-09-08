@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import api from '../api/client';
 
+const TIMER_START_TIME = 'admin_timer_start';
+const TIMER_DURATION = 'admin_timer_duration';
+const TIMER_EXPIRED = 'admin_timer_expired';
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -139,8 +143,35 @@ export function AuthProvider({ children }) {
   const isAdmin = user?.role === 'admin';
   const isAuthenticated = !!user && !!token;
 
+  // Check if admin timer is active
+  const isTimerActive = useCallback(() => {
+    if (!isAdmin || !isAuthenticated) return false;
+    
+    try {
+      const expired = localStorage.getItem(TIMER_EXPIRED);
+      if (expired === 'true') return false;
+      
+      const startTime = localStorage.getItem(TIMER_START_TIME);
+      const duration = localStorage.getItem(TIMER_DURATION);
+      
+      if (!startTime || !duration) return false;
+      
+      const startTimeMs = parseInt(startTime, 10);
+      const durationMs = parseInt(duration, 10) * 60 * 1000;
+      
+      if (isNaN(startTimeMs) || isNaN(durationMs)) return false;
+      
+      const elapsed = Date.now() - startTimeMs;
+      const remaining = durationMs - elapsed;
+      
+      return remaining > 0;
+    } catch (e) {
+      return false;
+    }
+  }, [isAdmin, isAuthenticated]);
+
   return (
-    <AuthContext.Provider value={{ user, token, isAdmin, isAuthenticated, register, login, adminLogin, logout, refreshMe, forgotPassword, resetPassword, resetPasswordWithSecurityQuestion }}>
+    <AuthContext.Provider value={{ user, token, isAdmin, isAuthenticated, register, login, adminLogin, logout, refreshMe, forgotPassword, resetPassword, resetPasswordWithSecurityQuestion, isTimerActive }}>
       {children}
     </AuthContext.Provider>
   );
