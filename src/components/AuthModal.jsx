@@ -171,23 +171,9 @@ export default function AuthModal({ open, onClose }) {
         });
         setForm({ name: '', username: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
         
-        // Verify authentication is complete before showing address setup
-        const checkAuth = setInterval(() => {
-          const token = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
-          const userStr = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
-          
-          if (token && userStr) {
-            clearInterval(checkAuth);
-            console.log('Authentication confirmed, showing address setup');
-            setShowAddressSetup(true);
-          }
-        }, 200);
-        
-        // Fallback after 2 seconds to show address setup anyway
-        setTimeout(() => {
-          clearInterval(checkAuth);
-          setShowAddressSetup(true);
-        }, 2000);
+        // Show address setup immediately after successful registration
+        // The register function already calls persist() which sets the token
+        setShowAddressSetup(true);
       }
     } catch (err) {
       // Handle specific registration errors
@@ -241,10 +227,12 @@ export default function AuthModal({ open, onClose }) {
     
     // Validate pincode against admin-configured serviceable pincodes
     try {
-      const { data: pincodeData } = await api.get('/settings/serviceable-pincodes', { timeout: 60000 });
-      const serviceablePincodes = pincodeData?.pincodes || [];
+      const { data: pincodeData } = await api.get('/admin/zones/validate', { 
+        params: { pincode: addressForm.pincode.trim() },
+        timeout: 60000 
+      });
       
-      if (serviceablePincodes.length > 0 && !serviceablePincodes.includes(addressForm.pincode.trim())) {
+      if (!pincodeData.success) {
         showToast('Cannot be delivered to this location. This pincode is not serviceable.');
         return;
       }
