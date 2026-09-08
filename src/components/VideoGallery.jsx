@@ -249,9 +249,9 @@ export default function VideoGallery({ onOpenCart }) {
                         }
                       }}
                     >
-                      {!isExternalImage(video.product.imgUrl) ? (
+                      {video.product.imgUrl ? (
                         <img
-                          src={video.product.imgUrl || ''}
+                          src={video.product.imgUrl}
                           alt={video.product.name}
                           className="video-product-image"
                           onError={(e) => {
