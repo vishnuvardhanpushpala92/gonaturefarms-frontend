@@ -387,7 +387,7 @@ export function AuthProvider({ children }) {
     };
   }, [isAdmin, isAuthenticated, isTimerActive, isSessionExpired]);
 
-  // Handle route changes - lock when navigating from admin to store
+  // Handle route changes - lock when returning to admin panel from store
   useEffect(() => {
     if (!isAdmin || !isAuthenticated) return;
 
@@ -395,8 +395,8 @@ export function AuthProvider({ children }) {
       const currentPath = window.location.pathname;
       const previousPath = previousPathRef.current;
 
-      // If was on admin page and now navigating to store or other non-admin page
-      if (previousPath.startsWith('/admin') && !currentPath.startsWith('/admin')) {
+      // If was on non-admin page and now navigating to admin panel
+      if (!previousPath.startsWith('/admin') && currentPath.startsWith('/admin')) {
         setIsLocked(true);
       }
 
