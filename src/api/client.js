@@ -39,22 +39,10 @@ function transformKeys(data, converter) {
 
 // Attach token to every request
 api.interceptors.request.use((config) => {
-  const ssToken = sessionStorage.getItem('gnf_token');
-  const lsToken = localStorage.getItem('gnf_token');
-  const token = ssToken || lsToken;
-  
-  console.log('[API INTERCEPTOR] Request to:', config.url);
-  console.log('[API INTERCEPTOR] sessionStorage token:', ssToken ? 'present' : 'missing');
-  console.log('[API INTERCEPTOR] localStorage token:', lsToken ? 'present' : 'missing');
-  console.log('[API INTERCEPTOR] Final token:', token ? 'present' : 'missing');
-  
+  const token = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
-    console.log('[API INTERCEPTOR] Authorization header attached');
-  } else {
-    console.warn('[API INTERCEPTOR] NO TOKEN - Authorization header NOT attached');
   }
-  
   if (config.skipTransform) return config;
   if (config.data && !(config.data instanceof FormData)) {
     config.data = transformKeys(config.data, camelToSnake);
