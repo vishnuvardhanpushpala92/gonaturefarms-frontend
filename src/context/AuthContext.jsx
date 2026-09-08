@@ -54,6 +54,10 @@ export function AuthProvider({ children }) {
   const durationRef = useRef(null);
   const previousPathRef = useRef(window.location.pathname);
 
+  // Derived state - must be computed before functions that use them
+  const isAdmin = user?.role === 'admin';
+  const isAuthenticated = !!user && !!token;
+
   const persist = (t, u) => {
     if (t) {
       sessionStorage.setItem('gnf_token', t);
@@ -173,9 +177,6 @@ export function AuthProvider({ children }) {
     }
     return null;
   }, [token]);
-
-  const isAdmin = user?.role === 'admin';
-  const isAuthenticated = !!user && !!token;
 
   // Start admin session timer
   const startAdminTimer = useCallback((minutes) => {
