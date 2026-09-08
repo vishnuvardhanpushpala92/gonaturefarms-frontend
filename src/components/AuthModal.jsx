@@ -22,6 +22,7 @@ export default function AuthModal({ open, onClose }) {
   const [editingAddressId, setEditingAddressId] = useState(null);
   const [originalAddressForm, setOriginalAddressForm] = useState(null);
   const [changeCount, setChangeCount] = useState(0);
+  const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -66,59 +67,61 @@ export default function AuthModal({ open, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Email validation for registration - only validate if email is provided
+    // Clear previous errors
+    const errors = {};
+    
+    // Email validation for registration
     if (!isLogin && form.email && !validateEmail(form.email)) {
-      showToast('Please enter a valid email address');
-      return;
+      errors.email = 'Please enter a valid email address';
     }
     
     // Phone validation for registration (must be exactly 10 digits)
     if (!isLogin && form.phone && !validatePhone(form.phone)) {
-      showToast('Please enter a valid 10-digit phone number');
-      return;
+      errors.phone = 'Please enter a valid 10-digit phone number';
     }
     
     // Password validation for registration (must be at least 6 characters)
     if (!isLogin && form.password && form.password.length < 6) {
-      showToast('Password must be at least 6 characters');
-      return;
+      errors.password = 'Password must be at least 6 characters';
     }
     
     // Password confirmation for registration
     if (!isLogin && form.password !== form.confirmPassword) {
-      showToast('Passwords do not match');
-      return;
+      errors.confirmPassword = 'Passwords do not match';
     }
     
     // Security question validation for registration
     if (!isLogin && !form.securityQuestion) {
-      showToast('Please select a security question');
-      return;
+      errors.securityQuestion = 'Please select a security question';
     }
     
     // Security answer validation for registration
     if (!isLogin && !form.securityAnswer?.trim()) {
-      showToast('Please provide a security answer');
-      return;
+      errors.securityAnswer = 'Please provide a security answer';
     }
     
     // Ensure phone is provided and not empty
     if (!form.phone?.trim()) {
-      showToast('Phone number is required');
-      return;
+      errors.phone = 'Phone number is required';
     }
     
     // Ensure name is provided and not empty
     if (!isLogin && !form.name?.trim()) {
-      showToast('Name is required');
-      return;
+      errors.name = 'Name is required';
     }
     
     // Ensure password is provided and not empty
     if (!form.password?.trim()) {
-      showToast('Password is required');
+      errors.password = 'Password is required';
+    }
+    
+    // If there are validation errors, set them and return
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
+    
+    setFormErrors({});
     
     try {
       if (isLogin) {
@@ -619,7 +622,8 @@ export default function AuthModal({ open, onClose }) {
                 <>
                   <div className="fg">
                     <label htmlFor="auth-name">Name</label>
-                    <input id="auth-name" name="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                    <input id="auth-name" name="name" required value={form.name} onChange={(e) => { setForm({ ...form, name: e.target.value }); setFormErrors({ ...formErrors, name: '' }); }} />
+                    {formErrors.name && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{formErrors.name}</div>}
                   </div>
                   <div className="fg">
                     <label htmlFor="auth-username">Username (optional)</label>
@@ -630,17 +634,20 @@ export default function AuthModal({ open, onClose }) {
               {isLogin ? (
                 <div className="fg">
                   <label htmlFor="auth-phone">Phone Number</label>
-                  <input id="auth-phone" name="phone" required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="10-digit phone number" />
+                  <input id="auth-phone" name="phone" required value={form.phone} onChange={(e) => { setForm({ ...form, phone: e.target.value }); setFormErrors({ ...formErrors, phone: '' }); }} placeholder="10-digit phone number" />
+                  {formErrors.phone && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{formErrors.phone}</div>}
                 </div>
               ) : (
                 <>
                   <div className="fg">
                     <label htmlFor="auth-phone">Phone (required)</label>
-                    <input id="auth-phone" name="phone" required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="10-digit phone number" />
+                    <input id="auth-phone" name="phone" required value={form.phone} onChange={(e) => { setForm({ ...form, phone: e.target.value }); setFormErrors({ ...formErrors, phone: '' }); }} placeholder="10-digit phone number" />
+                    {formErrors.phone && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{formErrors.phone}</div>}
                   </div>
                   <div className="fg">
                     <label htmlFor="auth-email">Email (optional)</label>
-                    <input id="auth-email" name="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" />
+                    <input id="auth-email" name="email" value={form.email} onChange={(e) => { setForm({ ...form, email: e.target.value }); setFormErrors({ ...formErrors, email: '' }); }} placeholder="email@example.com" />
+                    {formErrors.email && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{formErrors.email}</div>}
                   </div>
                 </>
               )}
@@ -653,7 +660,7 @@ export default function AuthModal({ open, onClose }) {
                       name="securityQuestion"
                       required 
                       value={form.securityQuestion} 
-                      onChange={(e) => setForm({ ...form, securityQuestion: e.target.value })}
+                      onChange={(e) => { setForm({ ...form, securityQuestion: e.target.value }); setFormErrors({ ...formErrors, securityQuestion: '' }); }}
                     >
                       <option value="">Select a security question</option>
                       <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
@@ -661,10 +668,12 @@ export default function AuthModal({ open, onClose }) {
                       <option value="What city were you born in?">What city were you born in?</option>
                       <option value="What is your favorite color?">What is your favorite color?</option>
                     </select>
+                    {formErrors.securityQuestion && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{formErrors.securityQuestion}</div>}
                   </div>
                   <div className="fg">
                     <label htmlFor="auth-security-answer">Security Answer</label>
-                    <input id="auth-security-answer" name="securityAnswer" required value={form.securityAnswer} onChange={(e) => setForm({ ...form, securityAnswer: e.target.value })} />
+                    <input id="auth-security-answer" name="securityAnswer" required value={form.securityAnswer} onChange={(e) => { setForm({ ...form, securityAnswer: e.target.value }); setFormErrors({ ...formErrors, securityAnswer: '' }); }} />
+                    {formErrors.securityAnswer && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{formErrors.securityAnswer}</div>}
                   </div>
                 </>
               )}
@@ -677,7 +686,7 @@ export default function AuthModal({ open, onClose }) {
                     required 
                     type={showPassword ? "text" : "password"} 
                     value={form.password} 
-                    onChange={(e) => setForm({ ...form, password: e.target.value })} 
+                    onChange={(e) => { setForm({ ...form, password: e.target.value }); setFormErrors({ ...formErrors, password: '' }); }} 
                     style={{ paddingRight: '40px' }}
                   />
                   <button
@@ -698,6 +707,7 @@ export default function AuthModal({ open, onClose }) {
                     {showPassword ? '👁️' : '👁️‍🗨️'}
                   </button>
                 </div>
+                {formErrors.password && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{formErrors.password}</div>}
               </div>
               {!isLogin && (
                 <div className="fg">
@@ -709,7 +719,7 @@ export default function AuthModal({ open, onClose }) {
                       required 
                       type={showConfirmPassword ? "text" : "password"} 
                       value={form.confirmPassword} 
-                      onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                      onChange={(e) => { setForm({ ...form, confirmPassword: e.target.value }); setFormErrors({ ...formErrors, confirmPassword: '' }); }}
                       style={{ paddingRight: '40px' }}
                     />
                     <button
@@ -730,6 +740,7 @@ export default function AuthModal({ open, onClose }) {
                       {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
                     </button>
                   </div>
+                  {formErrors.confirmPassword && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{formErrors.confirmPassword}</div>}
                 </div>
               )}
               
