@@ -45,8 +45,11 @@ export function AuthProvider({ children }) {
   const [showWarning, setShowWarning] = useState(false);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isSessionExpired, setIsSessionExpired] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
   const intervalRef = useRef(null);
   const showWarningRef = useRef(false);
+  const startTimeRef = useRef(null);
+  const durationRef = useRef(null);
 
   const persist = (t, u) => {
     if (t) {
@@ -135,6 +138,7 @@ export function AuthProvider({ children }) {
     sessionStorage.removeItem('gnf_user');
     setToken(null);
     setUser(null);
+    setIsLocked(false);
     // Clear timer
     stopAdminTimer();
   }, []);
@@ -163,6 +167,10 @@ export function AuthProvider({ children }) {
     const durationMs = minutes * 60 * 1000;
     const startTime = Date.now();
     
+    // Store in refs to avoid closure issues
+    startTimeRef.current = startTime;
+    durationRef.current = durationMs;
+    
     // Save to localStorage for persistence across navigation
     try {
       localStorage.setItem(TIMER_START_TIME, startTime.toString());
@@ -177,17 +185,27 @@ export function AuthProvider({ children }) {
     setShowWarning(false);
     showWarningRef.current = false;
     setIsSessionExpired(false);
+    setIsLocked(false);
     
     // Start countdown interval
     intervalRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const remaining = durationMs - elapsed;
+      const currentStartTime = startTimeRef.current;
+      const currentDuration = durationRef.current;
+      
+      if (currentStartTime == null || currentDuration == null) {
+        clearInterval(intervalRef.current);
+        return;
+      }
+      
+      const elapsed = Date.now() - currentStartTime;
+      const remaining = currentDuration - elapsed;
       
       if (remaining <= 0) {
-        // Timer expired
+        // Timer expired - lock instead of logout
         clearInterval(intervalRef.current);
         setIsTimerActive(false);
         setIsSessionExpired(true);
+        setIsLocked(true);
         try {
           localStorage.setItem(TIMER_EXPIRED, 'true');
           localStorage.removeItem(TIMER_START_TIME);
@@ -195,8 +213,6 @@ export function AuthProvider({ children }) {
         } catch (e) {
           console.error('Failed to update timer in localStorage:', e);
         }
-        // Auto logout on expiration
-        logout();
       } else {
         setTimeLeft(remaining);
         
@@ -207,7 +223,7 @@ export function AuthProvider({ children }) {
         }
       }
     }, 1000);
-  }, [isAdmin, isAuthenticated, logout]);
+  }, [isAdmin, isAuthenticated]);
 
   // Stop admin session timer
   const stopAdminTimer = useCallback(() => {
@@ -215,9 +231,12 @@ export function AuthProvider({ children }) {
     
     setIsTimerActive(false);
     setIsSessionExpired(false);
+    setIsLocked(false);
     setTimeLeft(0);
     setShowWarning(false);
     showWarningRef.current = false;
+    startTimeRef.current = null;
+    durationRef.current = null;
     
     // Clear localStorage
     try {
@@ -228,6 +247,27 @@ export function AuthProvider({ children }) {
       console.error('Failed to clear timer from localStorage:', e);
     }
   }, []);
+
+  // Unlock admin session with password verification
+  const unlockAdminSession = useCallback(async (password) => {
+    if (!isAdmin || !isAuthenticated) return { success: false, message: 'Not authenticated as admin' };
+    
+    try {
+      const { data } = await api.post('/auth/admin-login', { username: user?.username || 'admin', password }, { timeout: 60000 });
+      if (data.success) {
+        setIsLocked(false);
+        setIsSessionExpired(false);
+        // Restart timer with default 30 minutes
+        startAdminTimer(30);
+        return { success: true };
+      } else {
+        return { success: false, message: data.message || 'Invalid password' };
+      }
+    } catch (err) {
+      const errorMessage = err?.response?.data?.message || err?.message || 'Invalid password';
+      return { success: false, message: errorMessage };
+    }
+  }, [isAdmin, isAuthenticated, user, startAdminTimer]);
 
   // Check for existing timer on mount
   useEffect(() => {
@@ -243,8 +283,8 @@ export function AuthProvider({ children }) {
 
       if (expired === 'true') {
         setIsSessionExpired(true);
-        setIsTimerActive(false);
-        logout();
+        setIsTimerActive(true);
+        setIsLocked(true);
         return;
       }
 
@@ -258,36 +298,49 @@ export function AuthProvider({ children }) {
           return;
         }
         
+        // Store in refs
+        startTimeRef.current = startTimeMs;
+        durationRef.current = durationMs;
+        
         const elapsed = Date.now() - startTimeMs;
         const remaining = durationMs - elapsed;
 
         if (remaining <= 0) {
-          // Timer expired while away
+          // Timer expired while away - lock instead of logout
           setIsSessionExpired(true);
           setIsTimerActive(false);
+          setIsLocked(true);
           localStorage.setItem(TIMER_EXPIRED, 'true');
           localStorage.removeItem(TIMER_START_TIME);
           localStorage.removeItem(TIMER_DURATION);
-          logout();
         } else {
           // Timer still running, restore it
           setIsTimerActive(true);
           setTimeLeft(remaining);
           setIsSessionExpired(false);
+          setIsLocked(false);
           
           // Continue the countdown
           intervalRef.current = setInterval(() => {
-            const newElapsed = Date.now() - startTimeMs;
-            const newRemaining = durationMs - newElapsed;
+            const currentStartTime = startTimeRef.current;
+            const currentDuration = durationRef.current;
+            
+            if (currentStartTime == null || currentDuration == null) {
+              clearInterval(intervalRef.current);
+              return;
+            }
+            
+            const newElapsed = Date.now() - currentStartTime;
+            const newRemaining = currentDuration - newElapsed;
             
             if (newRemaining <= 0) {
               clearInterval(intervalRef.current);
               setIsTimerActive(false);
               setIsSessionExpired(true);
+              setIsLocked(true);
               localStorage.setItem(TIMER_EXPIRED, 'true');
               localStorage.removeItem(TIMER_START_TIME);
               localStorage.removeItem(TIMER_DURATION);
-              logout();
             } else {
               setTimeLeft(newRemaining);
               
@@ -306,7 +359,7 @@ export function AuthProvider({ children }) {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isAdmin, isAuthenticated, logout, stopAdminTimer]);
+  }, [isAdmin, isAuthenticated, stopAdminTimer]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -314,6 +367,24 @@ export function AuthProvider({ children }) {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
+
+  // Handle tab switching - lock if timer is not active or has expired
+  useEffect(() => {
+    if (!isAdmin || !isAuthenticated) return;
+
+    const handleVisibilityChange = () => {
+      // Lock if timer is not active OR if session has expired when switching away
+      if (document.hidden && (!isTimerActive || isSessionExpired)) {
+        setIsLocked(true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isAdmin, isAuthenticated, isTimerActive, isSessionExpired]);
 
   return (
     <AuthContext.Provider value={{ 
@@ -333,8 +404,10 @@ export function AuthProvider({ children }) {
       showWarning,
       isTimerActive,
       isSessionExpired,
+      isLocked,
       startAdminTimer,
-      stopAdminTimer
+      stopAdminTimer,
+      unlockAdminSession
     }}>
       {children}
     </AuthContext.Provider>

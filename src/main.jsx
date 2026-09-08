@@ -9,6 +9,7 @@ import { SiteProvider } from './context/SiteContext.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import AdminSessionTimer from './components/admin/AdminSessionTimer.jsx';
+import AdminLockOverlay from './components/admin/AdminLockOverlay.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -19,6 +20,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <SiteProvider>
               <CartProvider>
                 <AdminSessionTimer />
+                <AdminLockOverlay />
                 <App />
               </CartProvider>
             </SiteProvider>
