@@ -44,6 +44,39 @@ export default function AuthModal({ open, onClose }) {
     }
   }, [addressForm, originalAddressForm]);
 
+  // Real-time duplicate field checking for address form
+  useEffect(() => {
+    if (showAddressSetup || showAddressManagement) {
+      const errors = {};
+      
+      addresses.forEach(addr => {
+        // Skip the current address being edited
+        if (editingAddressId && addr.id === editingAddressId) return;
+        
+        if (addressForm.name?.trim() && addr.name?.trim() === addressForm.name?.trim()) {
+          errors.name = 'This name is already used in another address';
+        }
+        if (addressForm.addressLine?.trim() && addr.addressLine?.trim() === addressForm.addressLine?.trim()) {
+          errors.addressLine = 'This address line is already used in another address';
+        }
+        if (addressForm.city?.trim() && addr.city?.trim() === addressForm.city?.trim()) {
+          errors.city = 'This city is already used in another address';
+        }
+        if (addressForm.state?.trim() && addr.state?.trim() === addressForm.state?.trim()) {
+          errors.state = 'This state is already used in another address';
+        }
+        if (addressForm.pincode?.trim() && addr.pincode?.trim() === addressForm.pincode?.trim()) {
+          errors.pincode = 'This pincode is already used in another address';
+        }
+        if (addressForm.phone?.trim() && addr.phone?.trim() === addressForm.phone?.trim()) {
+          errors.phone = 'This phone number is already used in another address';
+        }
+      });
+      
+      setAddressFormErrors(errors);
+    }
+  }, [addressForm.name, addressForm.addressLine, addressForm.city, addressForm.state, addressForm.pincode, addressForm.phone, addresses, editingAddressId, showAddressSetup, showAddressManagement]);
+
   const loadAddresses = async () => {
     try {
       const { data } = await api.get('/addresses', { timeout: 60000 });
@@ -225,6 +258,7 @@ export default function AuthModal({ open, onClose }) {
           phone: userData.phone || form.phone
         });
         setForm({ name: '', username: '', email: '', phone: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '' });
+        setAddressFormErrors({}); // Clear any previous address errors
         
         // Show address setup immediately after successful registration
         // The register function already calls persist() which sets the token
@@ -281,17 +315,27 @@ export default function AuthModal({ open, onClose }) {
       errors.phone = 'Invalid phone number. Please enter a valid 10-digit phone number';
     }
     
-    // Check for duplicate address
-    const isDuplicate = addresses.some(addr => 
-      addr.addressLine?.trim() === addressForm.addressLine?.trim() &&
-      addr.city?.trim() === addressForm.city?.trim() &&
-      addr.state?.trim() === addressForm.state?.trim() &&
-      addr.pincode?.trim() === addressForm.pincode?.trim()
-    );
-    
-    if (isDuplicate) {
-      errors.addressLine = 'This address is already registered';
-    }
+    // Check for duplicate fields in existing addresses
+    addresses.forEach(addr => {
+      if (addr.name?.trim() === addressForm.name?.trim()) {
+        errors.name = 'This name is already used in another address';
+      }
+      if (addr.addressLine?.trim() === addressForm.addressLine?.trim()) {
+        errors.addressLine = 'This address line is already used in another address';
+      }
+      if (addr.city?.trim() === addressForm.city?.trim()) {
+        errors.city = 'This city is already used in another address';
+      }
+      if (addr.state?.trim() === addressForm.state?.trim()) {
+        errors.state = 'This state is already used in another address';
+      }
+      if (addr.pincode?.trim() === addressForm.pincode?.trim()) {
+        errors.pincode = 'This pincode is already used in another address';
+      }
+      if (addr.phone?.trim() === addressForm.phone?.trim()) {
+        errors.phone = 'This phone number is already used in another address';
+      }
+    });
     
     // If there are validation errors, set them and return
     if (Object.keys(errors).length > 0) {
@@ -388,18 +432,29 @@ export default function AuthModal({ open, onClose }) {
       errors.phone = 'Invalid phone number. Please enter a valid 10-digit phone number';
     }
     
-    // Check for duplicate address (excluding current editing address)
-    const isDuplicate = addresses.some(addr => 
-      addr.id !== editingAddressId &&
-      addr.addressLine?.trim() === addressForm.addressLine?.trim() &&
-      addr.city?.trim() === addressForm.city?.trim() &&
-      addr.state?.trim() === addressForm.state?.trim() &&
-      addr.pincode?.trim() === addressForm.pincode?.trim()
-    );
-    
-    if (isDuplicate) {
-      errors.addressLine = 'This address is already registered';
-    }
+    // Check for duplicate fields in existing addresses (excluding current editing address)
+    addresses.forEach(addr => {
+      if (addr.id !== editingAddressId) {
+        if (addr.name?.trim() === addressForm.name?.trim()) {
+          errors.name = 'This name is already used in another address';
+        }
+        if (addr.addressLine?.trim() === addressForm.addressLine?.trim()) {
+          errors.addressLine = 'This address line is already used in another address';
+        }
+        if (addr.city?.trim() === addressForm.city?.trim()) {
+          errors.city = 'This city is already used in another address';
+        }
+        if (addr.state?.trim() === addressForm.state?.trim()) {
+          errors.state = 'This state is already used in another address';
+        }
+        if (addr.pincode?.trim() === addressForm.pincode?.trim()) {
+          errors.pincode = 'This pincode is already used in another address';
+        }
+        if (addr.phone?.trim() === addressForm.phone?.trim()) {
+          errors.phone = 'This phone number is already used in another address';
+        }
+      }
+    });
     
     // If there are validation errors, set them and return
     if (Object.keys(errors).length > 0) {
@@ -459,6 +514,7 @@ export default function AuthModal({ open, onClose }) {
     setEditingAddressId(address.id);
     setShowAddressManagement(true);
     setChangeCount(0);
+    setAddressFormErrors({}); // Clear errors when editing
   };
 
   const deleteAddress = async (id) => {
@@ -988,14 +1044,13 @@ export default function AuthModal({ open, onClose }) {
                   !isLogin && (
                     !form.password || 
                     !form.confirmPassword || 
-                    getPasswordStrength(form.password) < 5 || 
                     form.password !== form.confirmPassword ||
                     Object.keys(formErrors).length > 0
                   )
                 }
                 style={{
-                  opacity: (!isLogin && (!form.password || !form.confirmPassword || getPasswordStrength(form.password) < 5 || form.password !== form.confirmPassword || Object.keys(formErrors).length > 0)) ? 0.6 : 1,
-                  cursor: (!isLogin && (!form.password || !form.confirmPassword || getPasswordStrength(form.password) < 5 || form.password !== form.confirmPassword || Object.keys(formErrors).length > 0)) ? 'not-allowed' : 'pointer'
+                  opacity: (!isLogin && (!form.password || !form.confirmPassword || form.password !== form.confirmPassword || Object.keys(formErrors).length > 0)) ? 0.6 : 1,
+                  cursor: (!isLogin && (!form.password || !form.confirmPassword || form.password !== form.confirmPassword || Object.keys(formErrors).length > 0)) ? 'not-allowed' : 'pointer'
                 }}
               >
                 {isLogin ? 'Login' : 'Create Account'}
