@@ -1044,13 +1044,12 @@ export default function AuthModal({ open, onClose }) {
                   !isLogin && (
                     !form.password || 
                     !form.confirmPassword || 
-                    form.password !== form.confirmPassword ||
-                    Object.keys(formErrors).length > 0
+                    form.password !== form.confirmPassword
                   )
                 }
                 style={{
-                  opacity: (!isLogin && (!form.password || !form.confirmPassword || form.password !== form.confirmPassword || Object.keys(formErrors).length > 0)) ? 0.6 : 1,
-                  cursor: (!isLogin && (!form.password || !form.confirmPassword || form.password !== form.confirmPassword || Object.keys(formErrors).length > 0)) ? 'not-allowed' : 'pointer'
+                  opacity: (!isLogin && (!form.password || !form.confirmPassword || form.password !== form.confirmPassword)) ? 0.6 : 1,
+                  cursor: (!isLogin && (!form.password || !form.confirmPassword || form.password !== form.confirmPassword)) ? 'not-allowed' : 'pointer'
                 }}
               >
                 {isLogin ? 'Login' : 'Create Account'}
