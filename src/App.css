@@ -53,7 +53,7 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);li
 
 /* Login Page - 3D Farm Fields */
 .login-background{
-  background:linear-gradient(180deg,#87CEEB 0%,#E0F7FA 30%,#4CAF50 30%,#388E3C 60%,#2E7D32 100%);
+  background:linear-gradient(180deg,#8B7355 0%,#A0826D 20%,#6B8E23 20%,#556B2F 50%,#4A5D23 100%);
 }
 
 .login-background::before{
@@ -63,7 +63,7 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);li
   left:0;
   right:0;
   height:40%;
-  background:linear-gradient(180deg,rgba(76,175,80,0.3) 0%,rgba(56,142,60,0.5) 50%,rgba(46,125,50,0.8) 100%);
+  background:linear-gradient(180deg,rgba(107,142,35,0.3) 0%,rgba(85,107,47,0.5) 50%,rgba(74,93,35,0.8) 100%);
   transform:perspective(1000px) rotateX(20deg);
   transform-origin:bottom;
 }
@@ -75,14 +75,14 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);li
   left:0;
   right:0;
   height:30%;
-  background:linear-gradient(180deg,rgba(56,142,60,0.6) 0%,rgba(46,125,50,0.9) 100%);
+  background:linear-gradient(180deg,rgba(85,107,47,0.6) 0%,rgba(74,93,35,0.9) 100%);
   transform:perspective(1000px) rotateX(15deg);
   transform-origin:bottom;
 }
 
 /* Register Page - 3D Garden */
 .register-background{
-  background:linear-gradient(180deg,#FFF3E0 0%,#FFE0B2 20%,#8BC34A 20%,#7CB342 50%,#689F38 100%);
+  background:linear-gradient(180deg,#D2B48C 0%,#C4A484 20%,#8FBC8F 20%,#7BA67B 50%,#6B8E23 100%);
 }
 
 .register-background::before{
@@ -92,7 +92,7 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);li
   left:0;
   right:0;
   height:50%;
-  background:radial-gradient(ellipse at center,rgba(139,195,74,0.4) 0%,rgba(124,179,66,0.6) 50%,rgba(104,159,56,0.8) 100%);
+  background:radial-gradient(ellipse at center,rgba(143,188,143,0.4) 0%,rgba(123,166,123,0.6) 50%,rgba(107,142,35,0.8) 100%);
   transform:perspective(800px) rotateX(25deg);
   transform-origin:bottom;
 }
@@ -133,7 +133,7 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);li
 
 .floating-leaves{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
 
-.leaf{position:absolute;opacity:0.15;background:#8BC34A;border-radius:50% 0 50% 50%;}
+.leaf{position:absolute;opacity:0.2;background:#8B7355;border-radius:50% 0 50% 50%;}
 
 .leaf-1{width:60px;height:30px;top:10%;left:10%;animation:float 8s ease-in-out infinite;}
 .leaf-2{width:40px;height:20px;top:20%;right:15%;animation:float 12s ease-in-out infinite 2s;}
@@ -142,7 +142,7 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);li
 
 .admin-background .leaf{background:#D7CCC8;}
 
-.register-background .leaf{background:#FFB74D;}
+.register-background .leaf{background:#A0826D;}
 
 @keyframes float{
   0%,100%{transform:translateY(0) rotate(0deg);}
@@ -236,6 +236,14 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);li
 .tracking-header h1{font-family:'Playfair Display',serif;font-size:2.5rem;color:#2d5a27;margin-bottom:8px;}
 
 .tracking-header p{color:#6b7280;font-size:1rem;}
+
+.tracking-search-type{display:flex;gap:12px;margin-bottom:16px;justify-content:center;}
+
+.search-type-btn{flex:1;padding:12px 16px;border:1px solid #e5e7eb;border-radius:8px;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;background:#fff;color:#6b7280;}
+
+.search-type-btn:hover{background:#f9fafb;border-color:#2d5a27;}
+
+.search-type-btn.active{background:#2d5a27;color:#fff;border-color:#2d5a27;}
 
 .tracking-search{display:flex;flex-direction:column;gap:12px;margin-bottom:24px;padding:20px;background:#f9fafb;border-radius:12px;}
 

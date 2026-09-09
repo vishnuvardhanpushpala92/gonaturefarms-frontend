@@ -23,6 +23,8 @@ export default function TrackingPage() {
   const { user } = useAuth();
   const showToast = useToast();
   const [trackingNumber, setTrackingNumber] = useState('');
+  const [phone, setPhone] = useState('');
+  const [searchType, setSearchType] = useState('orderId'); // 'orderId' or 'phone'
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -31,7 +33,7 @@ export default function TrackingPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
 
-  const lookupByTrackingNumber = async (e) => {
+  const lookupByOrderId = async (e) => {
     e.preventDefault();
     if (!trackingNumber.trim()) return;
 
@@ -41,7 +43,23 @@ export default function TrackingPage() {
       setOrders([data.order]);
       setSearched(true);
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Order not found. Please check your tracking number.');
+      showToast(err?.response?.data?.message || 'Order not found. Please check your order ID.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const lookupByPhone = async (e) => {
+    e.preventDefault();
+    if (!phone.trim()) return;
+
+    setLoading(true);
+    try {
+      const { data } = await api.get('/orders/lookup', { params: { phone }, timeout: 60000 });
+      setOrders(data.orders || []);
+      setSearched(true);
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'No orders found for this phone number.');
     } finally {
       setLoading(false);
     }
@@ -64,7 +82,11 @@ export default function TrackingPage() {
       setShowReturnForm(prev => ({ ...prev, [orderId]: false }));
       setReturnForm(prev => ({ ...prev, [orderId]: {} }));
       // Reload orders to show updated return status
-      await lookupByTrackingNumber({ preventDefault: () => {} });
+      if (searchType === 'orderId') {
+        await lookupByOrderId({ preventDefault: () => {} });
+      } else {
+        await lookupByPhone({ preventDefault: () => {} });
+      }
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to submit return request');
     } finally {
@@ -138,20 +160,52 @@ export default function TrackingPage() {
           <h1>Order Tracking</h1>
           <p>Track your Go Nature Farms orders</p>
         </div>
-        
-        <form onSubmit={lookupByTrackingNumber} className="tracking-search">
-          <label>Enter Order / Tracking Number:</label>
-          <input
-            type="text"
-            value={trackingNumber}
-            onChange={(e) => setTrackingNumber(e.target.value)}
-            placeholder="e.g., GN123456789"
-            required
-          />
-          <button type="submit" disabled={loading}>
-            {loading ? 'Searching...' : 'Track Order'}
+
+        <div className="tracking-search-type">
+          <button
+            className={`search-type-btn ${searchType === 'orderId' ? 'active' : ''}`}
+            onClick={() => setSearchType('orderId')}
+          >
+            Search by Order ID
           </button>
-        </form>
+          <button
+            className={`search-type-btn ${searchType === 'phone' ? 'active' : ''}`}
+            onClick={() => setSearchType('phone')}
+          >
+            Search by Phone
+          </button>
+        </div>
+
+        {searchType === 'orderId' ? (
+          <form onSubmit={lookupByOrderId} className="tracking-search">
+            <label>Enter Order ID:</label>
+            <input
+              type="text"
+              value={trackingNumber}
+              onChange={(e) => setTrackingNumber(e.target.value)}
+              placeholder="e.g., GN123456789"
+              required
+            />
+            <button type="submit" disabled={loading}>
+              {loading ? 'Searching...' : 'Track Order'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={lookupByPhone} className="tracking-search">
+            <label>Enter Phone Number:</label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="10-digit phone number"
+              pattern="[0-9]{10}"
+              required
+            />
+            <button type="submit" disabled={loading}>
+              {loading ? 'Searching...' : 'Track Order'}
+            </button>
+          </form>
+        )}
         
         {searched && orders.length === 0 && (
           <div className="no-orders">
