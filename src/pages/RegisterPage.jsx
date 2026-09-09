@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
@@ -7,19 +7,35 @@ export default function RegisterPage() {
   const { register } = useAuth();
   const showToast = useToast();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ 
-    name: '', 
-    username: '', 
-    email: '', 
-    phone: '', 
-    password: '', 
-    confirmPassword: '', 
-    securityQuestion: '', 
-    securityAnswer: '' 
+  const [form, setForm] = useState({
+    name: '',
+    username: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+    securityQuestion: '',
+    securityAnswer: ''
   });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const pageRef = useRef(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const { clientX, clientY } = e;
+      const { innerWidth, innerHeight } = window;
+      const x = (clientX / innerWidth - 0.5) * 20;
+      const y = (clientY / innerHeight - 0.5) * 20;
+      setMousePosition({ x, y });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   const validatePassword = (password) => {
     if (!password || password.length < 8) {
@@ -69,8 +85,11 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-background">
+    <div className="auth-page" ref={pageRef}>
+      <div className="auth-background register-background" style={{
+        transform: `perspective(1000px) rotateY(${mousePosition.x * 0.5}deg) rotateX(${-mousePosition.y * 0.5}deg)`,
+        transition: 'transform 0.1s ease-out'
+      }}>
         <div className="floating-leaves">
           <div className="leaf leaf-1"></div>
           <div className="leaf leaf-2"></div>

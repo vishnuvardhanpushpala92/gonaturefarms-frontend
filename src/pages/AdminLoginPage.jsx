@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
@@ -10,6 +10,22 @@ export default function AdminLoginPage() {
   const [form, setForm] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const pageRef = useRef(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const { clientX, clientY } = e;
+      const { innerWidth, innerHeight } = window;
+      const x = (clientX / innerWidth - 0.5) * 15;
+      const y = (clientY / innerHeight - 0.5) * 15;
+      setMousePosition({ x, y });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,8 +43,11 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="auth-page admin-login-page">
-      <div className="auth-background admin-background">
+    <div className="auth-page admin-login-page" ref={pageRef}>
+      <div className="auth-background admin-background" style={{
+        transform: `perspective(1000px) rotateY(${mousePosition.x * 0.3}deg) rotateX(${-mousePosition.y * 0.3}deg)`,
+        transition: 'transform 0.1s ease-out'
+      }}>
         <div className="floating-leaves">
           <div className="leaf leaf-1"></div>
           <div className="leaf leaf-2"></div>

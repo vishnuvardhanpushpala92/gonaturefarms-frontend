@@ -168,14 +168,28 @@ api.interceptors.response.use(
           error.userMessage = data.message || 'This field already exists.';
         } else if (data?.error === 'DUPLICATE_ADDRESS') {
           error.userMessage = data.message || 'This address already exists.';
+        } else if (data?.error === 'DUPLICATE_RETURN') {
+          error.userMessage = data.message || 'A return request already exists for this order.';
         } else {
           error.userMessage = data.message || 'This record already exists.';
         }
       } else if (error.response.status === 422) {
         // Validation/business-rule error
-        error.userMessage = data.message || 'Invalid input. Please check your data and try again.';
+        if (data?.error === 'RETURN_NOT_ELIGIBLE') {
+          error.userMessage = data.message || 'This order is not eligible for return.';
+        } else if (data?.error === 'ORDER_NOT_FOUND') {
+          error.userMessage = data.message || 'Order not found. Please check your tracking number.';
+        } else if (data?.error === 'ORDER_OWNERSHIP') {
+          error.userMessage = data.message || 'You can only access your own orders.';
+        } else {
+          error.userMessage = data.message || 'Invalid input. Please check your data and try again.';
+        }
       } else if (error.response.status === 404) {
-        error.userMessage = 'The requested resource was not found.';
+        if (error.config?.url?.includes('orders')) {
+          error.userMessage = 'Order not found. Please check your tracking number.';
+        } else {
+          error.userMessage = 'The requested resource was not found.';
+        }
       } else if (error.response.status === 500) {
         error.userMessage = 'Server error. Please try again later.';
       } else {

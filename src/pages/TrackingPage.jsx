@@ -22,47 +22,26 @@ export default function TrackingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const showToast = useToast();
-  const [phone, setPhone] = useState('');
+  const [trackingNumber, setTrackingNumber] = useState('');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [returnForm, setReturnForm] = useState({});
   const [showReturnForm, setShowReturnForm] = useState({});
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
 
-  const lookupByPhone = async (e) => {
+  const lookupByTrackingNumber = async (e) => {
     e.preventDefault();
-    if (!phone.trim()) return;
-    
-    if (user) {
-      showToast('Please use the "View My Orders" to view your orders.');
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const { data } = await api.get('/orders/lookup', { params: { phone }, timeout: 60000 });
-      setOrders(data.orders || []);
-      setSearched(true);
-    } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to lookup orders');
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (!trackingNumber.trim()) return;
 
-  const loadMyOrders = async () => {
-    if (!user) {
-      showToast('Please login to view your orders');
-      return;
-    }
-    
     setLoading(true);
     try {
-      const { data } = await api.get('/orders/my', { timeout: 60000 });
-      setOrders(data.orders || []);
+      const { data } = await api.get(`/orders/${trackingNumber}`, { timeout: 60000 });
+      setOrders([data.order]);
       setSearched(true);
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to load orders');
+      showToast(err?.response?.data?.message || 'Order not found. Please check your tracking number.');
     } finally {
       setLoading(false);
     }
@@ -74,7 +53,7 @@ export default function TrackingPage() {
       showToast('Please provide a reason for the return');
       return;
     }
-    
+
     setLoading(true);
     try {
       const { data } = await api.post(`/orders/${orderId}/return`, {
@@ -85,11 +64,7 @@ export default function TrackingPage() {
       setShowReturnForm(prev => ({ ...prev, [orderId]: false }));
       setReturnForm(prev => ({ ...prev, [orderId]: {} }));
       // Reload orders to show updated return status
-      if (user) {
-        await loadMyOrders();
-      } else {
-        await lookupByPhone({ preventDefault: () => {} });
-      }
+      await lookupByTrackingNumber({ preventDefault: () => {} });
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to submit return request');
     } finally {
@@ -97,30 +72,55 @@ export default function TrackingPage() {
     }
   };
 
+  const handleViewDetails = (order) => {
+    setSelectedOrder(order);
+    setShowOrderDetails(true);
+  };
+
   const renderTimeline = (status) => {
     const currentIndex = STATUS_STEPS.indexOf(status);
     return (
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 0', position: 'relative' }}>
         {STATUS_STEPS.map((step, index) => (
-          <div key={step} style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
+          <div key={step} style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
             zIndex: 1,
-            flex: 1 
+            flex: 1,
+            position: 'relative'
           }}>
             <div style={{
-              width: '12px',
-              height: '12px',
+              width: '16px',
+              height: '16px',
               borderRadius: '50%',
               backgroundColor: index <= currentIndex ? '#2d5a27' : '#e5e7eb',
-              marginBottom: '8px'
-            }} />
-            <span style={{ 
-              fontSize: '0.7rem', 
+              marginBottom: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: index <= currentIndex ? '#fff' : '#9ca3af',
+              fontSize: '0.7rem',
+              fontWeight: 'bold'
+            }}>
+              {index <= currentIndex ? '✓' : ''}
+            </div>
+            {index === currentIndex && (
+              <div style={{
+                position: 'absolute',
+                top: '-24px',
+                fontSize: '1.2rem',
+                animation: 'bounce 2s infinite'
+              }}>
+                🚚
+              </div>
+            )}
+            <span style={{
+              fontSize: '0.7rem',
               color: index <= currentIndex ? '#2d5a27' : '#9ca3af',
               textAlign: 'center',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              fontWeight: index === currentIndex ? 'bold' : 'normal'
             }}>
               {STATUS_LABELS[step] || step}
             </span>
@@ -139,28 +139,19 @@ export default function TrackingPage() {
           <p>Track your Go Nature Farms orders</p>
         </div>
         
-        {!user && (
-          <form onSubmit={lookupByPhone} className="tracking-search">
-            <label>Enter your phone number:</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="10-digit phone number"
-              pattern="[0-9]{10}"
-              required
-            />
-            <button type="submit" disabled={loading}>
-              {loading ? 'Searching...' : 'Track Order'}
-            </button>
-          </form>
-        )}
-        
-        {user && (
-          <button onClick={loadMyOrders} className="load-orders-btn" disabled={loading}>
-            {loading ? 'Loading...' : 'View My Orders'}
+        <form onSubmit={lookupByTrackingNumber} className="tracking-search">
+          <label>Enter Order / Tracking Number:</label>
+          <input
+            type="text"
+            value={trackingNumber}
+            onChange={(e) => setTrackingNumber(e.target.value)}
+            placeholder="e.g., GN123456789"
+            required
+          />
+          <button type="submit" disabled={loading}>
+            {loading ? 'Searching...' : 'Track Order'}
           </button>
-        )}
+        </form>
         
         {searched && orders.length === 0 && (
           <div className="no-orders">
@@ -197,6 +188,15 @@ export default function TrackingPage() {
                 
                 <div className="order-total">
                   <strong>Total: ₹{order.total}</strong>
+                </div>
+
+                <div className="order-actions">
+                  <button
+                    className="view-details-btn"
+                    onClick={() => handleViewDetails(order)}
+                  >
+                    View Details
+                  </button>
                 </div>
                 
                 {order.status === 'Delivered' && !order.returnRequested && (
@@ -282,6 +282,103 @@ export default function TrackingPage() {
           </button>
         </div>
       </div>
+
+      {showOrderDetails && selectedOrder && (
+        <div className="modal-overlay" onClick={() => setShowOrderDetails(false)}>
+          <div className="order-details-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Order Details</h2>
+              <button onClick={() => setShowOrderDetails(false)} className="close-btn">×</button>
+            </div>
+            <div className="modal-body">
+              <div className="order-bill">
+                <div className="bill-header">
+                  <img src="/logo.png" alt="Go Nature Farms" className="bill-logo" />
+                  <h3>Go Nature Farms</h3>
+                  <p>Order Bill</p>
+                </div>
+
+                <div className="bill-info">
+                  <div className="bill-row">
+                    <span>Order ID:</span>
+                    <strong>{selectedOrder.orderId}</strong>
+                  </div>
+                  <div className="bill-row">
+                    <span>Order Date:</span>
+                    <strong>{new Date(selectedOrder.createdAt).toLocaleString()}</strong>
+                  </div>
+                  <div className="bill-row">
+                    <span>Customer:</span>
+                    <strong>{selectedOrder.customerName}</strong>
+                  </div>
+                  <div className="bill-row">
+                    <span>Phone:</span>
+                    <strong>{selectedOrder.phone}</strong>
+                  </div>
+                  <div className="bill-row">
+                    <span>Delivery Address:</span>
+                    <strong>{selectedOrder.address}, {selectedOrder.area}, {selectedOrder.city}, {selectedOrder.state} - {selectedOrder.pincode}</strong>
+                  </div>
+                </div>
+
+                <div className="bill-items">
+                  <h4>Items</h4>
+                  {selectedOrder.items && selectedOrder.items.map((item, index) => (
+                    <div key={index} className="bill-item">
+                      <span>{item.name} x {item.quantity}</span>
+                      <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bill-totals">
+                  <div className="bill-row">
+                    <span>Subtotal:</span>
+                    <span>₹{selectedOrder.subtotal}</span>
+                  </div>
+                  <div className="bill-row">
+                    <span>GST:</span>
+                    <span>₹{selectedOrder.gstAmount}</span>
+                  </div>
+                  <div className="bill-row">
+                    <span>Delivery Charge:</span>
+                    <span>₹{selectedOrder.deliveryCharge}</span>
+                  </div>
+                  {selectedOrder.discount > 0 && (
+                    <div className="bill-row discount">
+                      <span>Discount:</span>
+                      <span>-₹{selectedOrder.discount}</span>
+                    </div>
+                  )}
+                  <div className="bill-row total">
+                    <span>Total:</span>
+                    <strong>₹{selectedOrder.total}</strong>
+                  </div>
+                </div>
+
+                <div className="bill-status">
+                  <div className="bill-row">
+                    <span>Payment Method:</span>
+                    <strong>{selectedOrder.paymentMethod}</strong>
+                  </div>
+                  <div className="bill-row">
+                    <span>Payment Status:</span>
+                    <strong className={selectedOrder.paymentStatus.toLowerCase()}>
+                      {selectedOrder.paymentStatus}
+                    </strong>
+                  </div>
+                  <div className="bill-row">
+                    <span>Order Status:</span>
+                    <strong className={selectedOrder.status.toLowerCase()}>
+                      {STATUS_LABELS[selectedOrder.status] || selectedOrder.status}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

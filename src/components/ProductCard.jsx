@@ -50,6 +50,16 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
 
   const handleAdd = () => {
     if (!isAuthenticated) {
+      // Store the intended action to restore after login
+      sessionStorage.setItem('gnf_intended_action', JSON.stringify({
+        type: 'add_to_cart',
+        product: {
+          ...product,
+          price: displayPrice,
+          variantId: selectedVariant ? selectedVariant.id : null,
+          variantName: selectedVariant ? selectedVariant.variantName : null
+        }
+      }));
       navigate('/login');
       return;
     }
