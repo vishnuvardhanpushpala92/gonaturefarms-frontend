@@ -93,6 +93,10 @@ export default function Header({ search, onSearch, onOpenCart, blinkLogin, blink
           <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
           <span>Cart {count > 0 && `(${count})`}</span>
         </button>
+        <button className="hbtn" onClick={() => navigate('/tracking')}>
+          <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zm10 0a2 2 0 11-4 0 2 2 0 014 0zm-9.83-5.25l.564-1.682a2 2 0 011.896-1.364h11.11a2 2 0 011.896 1.364l.564 1.682M5 17h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+          <span>Track Order</span>
+        </button>
         {isAuthenticated ? (
           <button className="hbtn" onClick={() => navigate('/dashboard')}>
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
@@ -134,6 +138,10 @@ export default function Header({ search, onSearch, onOpenCart, blinkLogin, blink
           <button className="hbtn" onClick={handleOpenCart} style={{ width: '100%', justifyContent: 'flex-start', padding: '12px' }}>
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
             <span>Cart {count > 0 && `(${count})`}</span>
+          </button>
+          <button className="hbtn" onClick={() => navigate('/tracking')} style={{ width: '100%', justifyContent: 'flex-start', padding: '12px' }}>
+            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zm10 0a2 2 0 11-4 0 2 2 0 014 0zm-9.83-5.25l.564-1.682a2 2 0 011.896-1.364h11.11a2 2 0 011.896 1.364l.564 1.682M5 17h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+            <span>Track Order</span>
           </button>
           {isAuthenticated ? (
             <button className="hbtn" onClick={() => navigate('/dashboard')} style={{ width: '100%', justifyContent: 'flex-start', padding: '12px' }}>
