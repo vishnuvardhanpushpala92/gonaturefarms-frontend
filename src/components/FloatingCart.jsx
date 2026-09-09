@@ -1,13 +1,27 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 export default function FloatingCart({ onClick, blinkCart }) {
+  const navigate = useNavigate();
   const { cart: items } = useCart();
+  const { isAuthenticated } = useAuth();
   const count = (items || []).reduce((sum, item) => sum + (item.qty || item.quantity || 0), 0);
+
+  const handleClick = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    if (onClick) {
+      onClick();
+    }
+  };
 
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       className={blinkCart ? 'blink-alert' : ''}
       style={{
         position: 'fixed',

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import api from '../api/client';
 
 export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }) {
+  const navigate = useNavigate();
   const { isAdmin, isAuthenticated } = useAuth();
   const { addItem } = useCart();
   const showToast = useToast();
@@ -48,7 +50,7 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
 
   const handleAdd = () => {
     if (!isAuthenticated) {
-      showToast('Please login or register to add items to cart');
+      navigate('/login');
       return;
     }
     const productToAdd = {

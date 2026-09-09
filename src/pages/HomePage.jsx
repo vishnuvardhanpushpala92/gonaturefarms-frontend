@@ -27,6 +27,7 @@ export default function HomePage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
   const [reviewProduct, setReviewProduct] = useState(false);
+  const [blinkLogin, setBlinkLogin] = useState(false);
   const [blinkCart, setBlinkCart] = useState(false);
   const [cartAutoCloseTimer, setCartAutoCloseTimer] = useState(null);
   const [mounted, setMounted] = useState(false);
@@ -103,6 +104,7 @@ export default function HomePage() {
         search={search}
         onSearch={setSearch}
         onOpenCart={handleOpenCart}
+        blinkLogin={blinkLogin}
         blinkCart={blinkCart}
       />
       <div id="top">

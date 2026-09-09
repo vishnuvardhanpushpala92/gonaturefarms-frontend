@@ -4,7 +4,7 @@ import { useSite } from '../context/SiteContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
-export default function Header({ search, onSearch, onOpenCart, onOpenOrders, blinkLogin, blinkCart }) {
+export default function Header({ search, onSearch, onOpenCart, blinkLogin, blinkCart }) {
   const { settings } = useSite();
   const { count } = useCart();
   const { user, isAuthenticated } = useAuth();
@@ -31,17 +31,17 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, bli
     setMobileMenuOpen(false);
   };
 
-  const handleOpenOrders = () => {
-    navigate('/tracking');
-    setMobileMenuOpen(false);
-  };
-
   const handleOpenAdmin = () => {
     navigate('/admin/login');
     setMobileMenuOpen(false);
   };
 
   const handleOpenCart = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      setMobileMenuOpen(false);
+      return;
+    }
     if (onOpenCart) {
       onOpenCart();
       setMobileMenuOpen(false);
@@ -93,10 +93,6 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, bli
           <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
           <span>Cart {count > 0 && `(${count})`}</span>
         </button>
-        <button className="hbtn" onClick={handleOpenOrders}>
-          <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" /><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" /></svg>
-          <span>Orders</span>
-        </button>
         {isAuthenticated ? (
           <button className="hbtn" onClick={() => navigate('/dashboard')}>
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
@@ -108,11 +104,11 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, bli
             <span>Login</span>
           </button>
         )}
-        {user?.role === 'ADMIN' && (
+        {!isAuthenticated || user?.role === 'ADMIN' ? (
           <button className="hbtn" onClick={handleOpenAdmin}>
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" /></svg>
           </button>
-        )}
+        ) : null}
       </div>
 
       {/* Mobile Menu */}
@@ -139,10 +135,6 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, bli
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
             <span>Cart {count > 0 && `(${count})`}</span>
           </button>
-          <button className="hbtn" onClick={handleOpenOrders} style={{ width: '100%', justifyContent: 'flex-start', padding: '12px' }}>
-            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" /><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" /></svg>
-            <span>Orders</span>
-          </button>
           {isAuthenticated ? (
             <button className="hbtn" onClick={() => navigate('/dashboard')} style={{ width: '100%', justifyContent: 'flex-start', padding: '12px' }}>
               <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
@@ -154,12 +146,12 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, bli
               <span>Login</span>
             </button>
           )}
-          {user?.role === 'ADMIN' && (
+          {!isAuthenticated || user?.role === 'ADMIN' ? (
             <button className="hbtn" onClick={handleOpenAdmin} style={{ width: '100%', justifyContent: 'flex-start', padding: '12px' }}>
               <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" /></svg>
               <span>Admin</span>
             </button>
-          )}
+          ) : null}
         </div>
       )}
 
