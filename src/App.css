@@ -131,7 +131,7 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);ov
 /* ── TRACKING PAGE ───────────────────────────────────────────── */
 .tracking-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f5f5f5 0%,#e8e8e8 100%);padding:20px;}
 
-.tracking-container{width:100%;max-width:800px;background:#fff;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,0.1);}
+.tracking-container{width:100%;max-width:900px;background:#fff;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,0.1);}
 
 .tracking-header{text-align:center;margin-bottom:30px;}
 
@@ -140,6 +140,108 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);ov
 .tracking-header h1{font-family:'Playfair Display',serif;font-size:2.5rem;color:#2d5a27;margin-bottom:8px;}
 
 .tracking-header p{color:#6b7280;font-size:1rem;}
+
+.tracking-search{display:flex;flex-direction:column;gap:12px;margin-bottom:24px;padding:20px;background:#f9fafb;border-radius:12px;}
+
+.tracking-search label{font-weight:600;color:#374151;font-size:0.9rem;}
+
+.tracking-search input{padding:12px 16px;border:1px solid #e5e7eb;border-radius:8px;font-size:1rem;transition:border-color 0.2s;}
+
+.tracking-search input:focus{outline:none;border-color:#2d5a27;box-shadow:0 0 0 3px rgba(45,90,39,0.1);}
+
+.tracking-search button{background:#2d5a27;color:#fff;padding:12px;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;transition:background 0.2s;}
+
+.tracking-search button:hover:not(:disabled){background:#234a1e;}
+
+.tracking-search button:disabled{opacity:0.6;cursor:not-allowed;}
+
+.load-orders-btn{width:100%;background:#2d5a27;color:#fff;padding:12px;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;transition:background 0.2s;margin-bottom:24px;}
+
+.load-orders-btn:hover:not(:disabled){background:#234a1e;}
+
+.load-orders-btn:disabled{opacity:0.6;cursor:not-allowed;}
+
+.no-orders{text-align:center;padding:40px;color:#6b7280;}
+
+.orders-list{display:flex;flex-direction:column;gap:20px;}
+
+.order-card{border:1px solid #e5e7eb;border-radius:12px;padding:20px;background:#fff;}
+
+.order-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #e5e7eb;}
+
+.order-header h3{font-size:1.1rem;color:#1a1a1a;margin:0 0 4px 0;}
+
+.order-header p{font-size:0.85rem;color:#6b7280;margin:0;}
+
+.order-status{padding:6px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;text-transform:uppercase;}
+
+.order-status.placed{background:#dbeafe;color:#1e40af;}
+
+.order-status.confirmed{background:#f0fdf4;color:#166534;}
+
+.order-status.processing{background:#fef3c7;color:#92400e;}
+
+.order-status.packed{background:#f3e8ff;color:#6b21a8;}
+
+.order-status.shipped{background:#e0f2fe;color:#0369a1;}
+
+.order-status.outfordelivery{background:#fef9c3;color:#854d0e;}
+
+.order-status.delivered{background:#dcfce7;color:#166534;}
+
+.order-status.cancelled{background:#fee2e2;color:#dc2626;}
+
+.order-items{margin:16px 0;padding:16px;background:#f9fafb;border-radius:8px;}
+
+.order-items h4{font-size:0.9rem;color:#374151;margin:0 0 12px 0;}
+
+.order-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:0.85rem;}
+
+.order-item:last-child{border-bottom:none;}
+
+.order-total{text-align:right;padding:12px 0;font-size:1.1rem;color:#2d5a27;}
+
+.return-btn{width:100%;background:#8b5cf6;color:#fff;padding:10px;border:none;border-radius:8px;font-size:0.9rem;font-weight:600;cursor:pointer;transition:background 0.2s;margin-top:12px;}
+
+.return-btn:hover{background:#7c3aed;}
+
+.return-form{margin-top:16px;padding:16px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;}
+
+.return-form h5{font-size:1rem;color:#374151;margin:0 0 12px 0;}
+
+.return-form .form-group{margin-bottom:12px;}
+
+.return-form label{display:block;font-size:0.85rem;font-weight:600;color:#374151;margin-bottom:4px;}
+
+.return-form select,.return-form textarea{width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:6px;font-size:0.9rem;font-family:'Inter',sans-serif;}
+
+.return-form select:focus,.return-form textarea:focus{outline:none;border-color:#2d5a27;box-shadow:0 0 0 2px rgba(45,90,39,0.1);}
+
+.return-form .form-actions{display:flex;gap:8px;margin-top:12px;}
+
+.return-form .submit-btn{flex:1;background:#2d5a27;color:#fff;padding:8px;border:none;border-radius:6px;font-size:0.85rem;font-weight:600;cursor:pointer;transition:background 0.2s;}
+
+.return-form .submit-btn:hover:not(:disabled){background:#234a1e;}
+
+.return-form .submit-btn:disabled{opacity:0.6;cursor:not-allowed;}
+
+.return-form .cancel-btn{flex:1;background:#fff;color:#6b7280;padding:8px;border:1px solid #e5e7eb;border-radius:6px;font-size:0.85rem;font-weight:600;cursor:pointer;transition:background 0.2s;}
+
+.return-form .cancel-btn:hover{background:#f9fafb;}
+
+.return-status{margin-top:12px;padding:12px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;}
+
+.return-status .status-badge{display:inline-block;padding:4px 12px;border-radius:12px;font-size:0.8rem;font-weight:600;margin-bottom:8px;}
+
+.return-status .status-badge.pending{background:#fffbeb;color:#92400e;}
+
+.return-status .status-badge.approved{background:#f0fdf4;color:#166534;}
+
+.return-status .status-badge.rejected{background:#fef2f2;color:#dc2626;}
+
+.return-status .status-badge.processed{background:#dbeafe;color:#1e40af;}
+
+.return-status p{font-size:0.85rem;color:#374151;margin:4px 0;}
 
 .tracking-footer{text-align:center;margin-top:30px;}
 
@@ -151,6 +253,8 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);ov
   .tracking-container{padding:30px 24px;}
   .tracking-header h1{font-size:1.8rem;}
   .tracking-logo{width:80px;height:80px;}
+  .order-header{flex-direction:column;align-items:flex-start;gap:8px;}
+  .return-form .form-actions{flex-direction:column;}
 }
 
 /* ── CONFETTI ──────────────────────────────────────────────── */

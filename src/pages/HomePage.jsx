@@ -1,38 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header.jsx';
 import HeroSlider from '../components/HeroSlider.jsx';
 import PromoStrip from '../components/PromoStrip.jsx';
 import ProductGrid from '../components/ProductGrid.jsx';
 import VideoGallery from '../components/VideoGallery.jsx';
 import Footer from '../components/Footer.jsx';
-import CartDrawer from '../components/CartDrawer.jsx';
-import CheckoutModal from '../components/CheckoutModalNew.jsx';
-import SupportModal from '../components/SupportModal.jsx';
-import ReviewModal from '../components/ReviewModal.jsx';
 import FlowerBlast from '../components/FlowerBlast.jsx';
-import FloatingCart from '../components/FloatingCart.jsx';
 import ScrollingBlocks from '../components/ScrollingBlocks.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 
-export default function HomePage() {
-  const navigate = useNavigate();
+export default function HomePage({ onOpenCart }) {
   const { isAuthenticated, user } = useAuth();
   const showToast = useToast();
   const { setItemAddedCallback } = useCart();
   const [search, setSearch] = useState('');
-  const [cartOpen, setCartOpen] = useState(false);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [supportOpen, setSupportOpen] = useState(false);
-  const [reviewProduct, setReviewProduct] = useState(false);
-  const [blinkLogin, setBlinkLogin] = useState(false);
-  const [blinkCart, setBlinkCart] = useState(false);
-  const [cartAutoCloseTimer, setCartAutoCloseTimer] = useState(null);
   const [mounted, setMounted] = useState(false);
 
-  // Ensure component is mounted before accessing localStorage
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -40,7 +24,7 @@ export default function HomePage() {
   // Set up cart callback to automatically open drawer when item is added
   useEffect(() => {
     const callback = () => {
-      setCartOpen(true);
+      // Cart drawer is handled by MainLayout
     };
     setItemAddedCallback(callback);
   }, [setItemAddedCallback]);
@@ -54,84 +38,21 @@ export default function HomePage() {
         sessionStorage.setItem('gnf_welcome_shown', 'true');
       }
     }
-  }, [isAuthenticated, user]);
-
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (cartAutoCloseTimer) {
-        clearTimeout(cartAutoCloseTimer);
-      }
-    };
-  }, []);
-
-  const handleOpenCart = () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-    
-    // Clear existing timer if any
-    if (cartAutoCloseTimer) {
-      clearTimeout(cartAutoCloseTimer);
-    }
-    
-    // Open cart
-    setCartOpen(true);
-    
-    // Set 5-second auto-close timer
-    const timer = setTimeout(() => {
-      setCartOpen(false);
-      setCartAutoCloseTimer(null);
-    }, 5000);
-    
-    setCartAutoCloseTimer(timer);
-  };
-
-  const handleCartClose = () => {
-    // Clear timer if manually closed
-    if (cartAutoCloseTimer) {
-      clearTimeout(cartAutoCloseTimer);
-      setCartAutoCloseTimer(null);
-    }
-    setCartOpen(false);
-  };
+  }, [isAuthenticated, user, showToast]);
 
   return (
     <>
       <FlowerBlast />
-      <Header
-        search={search}
-        onSearch={setSearch}
-        onOpenCart={handleOpenCart}
-        blinkLogin={blinkLogin}
-        blinkCart={blinkCart}
-      />
       <div id="top">
         <HeroSlider />
         <PromoStrip />
         <ScrollingBlocks />
       </div>
       <div id="products">
-        <ProductGrid search={search} onOpenReviews={setReviewProduct} />
+        <ProductGrid search={search} />
       </div>
-      <VideoGallery onOpenCart={handleOpenCart} />
-      <Footer onOpenSupport={() => setSupportOpen(true)} />
-
-      <CartDrawer open={cartOpen} onClose={handleCartClose} onCheckout={() => { handleCartClose(); setCheckoutOpen(true); }} />
-      <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
-      <SupportModal open={supportOpen} onClose={() => setSupportOpen(false)} />
-      <ReviewModal product={reviewProduct} onClose={() => setReviewProduct(null)} />
-
-      <FloatingCart onClick={handleOpenCart} blinkCart={blinkCart} />
-      <button
-        className="btn-wa"
-        style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 999, borderRadius: '50%', width: 54, height: 54 }}
-        onClick={() => setSupportOpen(true)}
-        title="Contact Support"
-      >
-        💬
-      </button>
+      <VideoGallery onOpenCart={onOpenCart} />
+      <Footer />
     </>
   );
 }
