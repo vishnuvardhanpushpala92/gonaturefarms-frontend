@@ -18,6 +18,23 @@ export default function HeroSlider() {
     return () => clearInterval(timer);
   }, [slides.length, mounted]);
 
+  const goToSlide = (newIndex) => {
+    setIndex(newIndex);
+  };
+
+  const goToPrevious = () => {
+    setIndex((i) => (i - 1 + slides.length) % slides.length);
+  };
+
+  const goToNext = () => {
+    setIndex((i) => (i + 1) % slides.length);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowLeft') goToPrevious();
+    if (e.key === 'ArrowRight') goToNext();
+  };
+
   if (!mounted || !loaded || !slides.length) return null;
 
   // Get image URLs with fallback for backward compatibility
@@ -28,7 +45,7 @@ export default function HeroSlider() {
   });
 
   return (
-    <div className="slider-wrap" ref={sliderRef}>
+    <div className="slider-wrap" ref={sliderRef} onKeyDown={handleKeyDown} tabIndex={0}>
       {slides.map((slide, i) => {
         const imageUrls = getImageUrls(slide);
         return (
@@ -49,6 +66,7 @@ export default function HeroSlider() {
                 src={imageUrls.desktop}
                 alt={slide.caption || 'Pure and natural products from Go Nature Farms'}
                 className="slide-image"
+                loading={i === 0 ? 'eager' : 'lazy'}
               />
             </picture>
             <div className="slide-mask" />
@@ -59,12 +77,36 @@ export default function HeroSlider() {
           </div>
         );
       })}
+      
+      {/* Left Arrow */}
+      <button 
+        className="slider-arrow slider-arrow-left"
+        onClick={goToPrevious}
+        aria-label="Previous slide"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+      </button>
+      
+      {/* Right Arrow */}
+      <button 
+        className="slider-arrow slider-arrow-right"
+        onClick={goToNext}
+        aria-label="Next slide"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M9 18l6-6-6-6" />
+        </svg>
+      </button>
+      
       <div className="slider-nav">
         {slides.map((_, i) => (
           <button
             key={i}
             className={`snav${i === index ? ' active' : ''}`}
-            onClick={() => setIndex(i)}
+            onClick={() => goToSlide(i)}
+            aria-label={`Go to slide ${i + 1}`}
           />
         ))}
       </div>

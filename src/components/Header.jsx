@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useSite } from '../context/SiteContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
-import { useTheme } from '../context/ThemeContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
-export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onOpenAuth, onOpenAdmin, blinkLogin, blinkCart }) {
+export default function Header({ search, onSearch, onOpenCart, onOpenOrders, blinkLogin, blinkCart }) {
   const { settings } = useSite();
   const { count } = useCart();
-  const { darkMode, toggleDarkMode } = useTheme();
+  const { user, isAuthenticated } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const isAdminPage = location.pathname.startsWith('/admin');
   const headerFontSize = settings.hdr_font_size || '16';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -26,30 +27,18 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
   const logoUrl = settings.logo || '/logo.png';
 
   const handleOpenAuth = () => {
-    if (onOpenAuth) {
-      onOpenAuth();
-      setMobileMenuOpen(false);
-    } else {
-      console.warn('onOpenAuth prop is not provided');
-    }
+    navigate('/login');
+    setMobileMenuOpen(false);
   };
 
   const handleOpenOrders = () => {
-    if (onOpenOrders) {
-      onOpenOrders();
-      setMobileMenuOpen(false);
-    } else {
-      console.warn('onOpenOrders prop is not provided');
-    }
+    navigate('/tracking');
+    setMobileMenuOpen(false);
   };
 
   const handleOpenAdmin = () => {
-    if (onOpenAdmin) {
-      onOpenAdmin();
-      setMobileMenuOpen(false);
-    } else {
-      console.warn('onOpenAdmin prop is not provided');
-    }
+    navigate('/admin/login');
+    setMobileMenuOpen(false);
   };
 
   const handleOpenCart = () => {
@@ -108,16 +97,22 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
           <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" /><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" /></svg>
           <span>Orders</span>
         </button>
-        <button className={`hbtn ${blinkLogin ? 'blink-alert' : ''}`} onClick={handleOpenAuth}>
-          <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-          <span>Account</span>
-        </button>
-        <button className="hbtn" title="Admin Login" onClick={handleOpenAdmin}>
-          <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" /></svg>
-        </button>
-        <button className="hbtn" title="Toggle Dark Mode" onClick={toggleDarkMode}>
-          {darkMode ? '☀️' : '🌙'}
-        </button>
+        {isAuthenticated ? (
+          <button className="hbtn" onClick={() => navigate('/dashboard')}>
+            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+            <span>Account</span>
+          </button>
+        ) : (
+          <button className={`hbtn ${blinkLogin ? 'blink-alert' : ''}`} onClick={handleOpenAuth}>
+            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+            <span>Login</span>
+          </button>
+        )}
+        {user?.role === 'ADMIN' && (
+          <button className="hbtn" onClick={handleOpenAdmin}>
+            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" /></svg>
+          </button>
+        )}
       </div>
 
       {/* Mobile Menu */}
@@ -127,7 +122,7 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
           top: '70px',
           left: 0,
           right: 0,
-          background: darkMode ? '#1f2937' : '#ffffff',
+          background: '#ffffff',
           borderBottom: '1px solid var(--border)',
           padding: '16px',
           zIndex: 1000,
@@ -148,17 +143,23 @@ export default function Header({ search, onSearch, onOpenCart, onOpenOrders, onO
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" /><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" /></svg>
             <span>Orders</span>
           </button>
-          <button className={`hbtn ${blinkLogin ? 'blink-alert' : ''}`} onClick={handleOpenAuth} style={{ width: '100%', justifyContent: 'flex-start', padding: '12px' }}>
-            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-            <span>Account</span>
-          </button>
-          <button className="hbtn" onClick={handleOpenAdmin} style={{ width: '100%', justifyContent: 'flex-start', padding: '12px' }}>
-            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" /></svg>
-            <span>Admin</span>
-          </button>
-          <button className="hbtn" onClick={toggleDarkMode} style={{ width: '100%', justifyContent: 'flex-start', padding: '12px' }}>
-            {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
-          </button>
+          {isAuthenticated ? (
+            <button className="hbtn" onClick={() => navigate('/dashboard')} style={{ width: '100%', justifyContent: 'flex-start', padding: '12px' }}>
+              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+              <span>Account</span>
+            </button>
+          ) : (
+            <button className="hbtn" onClick={handleOpenAuth} style={{ width: '100%', justifyContent: 'flex-start', padding: '12px' }}>
+              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+              <span>Login</span>
+            </button>
+          )}
+          {user?.role === 'ADMIN' && (
+            <button className="hbtn" onClick={handleOpenAdmin} style={{ width: '100%', justifyContent: 'flex-start', padding: '12px' }}>
+              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" /></svg>
+              <span>Admin</span>
+            </button>
+          )}
         </div>
       )}
 

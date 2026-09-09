@@ -390,12 +390,60 @@ export default function AuthModal({ open, onClose }) {
       console.error('=======================');
       
       if (err.response?.status === 401) {
-        showToast('Authentication expired. Please login again.');
+        // Genuine authentication error
+        showToast('Your session has expired. Please log in again.');
         onClose();
       } else if (err.response?.status === 409) {
-        // Conflict - duplicate address
-        const errorMessage = err?.response?.data?.message || 'This address is already registered';
-        setAddressFormErrors({ addressLine: errorMessage });
+        // Conflict - duplicate field
+        const data = err.response?.data;
+        if (data?.field) {
+          // Specific field duplication
+          const fieldErrors = {};
+          if (data.field === 'phone') {
+            fieldErrors.phone = 'Phone number already exists.';
+          } else if (data.field === 'address') {
+            fieldErrors.addressLine = 'This address already exists.';
+          } else if (data.field === 'pincode') {
+            fieldErrors.pincode = 'This pincode already exists.';
+          } else if (data.field === 'name') {
+            fieldErrors.name = 'This name already exists.';
+          } else {
+            fieldErrors.addressLine = data.message || 'This field already exists.';
+          }
+          setAddressFormErrors(fieldErrors);
+        } else if (data?.error === 'DUPLICATE_ADDRESS') {
+          setAddressFormErrors({ addressLine: data.message || 'This address already exists.' });
+        } else if (data?.error === 'DUPLICATE_FIELD') {
+          setAddressFormErrors({ addressLine: data.message || 'This field already exists.' });
+        } else {
+          setAddressFormErrors({ addressLine: data.message || 'This address already exists.' });
+        }
+      } else if (err.response?.status === 400) {
+        // Validation error
+        const data = err.response?.data;
+        if (data?.errors) {
+          // Map backend validation errors to form fields
+          const fieldErrors = {};
+          Object.entries(data.errors).forEach(([field, message]) => {
+            if (field === 'phone') fieldErrors.phone = message;
+            else if (field === 'addressLine') fieldErrors.addressLine = message;
+            else if (field === 'city') fieldErrors.city = message;
+            else if (field === 'state') fieldErrors.state = message;
+            else if (field === 'pincode') fieldErrors.pincode = message;
+            else if (field === 'name') fieldErrors.name = message;
+            else fieldErrors.addressLine = message;
+          });
+          setAddressFormErrors(fieldErrors);
+        } else {
+          showToast(err?.userMessage || data?.message || 'Invalid address data. Please check your input.');
+        }
+      } else if (err.response?.status === 403) {
+        showToast('You do not have permission to save addresses.');
+      } else if (err.response?.status === 500) {
+        showToast('Server error. Unable to save your address right now. Please try again.');
+      } else if (!err.response) {
+        // Network error
+        showToast('Unable to save your address right now. Please check your connection and try again.');
       } else {
         showToast(err?.userMessage || err?.response?.data?.message || 'Failed to save address');
       }
@@ -488,12 +536,70 @@ export default function AuthModal({ open, onClose }) {
         loadAddresses();
       }
     } catch (err) {
-      if (err.response?.status === 409) {
-        // Conflict - duplicate address
-        const errorMessage = err?.response?.data?.message || 'This address is already registered';
-        setAddressFormErrors({ addressLine: errorMessage });
+      console.error('=== SAVE ADDRESS ERROR ===');
+      console.error('Error:', err);
+      console.error('Error response:', err.response);
+      console.error('Error status:', err.response?.status);
+      console.error('Error data:', err.response?.data);
+      console.error('=======================');
+      
+      if (err.response?.status === 401) {
+        // Genuine authentication error
+        showToast('Your session has expired. Please log in again.');
+        setShowAddressManagement(false);
+      } else if (err.response?.status === 409) {
+        // Conflict - duplicate field
+        const data = err.response?.data;
+        if (data?.field) {
+          // Specific field duplication
+          const fieldErrors = {};
+          if (data.field === 'phone') {
+            fieldErrors.phone = 'Phone number already exists.';
+          } else if (data.field === 'address') {
+            fieldErrors.addressLine = 'This address already exists.';
+          } else if (data.field === 'pincode') {
+            fieldErrors.pincode = 'This pincode already exists.';
+          } else if (data.field === 'name') {
+            fieldErrors.name = 'This name already exists.';
+          } else {
+            fieldErrors.addressLine = data.message || 'This field already exists.';
+          }
+          setAddressFormErrors(fieldErrors);
+        } else if (data?.error === 'DUPLICATE_ADDRESS') {
+          setAddressFormErrors({ addressLine: data.message || 'This address already exists.' });
+        } else if (data?.error === 'DUPLICATE_FIELD') {
+          setAddressFormErrors({ addressLine: data.message || 'This field already exists.' });
+        } else {
+          setAddressFormErrors({ addressLine: data.message || 'This address already exists.' });
+        }
+      } else if (err.response?.status === 400) {
+        // Validation error
+        const data = err.response?.data;
+        if (data?.errors) {
+          // Map backend validation errors to form fields
+          const fieldErrors = {};
+          Object.entries(data.errors).forEach(([field, message]) => {
+            if (field === 'phone') fieldErrors.phone = message;
+            else if (field === 'addressLine') fieldErrors.addressLine = message;
+            else if (field === 'city') fieldErrors.city = message;
+            else if (field === 'state') fieldErrors.state = message;
+            else if (field === 'pincode') fieldErrors.pincode = message;
+            else if (field === 'name') fieldErrors.name = message;
+            else fieldErrors.addressLine = message;
+          });
+          setAddressFormErrors(fieldErrors);
+        } else {
+          showToast(err?.userMessage || data?.message || 'Invalid address data. Please check your input.');
+        }
+      } else if (err.response?.status === 403) {
+        showToast('You do not have permission to save addresses.');
+      } else if (err.response?.status === 500) {
+        showToast('Server error. Unable to save your address right now. Please try again.');
+      } else if (!err.response) {
+        // Network error
+        showToast('Unable to save your address right now. Please check your connection and try again.');
       } else {
-        showToast(err?.response?.data?.message || 'Failed to save address');
+        showToast(err?.userMessage || err?.response?.data?.message || 'Failed to save address');
       }
     }
   };

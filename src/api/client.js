@@ -155,6 +155,25 @@ api.interceptors.response.use(
         } else {
           error.userMessage = 'Invalid request. Please check your input and try again.';
         }
+      } else if (error.response.status === 401) {
+        // Only show authentication message for genuine 401 errors
+        error.userMessage = 'Your session has expired. Please log in again.';
+      } else if (error.response.status === 403) {
+        error.userMessage = 'You do not have permission to perform this action.';
+      } else if (error.response.status === 409) {
+        // Conflict - duplicate field or record
+        if (data?.field) {
+          error.userMessage = `${data.field} already exists.`;
+        } else if (data?.error === 'DUPLICATE_FIELD') {
+          error.userMessage = data.message || 'This field already exists.';
+        } else if (data?.error === 'DUPLICATE_ADDRESS') {
+          error.userMessage = data.message || 'This address already exists.';
+        } else {
+          error.userMessage = data.message || 'This record already exists.';
+        }
+      } else if (error.response.status === 422) {
+        // Validation/business-rule error
+        error.userMessage = data.message || 'Invalid input. Please check your data and try again.';
       } else if (error.response.status === 404) {
         error.userMessage = 'The requested resource was not found.';
       } else if (error.response.status === 500) {
