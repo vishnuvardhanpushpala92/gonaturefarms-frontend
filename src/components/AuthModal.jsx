@@ -95,6 +95,16 @@ export default function AuthModal({ open, onClose }) {
     return strength;
   };
 
+  const getStrengthLabel = (strength) => {
+    if (strength === 0) return 'Enter password';
+    if (strength === 1) return 'Very Weak';
+    if (strength === 2) return 'Weak';
+    if (strength === 3) return 'Medium';
+    if (strength === 4) return 'Good';
+    if (strength === 5) return 'Strong ✓';
+    return '';
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -847,38 +857,78 @@ export default function AuthModal({ open, onClose }) {
                 </div>
                 {formErrors.password && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{formErrors.password}</div>}
                 {!isLogin && form.password && (
-                  <div style={{ marginTop: '8px' }}>
-                    <div style={{
-                      height: '4px',
-                      background: '#e5e7eb',
-                      borderRadius: '2px',
-                      overflow: 'hidden',
-                      width: '100%'
-                    }}>
-                      <div style={{
-                        height: '100%',
-                        width: `${(getPasswordStrength(form.password) / 5) * 100}%`,
-                        background: getPasswordStrength(form.password) === 5 ? '#22c55e' : '#f59e0b',
-                        transition: 'width 0.3s ease, background 0.3s ease'
-                      }} />
+                  <div style={{ marginTop: '12px' }}>
+                    <div style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '8px', color: '#374151' }}>
+                      Password Strength
                     </div>
-                    <div style={{ marginTop: '6px', fontSize: '0.75rem', color: '#6b7280' }}>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                        <span style={{ color: password.length >= 8 ? '#22c55e' : '#9ca3af' }}>
-                          {password.length >= 8 ? '✓' : '○'} Min 8 chars
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                      <div style={{
+                        flex: 1,
+                        height: '8px',
+                        background: '#e5e7eb',
+                        borderRadius: '4px',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        gap: '2px'
+                      }}>
+                        {[1, 2, 3, 4, 5].map((segment) => (
+                          <div
+                            key={segment}
+                            style={{
+                              flex: 1,
+                              height: '100%',
+                              background: getPasswordStrength(form.password) >= segment 
+                                ? (getPasswordStrength(form.password) === 5 ? '#22c55e' : getPasswordStrength(form.password) >= 4 ? '#3b82f6' : getPasswordStrength(form.password) >= 3 ? '#f59e0b' : '#ef4444')
+                                : '#e5e7eb',
+                              transition: 'background 0.3s ease',
+                              borderRadius: '2px'
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <span style={{
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        color: getPasswordStrength(form.password) === 5 ? '#22c55e' : getPasswordStrength(form.password) >= 4 ? '#3b82f6' : getPasswordStrength(form.password) >= 3 ? '#f59e0b' : '#ef4444',
+                        whiteSpace: 'nowrap',
+                        minWidth: '80px'
+                      }}>
+                        {getStrengthLabel(getPasswordStrength(form.password))}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '8px', color: '#374151' }}>
+                      Password must include:
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8125rem', color: '#6b7280' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: form.password.length >= 8 ? '#22c55e' : '#ef4444', fontSize: '1rem' }}>
+                          {form.password.length >= 8 ? '✓' : '✗'}
                         </span>
-                        <span style={{ color: /[A-Z]/.test(password) ? '#22c55e' : '#9ca3af' }}>
-                          {/[A-Z]/.test(password) ? '✓' : '○'} Uppercase
+                        <span>At least 8 characters</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: /[A-Z]/.test(form.password) ? '#22c55e' : '#ef4444', fontSize: '1rem' }}>
+                          {/[A-Z]/.test(form.password) ? '✓' : '✗'}
                         </span>
-                        <span style={{ color: /[a-z]/.test(password) ? '#22c55e' : '#9ca3af' }}>
-                          {/[a-z]/.test(password) ? '✓' : '○'} Lowercase
+                        <span>One uppercase letter (A-Z)</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: /[a-z]/.test(form.password) ? '#22c55e' : '#ef4444', fontSize: '1rem' }}>
+                          {/[a-z]/.test(form.password) ? '✓' : '✗'}
                         </span>
-                        <span style={{ color: /[0-9]/.test(password) ? '#22c55e' : '#9ca3af' }}>
-                          {/[0-9]/.test(password) ? '✓' : '○'} Number
+                        <span>One lowercase letter (a-z)</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: /[0-9]/.test(form.password) ? '#22c55e' : '#ef4444', fontSize: '1rem' }}>
+                          {/[0-9]/.test(form.password) ? '✓' : '✗'}
                         </span>
-                        <span style={{ color: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? '#22c55e' : '#9ca3af' }}>
-                          {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? '✓' : '○'} Special
+                        <span>One number (0-9)</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(form.password) ? '#22c55e' : '#ef4444', fontSize: '1rem' }}>
+                          {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(form.password) ? '✓' : '✗'}
                         </span>
+                        <span>One special character (@ # $ % !)</span>
                       </div>
                     </div>
                   </div>
@@ -916,6 +966,11 @@ export default function AuthModal({ open, onClose }) {
                     </button>
                   </div>
                   {formErrors.confirmPassword && <div style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '4px' }}>{formErrors.confirmPassword}</div>}
+                  {form.confirmPassword && !formErrors.confirmPassword && (
+                    <div style={{ fontSize: '0.75rem', marginTop: '4px', color: form.password === form.confirmPassword ? '#22c55e' : '#ef4444' }}>
+                      {form.password === form.confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
+                    </div>
+                  )}
                 </div>
               )}
               
@@ -926,7 +981,23 @@ export default function AuthModal({ open, onClose }) {
                 </button>
               )}
               
-              <button type="submit" className="btn btn-primary btn-block">
+              <button 
+                type="submit" 
+                className="btn btn-primary btn-block"
+                disabled={
+                  !isLogin && (
+                    !form.password || 
+                    !form.confirmPassword || 
+                    getPasswordStrength(form.password) < 5 || 
+                    form.password !== form.confirmPassword ||
+                    Object.keys(formErrors).length > 0
+                  )
+                }
+                style={{
+                  opacity: (!isLogin && (!form.password || !form.confirmPassword || getPasswordStrength(form.password) < 5 || form.password !== form.confirmPassword || Object.keys(formErrors).length > 0)) ? 0.6 : 1,
+                  cursor: (!isLogin && (!form.password || !form.confirmPassword || getPasswordStrength(form.password) < 5 || form.password !== form.confirmPassword || Object.keys(formErrors).length > 0)) ? 'not-allowed' : 'pointer'
+                }}
+              >
                 {isLogin ? 'Login' : 'Create Account'}
               </button>
             </form>
