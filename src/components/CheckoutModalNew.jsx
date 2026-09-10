@@ -269,10 +269,13 @@ export default function CheckoutModal({ open, onClose }) {
       return;
     }
     if (form.paymentMethod === 'UPI' && !form.paymentUtr?.trim()) {
-      showToast('Please enter the transaction ID/UTR');
+      showToast('Transaction ID is required.');
       return;
     }
-    // Removed transaction ID format validation - users can enter any format
+    if (form.paymentMethod === 'UPI' && form.paymentUtr?.trim().length < 12) {
+      showToast('Transaction ID must be at least 12 characters.');
+      return;
+    }
     if (items.length === 0) {
       showToast('Your cart is empty');
       return;
@@ -300,7 +303,7 @@ export default function CheckoutModal({ open, onClose }) {
         state: form.state || '',
         pincode: form.pincode,
         payment_method: form.paymentMethod,
-        payment_utr: form.paymentUtr || '',
+        payment_utr: form.paymentUtr ? form.paymentUtr.trim() : '',
         subtotal: totals.subtotal,
         gst_amount: totals.gstAmount,
         delivery_charge: deliveryCharge,
@@ -468,7 +471,44 @@ export default function CheckoutModal({ open, onClose }) {
               {settings.upi_scanner_url && <div className="qr-box"><img src={getImageUrl(settings.upi_scanner_url)} alt="UPI Scanner" /></div>}
               {!settings.upi_scanner_url && <div className="qr-box" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb' }}><img src="/qr-placeholder.png" alt="Payment QR" style={{ maxWidth: 200 }} onError={(e) => e.target.style.display = 'none'} /><span style={{ color: 'var(--muted)' }}>QR Code Placeholder</span></div>}
               {settings.upi_id && <div className="upi-box"><span className="upi-id">{settings.upi_id}</span></div>}
-              <div className="fg"><label htmlFor="checkout-payment-utr">Transaction ID / UTR (required)</label><input id="checkout-payment-utr" name="paymentUtr" required value={form.paymentUtr} onChange={(e) => setForm({ ...form, paymentUtr: e.target.value })} placeholder="Enter your transaction ID" /></div>
+              <div className="fg"><label htmlFor="checkout-payment-utr">Transaction ID / UTR (required)</label><input id="checkout-payment-utr" name="paymentUtr" required value={form.paymentUtr} onChange={(e) => setForm({ ...form, paymentUtr: e.target.value.trim() })} placeholder="Enter your transaction ID" />
+                {form.paymentUtr && form.paymentUtr.length > 0 && form.paymentUtr.length < 12 && (
+                  <div style={{ color: '#dc2626', fontSize: '.8rem', marginTop: 4 }}>Transaction ID must be at least 12 characters.</div>
+                )}
+              </div>
+              
+              {/* Transaction ID Visual Guidance */}
+              <div style={{ marginTop: '16px', padding: '16px', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '8px', color: '#374151' }}>How to find your Transaction ID / UTR</h4>
+                <p style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '12px' }}>After payment, open your payment transaction details and enter the Transaction ID shown in the example below.</p>
+                
+                <div className="transaction-id-demo-images">
+                  <div style={{ textAlign: 'center' }}>
+                    <img 
+                      src="/transaction-id-demo-1.png" 
+                      alt="Transaction ID Example 1" 
+                      style={{ 
+                        maxWidth: '100%', 
+                        height: 'auto', 
+                        borderRadius: '8px',
+                        border: '1px solid #e5e7eb'
+                      }}
+                    />
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <img 
+                      src="/transaction-id-demo-2.png" 
+                      alt="Transaction ID Example 2" 
+                      style={{ 
+                        maxWidth: '100%', 
+                        height: 'auto', 
+                        borderRadius: '8px',
+                        border: '1px solid #e5e7eb'
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
             </>
           )}
           {settings.payment_instructions && <p style={{ fontSize: '.75rem', color: 'var(--muted)', whiteSpace: 'pre-line', marginBottom: 12 }}>{settings.payment_instructions}</p>}
