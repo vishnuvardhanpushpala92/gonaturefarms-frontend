@@ -4,7 +4,7 @@ import ProductCard from './ProductCard.jsx';
 
 const ProductCardMemo = memo(ProductCard);
 
-export default function ProductGrid({ search, onOpenReviews }) {
+export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [activeCat, setActiveCat] = useState('All');
@@ -71,7 +71,7 @@ export default function ProductGrid({ search, onOpenReviews }) {
           <div className="empty-grid"><p>No products found</p></div>
         )}
         {uniqueCurrent.map((p) => (
-          <ProductCardMemo key={p.id} product={p} onOpenReviews={onOpenReviews} />
+          <ProductCardMemo key={p.id} product={p} onOpenReviews={onOpenReviews} onOpenCart={onOpenCart} />
         ))}
       </div>
 
@@ -82,7 +82,7 @@ export default function ProductGrid({ search, onOpenReviews }) {
           </div>
           <div className="pgrid">
             {uniqueFuture.map((p) => (
-              <ProductCardMemo key={p.id} product={p} onOpenReviews={onOpenReviews} />
+              <ProductCardMemo key={p.id} product={p} onOpenReviews={onOpenReviews} onOpenCart={onOpenCart} />
             ))}
           </div>
         </div>

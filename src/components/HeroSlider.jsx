@@ -5,18 +5,13 @@ import { useSite } from '../context/SiteContext.jsx';
 export default function HeroSlider() {
   const { slides, loaded } = useSite();
   const [index, setIndex] = useState(0);
-  const [mounted, setMounted] = useState(false);
   const sliderRef = useRef(null);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted || slides.length < 2) return;
+    if (slides.length < 2) return;
     const timer = setInterval(() => setIndex((i) => (i + 1) % slides.length), 5000);
     return () => clearInterval(timer);
-  }, [slides.length, mounted]);
+  }, [slides.length]);
 
   const goToSlide = (newIndex) => {
     setIndex(newIndex);
@@ -35,7 +30,7 @@ export default function HeroSlider() {
     if (e.key === 'ArrowRight') goToNext();
   };
 
-  if (!mounted || !loaded || !slides.length) return null;
+  if (!loaded || !slides.length) return null;
 
   // Get image URLs with fallback for backward compatibility
   const getImageUrls = (slide) => ({

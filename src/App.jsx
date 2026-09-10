@@ -60,7 +60,9 @@ function MainLayout({ children, showHeader = true }) {
           blinkCart={blinkCart}
         />
       )}
-      {childrenWithProps}
+      <div className={showHeader ? 'main-content' : ''}>
+        {childrenWithProps}
+      </div>
       <CartDrawer open={cartOpen} onClose={handleCartClose} onCheckout={() => { handleCartClose(); setCheckoutOpen(true); }} />
       <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
       <SupportModal open={supportOpen} onClose={() => setSupportOpen(false)} />
@@ -80,9 +82,8 @@ function MainLayout({ children, showHeader = true }) {
 
 // Loading fallback for lazy-loaded routes
 const PageLoader = () => (
-  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '20vh' }}>
     <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: '2rem', marginBottom: '16px' }}>🌱</div>
       <p style={{ color: '#6b7280' }}>Loading...</p>
     </div>
   </div>

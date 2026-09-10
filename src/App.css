@@ -31,6 +31,12 @@
 html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);line-height:1.6;width:100%;scroll-padding-top:68px;min-width:320px;overflow-x:hidden;}
 #root{overflow-x:hidden;min-height:100vh;}
 
+/* Fixed header spacer for main content */
+.main-content{padding-top:68px;}
+
+/* Auth pages don't need header spacer */
+.auth-page,.admin-login-page{padding-top:0;}
+
 /* ── RESPONSIVE CONTAINER SYSTEM ───────────────────────────── */
 .container{width:100%;margin:0 auto;padding-left:16px;padding-right:16px;}
 @media(min-width:768px){
@@ -771,7 +777,7 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);li
 a{text-decoration:none;color:inherit;}
 
 /* ── HEADER ────────────────────────────────────────────────── */
-header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;border-bottom:1px solid var(--border);height:68px;display:flex;align-items:center;justify-content:space-between;transition:background .3s;box-shadow:0 2px 4px rgba(0,0,0,0.05);}
+header{background:var(--hdr-bg);padding:0 5%;position:fixed;top:0;left:0;right:0;z-index:1000;border-bottom:1px solid var(--border);height:68px;display:flex;align-items:center;justify-content:space-between;transition:background .3s;box-shadow:0 2px 4px rgba(0,0,0,0.05);}
 .brand-text h1{font-family:'Playfair Display',serif;font-size:clamp(1rem, 2.5vw, 1.45rem);font-weight:800;color:var(--hdr-brand-color,var(--p));line-height:1.15;letter-spacing:.3px;}
 .brand{display:flex;align-items:center;gap:12px;cursor:pointer;}
 #main-logo{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--p);}
@@ -816,9 +822,9 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;
 /* ── HERO SLIDER ────────────────────────────────────────────── */
 /* PERMANENT RULE: Hero images must NEVER be cropped, cut, stretched, or distorted.
  * Use object-fit: contain to preserve complete original artwork.
- * Container height must be flexible (min-height) to adapt to image dimensions.
+ * Container height adapts to image dimensions to prevent empty green space.
  */
-.slider-wrap{position:relative;width:100%;max-width:none;overflow:hidden;background:#1a2e17;min-height:400px;}
+.slider-wrap{position:relative;width:100%;max-width:none;overflow:hidden;background:#1a2e17;height:auto;}
 .slide{position:absolute;inset:0;opacity:0;transition:opacity 0.8s ease-in-out;pointer-events:none;}
 .slide.active{position:relative;opacity:1;pointer-events:auto;}
 .hero-picture{display:block;width:100%;height:auto;}
@@ -839,7 +845,6 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;
 .slider-arrow:focus{outline:2px solid #2d5a27;outline-offset:2px;}
 
 @media(max-width:767px){
-  .slider-wrap{min-height:300px;}
   .slider-arrow{width:36px;height:36px;}
   .slider-arrow-left{left:10px;}
   .slider-arrow-right{right:10px;}
@@ -848,15 +853,12 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;
   .slide-content p{font-size:0.8rem;}
 }
 @media(min-width:768px) and (max-width:1023px){
-  .slider-wrap{min-height:350px;}
   .slide-content{bottom:12%;left:6%;max-width:70%;}
 }
 @media(min-width:1024px) and (max-width:1439px){
-  .slider-wrap{min-height:450px;}
   .slide-content{bottom:15%;left:8%;max-width:560px;}
 }
 @media(min-width:1440px){
-  .slider-wrap{min-height:500px;}
   .slide-content{bottom:15%;left:8%;max-width:600px;}
 }
 

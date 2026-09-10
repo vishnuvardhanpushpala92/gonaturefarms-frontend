@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import api from '../api/client';
 
-export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }) {
+export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, onOpenCart }) {
   const navigate = useNavigate();
   const { isAdmin, isAuthenticated } = useAuth();
   const { addItem } = useCart();
@@ -70,6 +70,10 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
       variantName: selectedVariant ? selectedVariant.variantName : null
     };
     addItem(productToAdd);
+    // Open cart drawer after adding
+    if (onOpenCart) {
+      onOpenCart();
+    }
   };
 
   const handleWishlist = async () => {

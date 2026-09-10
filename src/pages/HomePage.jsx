@@ -15,11 +15,6 @@ export default function HomePage({ onOpenCart }) {
   const showToast = useToast();
   const { setItemAddedCallback } = useCart();
   const [search, setSearch] = useState('');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Set up cart callback to automatically open drawer when item is added
   useEffect(() => {
@@ -49,7 +44,7 @@ export default function HomePage({ onOpenCart }) {
         <ScrollingBlocks />
       </div>
       <div id="products">
-        <ProductGrid search={search} />
+        <ProductGrid search={search} onOpenCart={onOpenCart} />
       </div>
       <VideoGallery onOpenCart={onOpenCart} />
       <Footer />
