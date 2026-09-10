@@ -67,12 +67,15 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
       </div>
 
       <div className="pgrid">
-        {!loading && uniqueCurrent.length === 0 && (
-          <div className="empty-grid"><p>No products found</p></div>
+        {loading ? (
+          <div className="empty-grid"><p>Loading products...</p></div>
+        ) : uniqueCurrent.length === 0 ? (
+          <div className="empty-grid"><p>Products are not available</p></div>
+        ) : (
+          uniqueCurrent.map((p) => (
+            <ProductCardMemo key={p.id} product={p} onOpenReviews={onOpenReviews} onOpenCart={onOpenCart} />
+          ))
         )}
-        {uniqueCurrent.map((p) => (
-          <ProductCardMemo key={p.id} product={p} onOpenReviews={onOpenReviews} onOpenCart={onOpenCart} />
-        ))}
       </div>
 
       {uniqueFuture.length > 0 && (

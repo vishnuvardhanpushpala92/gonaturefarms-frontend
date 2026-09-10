@@ -774,13 +774,8 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);li
   .chat-window{width:calc(100vw - 32px);right:16px;}
   #futureGrid{grid-template-columns:1fr!important;}
 
-  /* Mobile order tracking timeline */
-  .steps{display:none;}
-  .steps-mobile{display:block !important;}
   .bill{padding:12px;font-size:.85rem;}
   .bill-hdr h3{font-size:1rem;}
-  .step-num-mobile{width:20px;height:20px;font-size:.65rem;}
-  .step-lbl-mobile{font-size:.8rem;}
   .bill-body{padding:8px 0;}
 
   /* Mobile floating elements */
@@ -1463,14 +1458,8 @@ footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition
   .cart-summary{padding:12px;}
   .drawer-actions{flex-direction:column;}
   .btn-view-cart,.btn-checkout{padding:12px;font-size:.82rem;}
-  .steps{display:none;}
-  .steps-mobile{display:block !important;}
   .bill{padding:12px;font-size:.85rem;}
   .bill-hdr h3{font-size:1rem;}
-  .step-num{width:24px;height:24px;font-size:.7rem;}
-  .step-lbl{font-size:.75rem;}
-  .step-num-mobile{width:20px;height:20px;font-size:.65rem;}
-  .step-lbl-mobile{font-size:.8rem;}
   .bill-body{padding:8px 0;}
   .stat-cards{grid-template-columns:1fr;}
   .admin-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:10px;}
@@ -1559,6 +1548,180 @@ footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition
   .transaction-id-demo-images > div{
     flex:1;
     max-width:45%;
+  }
+}
+
+/* Order Timeline - Responsive */
+.order-timeline{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 0;
+  position:relative;
+  gap:8px;
+}
+
+.timeline-step{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  flex:1;
+  position:relative;
+  z-index:1;
+}
+
+.timeline-icon{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  background:#e5e7eb;
+  margin-bottom:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#9ca3af;
+  font-size:0.7rem;
+  font-weight:bold;
+}
+
+.timeline-step.completed .timeline-icon{
+  background:#2d5a27;
+  color:#fff;
+}
+
+.timeline-label{
+  font-size:0.7rem;
+  color:#9ca3af;
+  text-align:center;
+  white-space:nowrap;
+  font-weight:normal;
+}
+
+.timeline-step.completed .timeline-label{
+  color:#2d5a27;
+  font-weight:bold;
+}
+
+.timeline-step.pending .timeline-label{
+  color:#9ca3af;
+}
+
+.timeline-active-indicator{
+  position:absolute;
+  top:-24px;
+  font-size:1.2rem;
+  animation:bounce 2s infinite;
+}
+
+@keyframes bounce{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-5px);}
+}
+
+/* Mobile Timeline (<768px) */
+@media(max-width:767px){
+  .order-timeline{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:20px;
+    padding:16px 0;
+  }
+  
+  .timeline-step{
+    flex:1;
+    align-items:flex-start;
+    width:100%;
+  }
+  
+  .timeline-icon{
+    margin-bottom:8px;
+    margin-right:12px;
+  }
+  
+  .timeline-step{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+  }
+  
+  .timeline-label{
+    text-align:left;
+    font-size:0.85rem;
+    white-space:normal;
+  }
+  
+  .timeline-active-indicator{
+    position:relative;
+    top:auto;
+    left:auto;
+    margin-left:8px;
+  }
+  
+  /* Add vertical connector line for mobile */
+  .timeline-step:not(:last-child)::after{
+    content:'';
+    position:absolute;
+    left:8px;
+    top:24px;
+    bottom:-20px;
+    width:2px;
+    background:#e5e7eb;
+  }
+  
+  .timeline-step.completed:not(:last-child)::after{
+    background:#2d5a27;
+  }
+}
+
+/* Desktop Timeline (≥768px) */
+@media(min-width:768px){
+  .order-timeline{
+    flex-direction:row;
+    align-items:center;
+  }
+  
+  .timeline-step{
+    flex-direction:column;
+    align-items:center;
+  }
+  
+  .timeline-icon{
+    margin-bottom:8px;
+    margin-right:0;
+  }
+  
+  .timeline-step{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  
+  .timeline-label{
+    text-align:center;
+    font-size:0.7rem;
+    white-space:nowrap;
+  }
+  
+  .timeline-active-indicator{
+    position:absolute;
+    top:-24px;
+    left:50%;
+    transform:translateX(-50%);
+  }
+  
+  /* Add horizontal connector line for desktop */
+  .timeline-step:not(:last-child)::after{
+    content:'';
+    position:absolute;
+    top:8px;
+    right:-50%;
+    width:100%;
+    height:2px;
+    background:#e5e7eb;
+  }
+  
+  .timeline-step.completed:not(:last-child)::after{
+    background:#2d5a27;
   }
 }
 @media(max-width:767px){

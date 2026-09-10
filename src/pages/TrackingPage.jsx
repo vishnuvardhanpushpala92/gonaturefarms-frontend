@@ -115,48 +115,16 @@ export default function TrackingPage() {
   const renderTimeline = (status) => {
     const currentIndex = STATUS_STEPS.indexOf(status);
     return (
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 0', position: 'relative' }}>
+      <div className="order-timeline">
         {STATUS_STEPS.map((step, index) => (
-          <div key={step} style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            zIndex: 1,
-            flex: 1,
-            position: 'relative'
-          }}>
-            <div style={{
-              width: '16px',
-              height: '16px',
-              borderRadius: '50%',
-              backgroundColor: index <= currentIndex ? '#2d5a27' : '#e5e7eb',
-              marginBottom: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: index <= currentIndex ? '#fff' : '#9ca3af',
-              fontSize: '0.7rem',
-              fontWeight: 'bold'
-            }}>
+          <div key={step} className={`timeline-step ${index <= currentIndex ? 'completed' : 'pending'}`}>
+            <div className="timeline-icon">
               {index <= currentIndex ? '✓' : ''}
             </div>
             {index === currentIndex && (
-              <div style={{
-                position: 'absolute',
-                top: '-24px',
-                fontSize: '1.2rem',
-                animation: 'bounce 2s infinite'
-              }}>
-                🚚
-              </div>
+              <div className="timeline-active-indicator">🚚</div>
             )}
-            <span style={{
-              fontSize: '0.7rem',
-              color: index <= currentIndex ? '#2d5a27' : '#9ca3af',
-              textAlign: 'center',
-              whiteSpace: 'nowrap',
-              fontWeight: index === currentIndex ? 'bold' : 'normal'
-            }}>
+            <span className="timeline-label">
               {STATUS_LABELS[step] || step}
             </span>
           </div>
