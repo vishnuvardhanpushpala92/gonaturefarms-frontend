@@ -1,3 +1,18 @@
+/* ── PERMANENT RESPONSIVE RULES ────────────────────────────── */
+/* 
+ * STRICT RULES - NEVER BREAK THESE:
+ * 1. Hero must preserve complete original artwork - NO CROP/CUT/STRETCH/SQUASH
+ * 2. Hero must never use cropping to solve responsive layout
+ * 3. Homepage first viewport at 100% zoom: Header + Complete Hero + Scrolling Bar
+ * 4. Product cards must never clip their own content
+ * 5. Normal page scrolling must remain enabled
+ * 6. No unwanted horizontal scrolling at any viewport
+ * 7. No CSS zoom or transform scaling of the website
+ * 8. No fullscreen hero that hides the information bar
+ * 9. Product images use object-fit: contain to prevent cropping
+ * 10. Use min-height/max-height instead of fixed heights where possible
+ */
+
 /* ── DESIGN TOKENS ─────────────────────────────────────────── */
 :root{
   --p:#2d5a27;--p2:#3a7232;--accent:#8bc34a;--earth:#5d4037;
@@ -10,7 +25,7 @@
   --ftr-bg:#111111;--ftr-text:#e5e7eb;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);line-height:1.6;width:100%;scroll-padding-top:68px;min-width:320px;}
+html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);line-height:1.6;width:100%;scroll-padding-top:68px;min-width:320px;overflow-x:hidden;}
 #root{overflow-x:hidden;min-height:100vh;}
 
 /* ── RESPONSIVE CONTAINER SYSTEM ───────────────────────────── */
@@ -796,11 +811,15 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;
 }
 
 /* ── HERO SLIDER ────────────────────────────────────────────── */
-.slider-wrap{position:relative;width:100%;max-width:none;overflow:hidden;background:#1a2e17;aspect-ratio:2.65/1;}
+/* PERMANENT RULE: Hero images must NEVER be cropped, cut, stretched, or distorted.
+ * Use object-fit: contain to preserve complete original artwork.
+ * Container height must be flexible (min-height) to adapt to image dimensions.
+ */
+.slider-wrap{position:relative;width:100%;max-width:none;overflow:hidden;background:#1a2e17;min-height:400px;}
 .slide{position:absolute;inset:0;opacity:0;transition:opacity 0.8s ease-in-out;pointer-events:none;}
 .slide.active{position:relative;opacity:1;pointer-events:auto;}
-.hero-picture{display:block;width:100%;height:100%;}
-.slide-image{display:block;width:100%;height:100%;object-fit:contain;object-position:center;}
+.hero-picture{display:block;width:100%;height:auto;}
+.slide-image{display:block;width:100%;height:auto;object-fit:contain;object-position:center;}
 .slide-mask{position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,.55) 0%,rgba(0,0,0,.15) 60%,transparent 100%);pointer-events:none;}
 .slide-content{position:absolute;bottom:15%;left:8%;color:#fff;max-width:560px;pointer-events:none;z-index:2;}
 .slide-content h2{font-family:'Playfair Display',serif;font-size:clamp(1.5rem, 4vw, 2.8rem);line-height:1.2;margin-bottom:10px;text-shadow:0 2px 8px rgba(0,0,0,.3);}
@@ -817,7 +836,7 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;
 .slider-arrow:focus{outline:2px solid #2d5a27;outline-offset:2px;}
 
 @media(max-width:767px){
-  .slider-wrap{aspect-ratio:16/9;}
+  .slider-wrap{min-height:300px;}
   .slider-arrow{width:36px;height:36px;}
   .slider-arrow-left{left:10px;}
   .slider-arrow-right{right:10px;}
@@ -826,15 +845,15 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;
   .slide-content p{font-size:0.8rem;}
 }
 @media(min-width:768px) and (max-width:1023px){
-  .slider-wrap{aspect-ratio:2.4/1;}
+  .slider-wrap{min-height:350px;}
   .slide-content{bottom:12%;left:6%;max-width:70%;}
 }
 @media(min-width:1024px) and (max-width:1439px){
-  .slider-wrap{aspect-ratio:2.65/1;}
+  .slider-wrap{min-height:450px;}
   .slide-content{bottom:15%;left:8%;max-width:560px;}
 }
 @media(min-width:1440px){
-  .slider-wrap{aspect-ratio:2.65/1;}
+  .slider-wrap{min-height:500px;}
   .slide-content{bottom:15%;left:8%;max-width:600px;}
 }
 
@@ -884,20 +903,25 @@ header{background:var(--hdr-bg);padding:0 5%;position:sticky;top:0;z-index:1000;
 .fbtn.active{background:var(--p);color:#fff;border-color:var(--p);box-shadow:var(--shadow-md);}
 
 /* ── PRODUCT GRID ───────────────────────────────────────────── */
+/* PERMANENT RULE: Product cards must never clip their own content.
+ * Use overflow: visible on cards to prevent content cutoff.
+ * Product images use object-fit: contain to prevent cropping.
+ * Use min-height/max-height instead of fixed heights for flexibility.
+ */
 .pgrid{display:grid!important;gap:10px!important;width:100%!important;overflow-x:hidden!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;}
 
 @media(min-width:768px){
   .pgrid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;}
 }
-.pcard{background:#fff;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border);transition:all .35s cubic-bezier(.4,0,.2,1);position:relative;box-shadow:var(--shadow);display:flex;flex-direction:column;min-width:0;box-sizing:border-box;}
+.pcard{background:#fff;border-radius:var(--r-lg);overflow:visible;border:1px solid var(--border);transition:all .35s cubic-bezier(.4,0,.2,1);position:relative;box-shadow:var(--shadow);display:flex;flex-direction:column;min-width:0;box-sizing:border-box;}
 .pcard:hover{transform:translateY(-6px);box-shadow:var(--shadow-md);border-color:var(--accent);}
-.pcard-img{height:160px;overflow:hidden;background:#f3f4f6;flex-shrink:0;}
-.pcard-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s;}
+.pcard-img{min-height:160px;max-height:240px;overflow:hidden;background:#f3f4f6;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.pcard-img img{width:100%;height:auto;max-height:100%;object-fit:contain;transition:transform .5s;}
 .pcard:hover .pcard-img img{transform:scale(1.05);}
 .pcard-body{padding:12px;flex:1;display:flex;flex-direction:column;}
 .pcard-cat{font-size:.65rem;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:1px;background:rgba(139,195,74,.12);padding:4px 12px;border-radius:var(--r-pill);display:inline-block;}
 .pcard-name{font-size:clamp(0.85rem, 2vw, 0.98rem);font-weight:600;color:var(--text);margin:7px 0 3px;line-height:1.35;}
-.pcard-desc{font-size:.76rem;color:var(--muted);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:10px;}
+.pcard-desc{font-size:.76rem;color:var(--muted);line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:10px;min-height:2.7em;}
 .pcard-price-block{margin-bottom:12px;margin-top:auto;}
 .price-final{font-size:clamp(0.95rem, 2.5vw, 1.18rem);font-weight:700;color:var(--p);}
 .price-mrp{text-decoration:line-through;color:#bbb;font-size:.78rem;margin-left:6px;}
