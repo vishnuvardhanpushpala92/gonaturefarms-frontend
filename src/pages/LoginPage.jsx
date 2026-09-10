@@ -35,12 +35,19 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(form.username, form.password);
-      showToast('Login successful');
-      navigate('/dashboard');
+      const result = await login(form.username, form.password);
+      
+      // Only show success and navigate if login actually succeeded
+      if (result.success) {
+        showToast('Login successful');
+        navigate('/dashboard');
+      } else {
+        // Login failed - show the error message from backend
+        showToast(result.message || 'Login failed');
+      }
     } catch (err) {
       // Backend already returns field-specific errors - pass them through
-      const errorMessage = err?.response?.data?.message || err?.userMessage || 'Invalid mobile number or password.';
+      const errorMessage = err?.response?.data?.message || err?.userMessage || 'Unable to connect. Please try again.';
       showToast(errorMessage);
     } finally {
       setLoading(false);

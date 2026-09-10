@@ -20,7 +20,7 @@ const STATUS_LABELS = {
 
 export default function TrackingPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const showToast = useToast();
   const [phone, setPhone] = useState('');
   const [orders, setOrders] = useState([]);
@@ -30,6 +30,26 @@ export default function TrackingPage() {
   const [showReturnForm, setShowReturnForm] = useState({});
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
+
+  // Load orders for authenticated user on mount
+  React.useEffect(() => {
+    if (isAuthenticated && user) {
+      loadCustomerOrders();
+    }
+  }, [isAuthenticated, user]);
+
+  const loadCustomerOrders = async () => {
+    setLoading(true);
+    try {
+      const { data } = await api.get('/orders/my', { timeout: 60000 });
+      setOrders(data.orders || []);
+      setSearched(true);
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'No orders found for your account.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validatePhone = (phoneNumber) => {
     // Remove spaces and +91 prefix if present
@@ -154,24 +174,35 @@ export default function TrackingPage() {
           <p>Track your Go Nature Farms orders</p>
         </div>
 
-        <form onSubmit={lookupByPhone} className="tracking-search">
-          <label>Enter your mobile number:</label>
-          <div className="phone-input-wrapper">
-            <span className="phone-prefix">+91</span>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-              placeholder="9876543210"
-              pattern="[0-9]{10}"
-              maxLength={10}
-              required
-            />
+        {!isAuthenticated ? (
+          <form onSubmit={lookupByPhone} className="tracking-search">
+            <label>Enter your mobile number:</label>
+            <div className="phone-input-wrapper">
+              <span className="phone-prefix">+91</span>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                placeholder="9876543210"
+                pattern="[0-9]{10}"
+                maxLength={10}
+                required
+              />
+            </div>
+            <button type="submit" disabled={loading}>
+              {loading ? 'Searching...' : 'Track Order'}
+            </button>
+          </form>
+        ) : (
+          <div className="tracking-search" style={{ textAlign: 'center', padding: '20px' }}>
+            <p style={{ color: '#6b7280', marginBottom: '10px' }}>
+              Showing orders for: <strong>{user?.name || user?.phone}</strong>
+            </p>
+            <button onClick={loadCustomerOrders} disabled={loading} style={{ padding: '10px 20px', background: 'var(--p)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+              {loading ? 'Loading...' : 'Refresh Orders'}
+            </button>
           </div>
-          <button type="submit" disabled={loading}>
-            {loading ? 'Searching...' : 'Track Order'}
-          </button>
-        </form>
+        )}
         
         {searched && orders.length === 0 && (
           <div className="no-orders">

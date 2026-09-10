@@ -91,9 +91,16 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await register(form);
-      showToast('Registration successful');
-      navigate('/dashboard');
+      const result = await register(form);
+      
+      // Only navigate if registration actually succeeded
+      if (result.success) {
+        showToast('Registration successful');
+        navigate('/login');
+      } else {
+        // Registration failed - show the error message from backend
+        showToast(result.message || 'Registration failed');
+      }
     } catch (err) {
       // Backend already returns field-specific errors - pass them through
       const errorMessage = err?.response?.data?.message || err?.userMessage || 'Registration failed. Please try again.';
@@ -307,6 +314,16 @@ export default function RegisterPage() {
                     {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
                   </button>
                 </div>
+                {form.confirmPassword && (
+                  <div style={{ marginTop: '8px', fontSize: '0.8125rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ color: form.password === form.confirmPassword ? '#22c55e' : '#ef4444', fontSize: '1rem' }}>
+                      {form.password === form.confirmPassword ? '✓' : '✗'}
+                    </span>
+                    <span style={{ color: form.password === form.confirmPassword ? '#22c55e' : '#ef4444' }}>
+                      {form.password === form.confirmPassword ? 'Passwords match' : 'Passwords do not match'}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">

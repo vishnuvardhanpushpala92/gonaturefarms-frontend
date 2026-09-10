@@ -197,6 +197,21 @@ export default function CustomerDashboard() {
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', flexDirection: 'row' }}>
         {/* Sidebar */}
         <div style={{ flex: '0 0 250px', minWidth: 250, maxWidth: '100%' }}>
+          <style>{`
+            @media (max-width: 767px) {
+              .customer-dashboard > div:nth-child(2) {
+                flex-direction: column !important;
+              }
+              .customer-dashboard > div:nth-child(2) > div:first-child {
+                flex: 1 !important;
+                min-width: 100% !important;
+              }
+              .customer-dashboard > div:nth-child(2) > div:nth-child(2) {
+                flex: 1 !important;
+                min-width: 100% !important;
+              }
+            }
+          `}</style>
           <div className="admin-card" style={{ padding: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
               <div style={{ 

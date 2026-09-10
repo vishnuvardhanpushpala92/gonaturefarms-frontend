@@ -90,13 +90,14 @@ export function AuthProvider({ children }) {
     // Remove confirmPassword from payload as backend doesn't expect it
     const { confirmPassword, ...registerPayload } = payload;
     const { data } = await api.post('/auth/register', registerPayload, { timeout: 60000, ...config });
-    if (data.success) {
-      console.log('[REGISTER] Token received from backend:', data.token ? 'present' : 'missing');
-      console.log('[REGISTER] User received from backend:', data.user ? 'present' : 'missing');
-      persist(data.token, data.user);
-      console.log('[REGISTER] After persist - sessionStorage token:', sessionStorage.getItem('gnf_token') ? 'present' : 'missing');
-      console.log('[REGISTER] After persist - localStorage token:', localStorage.getItem('gnf_token') ? 'present' : 'missing');
-    }
+    // DO NOT auto-login after registration - let user login explicitly
+    // if (data.success) {
+    //   console.log('[REGISTER] Token received from backend:', data.token ? 'present' : 'missing');
+    //   console.log('[REGISTER] User received from backend:', data.user ? 'present' : 'missing');
+    //   persist(data.token, data.user);
+    //   console.log('[REGISTER] After persist - sessionStorage token:', sessionStorage.getItem('gnf_token') ? 'present' : 'missing');
+    //   console.log('[REGISTER] After persist - localStorage token:', localStorage.getItem('gnf_token') ? 'present' : 'missing');
+    // }
     return data;
   }, []);
 
