@@ -195,6 +195,7 @@ export default function TransactionPage() {
           items: orderedItems
         });
         showToast('Order placed successfully!');
+        clearCart(); // Clear cart after successful order
       } else {
         showToast(data.message || 'Failed to place order');
       }
@@ -223,167 +224,177 @@ export default function TransactionPage() {
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: '1.8rem', color: '#2d5a27' }}>Payment</h1>
-        <button onClick={handleBack} style={{ padding: '10px 20px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
+    <div className="transaction-page-container" style={{ maxWidth: 800, margin: '0 auto', padding: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <h1 style={{ fontSize: '1.5rem', color: '#2d5a27', margin: 0 }}>Payment</h1>
+        <button onClick={handleBack} className="transaction-button" style={{ padding: '8px 16px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
           ← Back to Store
         </button>
       </div>
 
       {placedOrder ? (
-        <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-          <span style={{ fontSize: '4rem', display: 'block', marginBottom: '20px' }}>✅</span>
-          <h2 style={{ fontSize: '1.5rem', color: '#2d5a27', marginBottom: '12px' }}>Order Confirmed!</h2>
-          <p style={{ fontSize: '1.1rem', color: '#6b7280', marginBottom: '8px' }}>Order ID: {placedOrder.orderId}</p>
-          <div style={{ textAlign: 'left', background: '#f9fafb', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
-            <p><strong>{placedOrder.customerName}</strong></p>
-            <p>{placedOrder.address}, {placedOrder.city} - {placedOrder.pincode}</p>
-            <p>{placedOrder.phone}</p>
+        <div className="transaction-section" style={{ textAlign: 'center', padding: '32px 16px', background: '#fff', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+          <span style={{ fontSize: '3rem', display: 'block', marginBottom: '16px' }}>✅</span>
+          <h2 style={{ fontSize: '1.3rem', color: '#2d5a27', marginBottom: '8px', margin: 0 }}>Order Confirmed!</h2>
+          <p style={{ fontSize: '1rem', color: '#6b7280', marginBottom: '16px' }}>Order ID: {placedOrder.orderId}</p>
+          <div style={{ textAlign: 'left', background: '#f9fafb', padding: '16px', borderRadius: '6px', marginBottom: '16px' }}>
+            <p style={{ margin: '0 0 8px 0' }}><strong>{placedOrder.customerName}</strong></p>
+            <p style={{ margin: '0 0 8px 0' }}>{placedOrder.address}, {placedOrder.city} - {placedOrder.pincode}</p>
+            <p style={{ margin: 0 }}>{placedOrder.phone}</p>
           </div>
-          <div style={{ textAlign: 'left', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '1.1rem', marginBottom: '12px' }}>Order Items:</h3>
+          <div style={{ textAlign: 'left', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '1rem', marginBottom: '8px', margin: 0 }}>Order Items:</h3>
             {placedOrder.items.map((item, index) => (
-              <div key={index} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', borderBottom: '1px solid #e5e7eb' }}>
-                <span>{item.name} x {item.qty}</span>
-                <span>₹{(item.price * item.qty).toFixed(2)}</span>
+              <div key={index} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #e5e7eb' }}>
+                <span style={{ fontSize: '0.9rem' }}>{item.name} x {item.qty}</span>
+                <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>₹{(item.price * item.qty).toFixed(2)}</span>
               </div>
             ))}
           </div>
-          <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#2d5a27' }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#2d5a27', marginBottom: '20px' }}>
             Total: ₹{grandTotal.toFixed(2)}
           </div>
-          <button onClick={handleBack} style={{ marginTop: '20px', padding: '12px 24px', background: '#2d5a27', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '1rem' }}>
+          <button onClick={handleBack} className="transaction-button" style={{ padding: '10px 20px', background: '#2d5a27', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.95rem' }}>
             Continue Shopping
           </button>
         </div>
       ) : (
-        <div>
+        <div className="transaction-page-content">
           {/* Order Summary */}
-          <div style={{ background: '#f9fafb', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', color: '#374151' }}>Order Summary</h3>
+          <div className="transaction-section" style={{ background: '#f9fafb', padding: '16px', borderRadius: '6px', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '1rem', marginBottom: '12px', color: '#374151', margin: 0 }}>Order Summary</h3>
             {items.map((item, index) => (
-              <div key={index} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #e5e7eb' }}>
+              <div key={index} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #e5e7eb' }}>
                 <div>
-                  <div style={{ fontWeight: '600' }}>{item.name}</div>
-                  <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>Qty: {item.qty}</div>
+                  <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{item.name}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>Qty: {item.qty}</div>
                 </div>
-                <div style={{ fontWeight: '600' }}>₹{(item.price * item.qty).toFixed(2)}</div>
+                <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>₹{(item.price * item.qty).toFixed(2)}</div>
               </div>
             ))}
           </div>
 
           {/* Customer Details */}
-          <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #e5e7eb' }}>
-            <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', color: '#374151' }}>Customer Details</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="transaction-section" style={{ background: '#fff', padding: '16px', borderRadius: '6px', marginBottom: '16px', border: '1px solid #e5e7eb' }}>
+            <h3 style={{ fontSize: '1rem', marginBottom: '12px', color: '#374151', margin: 0 }}>Customer Details</h3>
+            <div className="transaction-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', fontWeight: '500', color: '#374151' }}>Name</label>
+                <label className="transaction-label" style={{ display: 'block', marginBottom: '4px', fontSize: '0.8rem', fontWeight: '500', color: '#374151' }}>Name</label>
                 <input
+                  className="transaction-input"
                   type="text"
                   value={form.customerName}
                   onChange={(e) => setForm({ ...form, customerName: e.target.value })}
                   required
-                  style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '0.9rem' }}
+                  style={{ width: '100%', padding: '8px', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.85rem' }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', fontWeight: '500', color: '#374151' }}>Phone</label>
+                <label className="transaction-label" style={{ display: 'block', marginBottom: '4px', fontSize: '0.8rem', fontWeight: '500', color: '#374151' }}>Phone</label>
                 <input
+                  className="transaction-input"
                   type="tel"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   required
-                  style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '0.9rem' }}
+                  style={{ width: '100%', padding: '8px', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.85rem' }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', fontWeight: '500', color: '#374151' }}>Email</label>
+                <label className="transaction-label" style={{ display: 'block', marginBottom: '4px', fontSize: '0.8rem', fontWeight: '500', color: '#374151' }}>Email</label>
                 <input
+                  className="transaction-input"
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   required
-                  style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '0.9rem' }}
+                  style={{ width: '100%', padding: '8px', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.85rem' }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', fontWeight: '500', color: '#374151' }}>Pincode</label>
+                <label className="transaction-label" style={{ display: 'block', marginBottom: '4px', fontSize: '0.8rem', fontWeight: '500', color: '#374151' }}>Pincode</label>
                 <input
+                  className="transaction-input"
                   type="text"
                   value={form.pincode}
                   onChange={(e) => { setForm({ ...form, pincode: e.target.value }); if (e.target.value.length === 6) fetchDeliveryCharge(e.target.value); }}
                   required
                   maxLength={6}
-                  style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '0.9rem' }}
+                  style={{ width: '100%', padding: '8px', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.85rem' }}
                 />
-                {pincodeError && <div style={{ color: '#dc2626', fontSize: '.8rem', marginTop: 4 }}>{pincodeError}</div>}
-                {loadingDeliveryCharge && <div style={{ color: '#6b7280', fontSize: '.8rem', marginTop: 4 }}>Checking delivery availability...</div>}
+                {pincodeError && <div style={{ color: '#dc2626', fontSize: '.75rem', marginTop: 4 }}>{pincodeError}</div>}
+                {loadingDeliveryCharge && <div style={{ color: '#6b7280', fontSize: '.75rem', marginTop: 4 }}>Checking delivery availability...</div>}
               </div>
             </div>
-            <div style={{ marginTop: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', fontWeight: '500', color: '#374151' }}>Address</label>
+            <div style={{ marginTop: '12px' }}>
+              <label className="transaction-label" style={{ display: 'block', marginBottom: '4px', fontSize: '0.8rem', fontWeight: '500', color: '#374151' }}>Address</label>
               <textarea
+                className="transaction-input"
                 value={form.address}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
                 required
-                rows="3"
-                style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '0.9rem', resize: 'vertical' }}
+                rows="2"
+                style={{ width: '100%', padding: '8px', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.85rem', resize: 'vertical' }}
               />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
+            <div className="transaction-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', fontWeight: '500', color: '#374151' }}>City</label>
+                <label className="transaction-label" style={{ display: 'block', marginBottom: '4px', fontSize: '0.8rem', fontWeight: '500', color: '#374151' }}>City</label>
                 <input
+                  className="transaction-input"
                   type="text"
                   value={form.city}
                   onChange={(e) => setForm({ ...form, city: e.target.value })}
                   required
-                  style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '0.9rem' }}
+                  style={{ width: '100%', padding: '8px', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.85rem' }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', fontWeight: '500', color: '#374151' }}>State</label>
+                <label className="transaction-label" style={{ display: 'block', marginBottom: '4px', fontSize: '0.8rem', fontWeight: '500', color: '#374151' }}>State</label>
                 <input
+                  className="transaction-input"
                   type="text"
                   value={form.state}
                   onChange={(e) => setForm({ ...form, state: e.target.value })}
                   required
-                  style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '0.9rem' }}
+                  style={{ width: '100%', padding: '8px', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.85rem' }}
                 />
               </div>
             </div>
           </div>
 
           {/* Payment Section */}
-          <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #e5e7eb' }}>
-            <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', color: '#374151' }}>Payment</h3>
+          <div className="transaction-section" style={{ background: '#fff', padding: '16px', borderRadius: '6px', marginBottom: '16px', border: '1px solid #e5e7eb' }}>
+            <h3 style={{ fontSize: '1rem', marginBottom: '12px', color: '#374151', margin: 0 }}>Payment</h3>
             
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', fontWeight: '500', color: '#374151' }}>Coupon Code</label>
+            <div style={{ marginBottom: '12px' }}>
+              <label className="transaction-label" style={{ display: 'block', marginBottom: '4px', fontSize: '0.8rem', fontWeight: '500', color: '#374151' }}>Coupon Code</label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input
+                  className="transaction-input"
                   type="text"
                   value={coupon}
                   onChange={(e) => setCoupon(e.target.value.toUpperCase())}
-                  style={{ flex: 1, padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '0.9rem' }}
+                  style={{ flex: 1, padding: '8px', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.85rem' }}
                 />
                 <button
                   type="button"
                   onClick={applyCoupon}
-                  style={{ padding: '10px 20px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem' }}
+                  className="transaction-button"
+                  style={{ padding: '8px 16px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
                 >
                   Apply
                 </button>
               </div>
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', fontWeight: '500', color: '#374151' }}>Payment Method</label>
+            <div style={{ marginBottom: '12px' }}>
+              <label className="transaction-label" style={{ display: 'block', marginBottom: '4px', fontSize: '0.8rem', fontWeight: '500', color: '#374151' }}>Payment Method</label>
               <select
+                className="transaction-input"
                 value={form.paymentMethod}
                 onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
-                style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '0.9rem' }}
+                style={{ width: '100%', padding: '8px', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.85rem' }}
               >
                 <option value="UPI">UPI</option>
               </select>
@@ -392,44 +403,45 @@ export default function TransactionPage() {
             {form.paymentMethod === 'UPI' && (
               <>
                 {settings.upi_scanner_url && (
-                  <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                  <div style={{ textAlign: 'center', marginBottom: '12px' }}>
                     <img 
                       src={getImageUrl(settings.upi_scanner_url)} 
                       alt="UPI Scanner" 
-                      style={{ maxWidth: '200px', height: 'auto', borderRadius: '8px' }}
+                      style={{ maxWidth: '180px', height: 'auto', borderRadius: '6px' }}
                     />
                   </div>
                 )}
                 {!settings.upi_scanner_url && (
-                  <div style={{ textAlign: 'center', marginBottom: '16px', padding: '20px', background: '#f9fafb', borderRadius: '8px' }}>
-                    <span style={{ color: '#6b7280' }}>QR Code Placeholder</span>
+                  <div style={{ textAlign: 'center', marginBottom: '12px', padding: '16px', background: '#f9fafb', borderRadius: '6px' }}>
+                    <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>QR Code Placeholder</span>
                   </div>
                 )}
                 {settings.upi_id && (
-                  <div style={{ textAlign: 'center', marginBottom: '16px', padding: '12px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #22c55e' }}>
-                    <span style={{ fontSize: '1rem', fontWeight: '600', color: '#166534' }}>{settings.upi_id}</span>
+                  <div style={{ textAlign: 'center', marginBottom: '12px', padding: '10px', background: '#f0fdf4', borderRadius: '6px', border: '1px solid #22c55e' }}>
+                    <span style={{ fontSize: '0.9rem', fontWeight: '600', color: '#166534' }}>{settings.upi_id}</span>
                   </div>
                 )}
                 
-                <div style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', fontWeight: '500', color: '#374151' }}>Transaction ID / UTR (required)</label>
+                <div style={{ marginBottom: '12px' }}>
+                  <label className="transaction-label" style={{ display: 'block', marginBottom: '4px', fontSize: '0.8rem', fontWeight: '500', color: '#374151' }}>Transaction ID / UTR (required)</label>
                   <input
+                    className="transaction-input"
                     type="text"
                     value={form.paymentUtr}
                     onChange={(e) => setForm({ ...form, paymentUtr: e.target.value.trim() })}
                     placeholder="Enter your transaction ID"
                     required
-                    style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '0.9rem' }}
+                    style={{ width: '100%', padding: '8px', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.85rem' }}
                   />
                   {form.paymentUtr && form.paymentUtr.length > 0 && form.paymentUtr.length < 12 && (
-                    <div style={{ color: '#dc2626', fontSize: '.8rem', marginTop: 4 }}>Transaction ID must be at least 12 characters.</div>
+                    <div style={{ color: '#dc2626', fontSize: '.75rem', marginTop: 4 }}>Transaction ID must be at least 12 characters.</div>
                   )}
                 </div>
 
                 {/* Transaction ID Visual Guidance */}
-                <div style={{ marginTop: '16px', padding: '16px', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                  <h4 style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '8px', color: '#374151' }}>How to find your Transaction ID / UTR</h4>
-                  <p style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '12px' }}>After payment, open your payment transaction details and enter the Transaction ID shown in the example below.</p>
+                <div style={{ marginTop: '12px', padding: '12px', background: '#f9fafb', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                  <h4 style={{ fontSize: '0.85rem', fontWeight: '600', marginBottom: '6px', color: '#374151', margin: 0 }}>How to find your Transaction ID / UTR</h4>
+                  <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '10px' }}>After payment, open your payment transaction details and enter the Transaction ID shown in the example below.</p>
                   
                   <div className="transaction-id-demo-images">
                     <div style={{ textAlign: 'center' }}>
@@ -462,35 +474,35 @@ export default function TransactionPage() {
             )}
 
             {settings.payment_instructions && (
-              <p style={{ fontSize: '.75rem', color: '#6b7280', whiteSpace: 'pre-line', marginBottom: '16px' }}>
+              <p style={{ fontSize: '.75rem', color: '#6b7280', whiteSpace: 'pre-line', marginBottom: '12px' }}>
                 {settings.payment_instructions}
               </p>
             )}
           </div>
 
           {/* Order Total */}
-          <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-            <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', color: '#374151' }}>Order Total</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div className="transaction-section" style={{ background: '#fff', padding: '16px', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+            <h3 style={{ fontSize: '1rem', marginBottom: '12px', color: '#374151', margin: 0 }}>Order Total</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                 <span>Subtotal</span>
                 <span>₹{totals.subtotal.toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                 <span>GST</span>
                 <span>₹{totals.gstAmount.toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                 <span>Delivery</span>
                 <span>{deliveryCharge === 0 ? 'FREE' : `₹${deliveryCharge}`}</span>
               </div>
               {discount > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a', fontSize: '0.9rem' }}>
                   <span>Discount</span>
                   <span>-₹{discount.toFixed(2)}</span>
                 </div>
               )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.1rem', color: '#2d5a27', paddingTop: '8px', borderTop: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1rem', color: '#2d5a27', paddingTop: '6px', borderTop: '1px solid #e5e7eb' }}>
                 <span>Total</span>
                 <span>₹{grandTotal.toFixed(2)}</span>
               </div>
@@ -498,17 +510,19 @@ export default function TransactionPage() {
           </div>
 
           {/* Action Buttons */}
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '10px' }}>
             <button
               onClick={handleBack}
-              style={{ flex: 1, padding: '12px 24px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', cursor: 'pointer', fontSize: '1rem' }}
+              className="transaction-button"
+              style={{ flex: 1, padding: '10px 20px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem' }}
             >
               Back
             </button>
             <button
               onClick={placeOrder}
               disabled={placing}
-              style={{ flex: 1, padding: '12px 24px', background: '#2d5a27', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '1rem', opacity: placing ? 0.6 : 1 }}
+              className="transaction-button"
+              style={{ flex: 1, padding: '10px 20px', background: '#2d5a27', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', opacity: placing ? 0.6 : 1 }}
             >
               {placing ? 'Placing order...' : 'Place Order'}
             </button>

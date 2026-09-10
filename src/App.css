@@ -1487,8 +1487,67 @@ footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition
   .ci-qty{gap:4px;}
 }
 
-/* Transaction ID Demo Images - Mobile Responsive */
+/* Transaction Page - 100% Zoom Optimization */
+@media(max-width:767px){
+  .transaction-page-container{
+    padding:12px;
+  }
+  .transaction-section{
+    padding:12px;
+    border-radius:6px;
+    margin-bottom:12px;
+  }
+  .transaction-form-grid{
+    gap:10px;
+  }
+  .transaction-input{
+    padding:8px;
+    font-size:0.85rem;
+  }
+  .transaction-label{
+    font-size:0.8rem;
+  }
+  .transaction-button{
+    padding:10px 16px;
+    font-size:0.85rem;
+  }
+  .transaction-id-demo-images{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .transaction-id-demo-images > div{
+    width:100%;
+  }
+}
+
 @media(min-width:768px){
+  .transaction-page-container{
+    max-width:800px;
+    margin:0 auto;
+    padding:16px;
+  }
+  .transaction-page-content{
+    gap:16px;
+  }
+  .transaction-section{
+    padding:16px;
+    border-radius:6px;
+  }
+  .transaction-form-grid{
+    gap:12px;
+  }
+  .transaction-input{
+    padding:8px;
+    font-size:0.85rem;
+  }
+  .transaction-label{
+    font-size:0.8rem;
+  }
+  .transaction-button{
+    padding:10px 20px;
+    font-size:0.9rem;
+  }
   .transaction-id-demo-images{
     display:flex;
     gap:16px;
