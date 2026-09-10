@@ -1,0 +1,43 @@
+<svg width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#f9fafb" stroke="#e5e7eb" stroke-width="2"/>
+  
+  <!-- Phone Screen Mockup -->
+  <rect x="20" y="20" width="260" height="360" fill="#ffffff" stroke="#d1d5db" stroke-width="2" rx="8"/>
+  
+  <!-- Header -->
+  <rect x="20" y="20" width="260" height="50" fill="#673ab7" rx="8"/>
+  <text x="150" y="50" font-family="Arial" font-size="14" fill="white" text-anchor="middle" font-weight="bold">Payment App</text>
+  
+  <!-- Transfer Details Section -->
+  <rect x="30" y="80" width="240" height="140" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1" rx="4"/>
+  
+  <!-- Transfer Details Label -->
+  <text x="45" y="100" font-family="Arial" font-size="12" fill="#374151" font-weight="bold">Transfer Details</text>
+  
+  <!-- Transaction ID Label -->
+  <text x="45" y="125" font-family="Arial" font-size="11" fill="#6b7280">Transaction ID</text>
+  
+  <!-- Transaction ID Value Highlighted -->
+  <rect x="45" y="135" width="210" height="25" fill="#dcfce7" stroke="#22c55e" stroke-width="2" rx="4"/>
+  <text x="150" y="152" font-family="Arial" font-size="12" fill="#166534" text-anchor="middle" font-weight="bold">T26020621522395690988</text>
+  
+  <!-- Arrow pointing to Transaction ID -->
+  <path d="M280 147 L260 147" stroke="#dc2626" stroke-width="3" fill="none"/>
+  <text x="285" y="152" font-family="Arial" font-size="16" fill="#dc2626" font-weight="bold">←</text>
+  
+  <!-- UTR Section -->
+  <text x="45" y="180" font-family="Arial" font-size="11" fill="#6b7280">UTR: 3727192158</text>
+  
+  <!-- Amount -->
+  <text x="45" y="200" font-family="Arial" font-size="11" fill="#6b7280">Amount: ₹500.00</text>
+  
+  <!-- Status -->
+  <rect x="30" y="220" width="240" height="35" fill="#dcfce7" stroke="#22c55e" stroke-width="1" rx="4"/>
+  <text x="150" y="242" font-family="Arial" font-size="11" fill="#166534" text-anchor="middle" font-weight="bold">Transaction Successful</text>
+  
+  <!-- Footer -->
+  <text x="150" y="315" font-family="Arial" font-size="10" fill="#9ca3af" text-anchor="middle">Powered by UPI</text>
+  
+  <!-- Caption -->
+  <text x="150" y="385" font-family="Arial" font-size="11" fill="#374151" text-anchor="middle" font-weight="bold">Example 2: Another UPI App</text>
+</svg>

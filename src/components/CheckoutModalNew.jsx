@@ -485,7 +485,7 @@ export default function CheckoutModal({ open, onClose }) {
                 <div className="transaction-id-demo-images">
                   <div style={{ textAlign: 'center' }}>
                     <img 
-                      src="/transaction-id-demo-1.png" 
+                      src="/transaction-id-demo-1.svg" 
                       alt="Transaction ID Example 1" 
                       style={{ 
                         maxWidth: '100%', 
@@ -497,7 +497,7 @@ export default function CheckoutModal({ open, onClose }) {
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <img 
-                      src="/transaction-id-demo-2.png" 
+                      src="/transaction-id-demo-2.svg" 
                       alt="Transaction ID Example 2" 
                       style={{ 
                         maxWidth: '100%', 
