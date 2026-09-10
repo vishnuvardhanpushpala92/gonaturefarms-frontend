@@ -1557,9 +1557,9 @@ footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:20px 0;
+  padding:24px 16px;
   position:relative;
-  gap:8px;
+  gap:20px;
 }
 
 .timeline-step{
@@ -1569,6 +1569,7 @@ footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition
   flex:1;
   position:relative;
   z-index:1;
+  padding: 0 8px;
 }
 
 .timeline-icon{
@@ -1625,16 +1626,17 @@ footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition
     flex-direction:column;
     align-items:flex-start;
     gap:0;
-    padding:16px 0;
+    padding:24px 16px;
   }
   
   .timeline-step{
     display:grid;
     grid-template-columns: 40px 1fr;
-    column-gap: 16px;
+    column-gap: 20px;
     align-items: center;
     width:100%;
     position: relative;
+    padding: 12px 0;
   }
   
   .timeline-icon{
@@ -1665,7 +1667,7 @@ footer{background:var(--ftr-bg);color:var(--ftr-text);margin-top:30px;transition
     content:'';
     position: absolute;
     left: 8px;
-    top: 24px;
+    top: 32px;
     bottom: -20px;
     width: 2px;
     background: #e5e7eb;
