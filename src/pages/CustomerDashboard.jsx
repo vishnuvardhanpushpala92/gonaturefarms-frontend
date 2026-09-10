@@ -17,6 +17,7 @@ export default function CustomerDashboard() {
   const [ordersOpen, setOrdersOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   // Profile state
   const [profileForm, setProfileForm] = useState({
@@ -46,8 +47,12 @@ export default function CustomerDashboard() {
         pincode: user.pincode || ''
       });
       loadAddresses();
+      setLoading(false);
+    } else {
+      // User not authenticated, redirect to home
+      navigate('/');
     }
-  }, [user]);
+  }, [user, navigate]);
 
   useEffect(() => {
     if (originalAddressForm) {
@@ -70,6 +75,7 @@ export default function CustomerDashboard() {
       }
     } catch (err) {
       console.error('Failed to load addresses:', err);
+      // Don't show toast for this error - it's not critical
     }
   };
 
@@ -167,21 +173,30 @@ export default function CustomerDashboard() {
     setEditingAddressId(null);
   };
 
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '40vh' }}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ color: '#6b7280' }}>Loading your account...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!user) {
-    navigate('/');
     return null;
   }
 
   return (
     <div className="customer-dashboard" style={{ maxWidth: 1200, margin: '0 auto', padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1>My Account</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: '12px' }}>
+        <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)' }}>My Account</h1>
         <button className="btn btn-secondary" onClick={() => navigate('/')}>Back to Store</button>
       </div>
 
-      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', flexDirection: 'row' }}>
         {/* Sidebar */}
-        <div style={{ flex: '0 0 250px', minWidth: 250 }}>
+        <div style={{ flex: '0 0 250px', minWidth: 250, maxWidth: '100%' }}>
           <div className="admin-card" style={{ padding: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
               <div style={{ 

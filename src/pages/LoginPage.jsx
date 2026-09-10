@@ -39,7 +39,9 @@ export default function LoginPage() {
       showToast('Login successful');
       navigate('/dashboard');
     } catch (err) {
-      showToast(err?.userMessage || err?.response?.data?.message || 'Invalid mobile number or password.');
+      // Backend already returns field-specific errors - pass them through
+      const errorMessage = err?.response?.data?.message || err?.userMessage || 'Invalid mobile number or password.';
+      showToast(errorMessage);
     } finally {
       setLoading(false);
     }

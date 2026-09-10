@@ -107,9 +107,11 @@ export function AuthProvider({ children }) {
         persist(data.token, data.user);
         return data;
       } else {
+        // Backend returns specific error messages - pass them through
         return { success: false, message: data.message || 'Login failed' };
       }
     } catch (err) {
+      // Backend already returns field-specific errors - pass them through
       const errorMessage = err?.response?.data?.message || err?.message || 'Login failed';
       return { success: false, message: errorMessage };
     }

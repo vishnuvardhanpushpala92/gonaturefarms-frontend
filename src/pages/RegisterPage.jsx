@@ -40,6 +40,27 @@ export default function RegisterPage() {
     return null;
   };
 
+  const getPasswordStrength = (password) => {
+    if (!password) return 0;
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) strength++;
+    return strength;
+  };
+
+  const getStrengthLabel = (strength) => {
+    if (strength === 0) return 'Enter password';
+    if (strength === 1) return 'Very Weak';
+    if (strength === 2) return 'Weak';
+    if (strength === 3) return 'Fair';
+    if (strength === 4) return 'Good';
+    if (strength === 5) return 'Strong';
+    return '';
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -55,6 +76,18 @@ export default function RegisterPage() {
       return;
     }
 
+    // Validate phone number
+    if (!/^[0-9]{10}$/.test(form.phone)) {
+      showToast('Mobile Number incorrect');
+      return;
+    }
+
+    // Validate email
+    if (form.email && !/^[A-Za-z0-9+_.-]+@(.+)$/.test(form.email)) {
+      showToast('Email incorrect');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -62,7 +95,9 @@ export default function RegisterPage() {
       showToast('Registration successful');
       navigate('/dashboard');
     } catch (err) {
-      showToast(err?.userMessage || err?.response?.data?.message || 'Registration failed. Please try again.');
+      // Backend already returns field-specific errors - pass them through
+      const errorMessage = err?.response?.data?.message || err?.userMessage || 'Registration failed. Please try again.';
+      showToast(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -174,6 +209,83 @@ export default function RegisterPage() {
                     {showPassword ? '👁️' : '👁️‍🗨️'}
                   </button>
                 </div>
+                {form.password && (
+                  <div style={{ marginTop: '12px' }}>
+                    <div style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '8px', color: '#374151' }}>
+                      Password Strength
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                      <div style={{
+                        flex: 1,
+                        height: '8px',
+                        background: '#e5e7eb',
+                        borderRadius: '4px',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        gap: '2px'
+                      }}>
+                        {[1, 2, 3, 4, 5].map((segment) => (
+                          <div
+                            key={segment}
+                            style={{
+                              flex: 1,
+                              height: '100%',
+                              background: getPasswordStrength(form.password) >= segment 
+                                ? (getPasswordStrength(form.password) === 5 ? '#22c55e' : getPasswordStrength(form.password) >= 4 ? '#3b82f6' : getPasswordStrength(form.password) >= 3 ? '#f59e0b' : '#ef4444')
+                                : '#e5e7eb',
+                              transition: 'background 0.3s ease',
+                              borderRadius: '2px'
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <span style={{
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        color: getPasswordStrength(form.password) === 5 ? '#22c55e' : getPasswordStrength(form.password) >= 4 ? '#3b82f6' : getPasswordStrength(form.password) >= 3 ? '#f59e0b' : '#ef4444',
+                        whiteSpace: 'nowrap',
+                        minWidth: '80px'
+                      }}>
+                        {getStrengthLabel(getPasswordStrength(form.password))}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '8px', color: '#374151' }}>
+                      Password must include:
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8125rem', color: '#6b7280' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: form.password.length >= 8 ? '#22c55e' : '#ef4444', fontSize: '1rem' }}>
+                          {form.password.length >= 8 ? '✓' : '✗'}
+                        </span>
+                        <span>At least 8 characters</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: /[A-Z]/.test(form.password) ? '#22c55e' : '#ef4444', fontSize: '1rem' }}>
+                          {/[A-Z]/.test(form.password) ? '✓' : '✗'}
+                        </span>
+                        <span>One uppercase letter (A-Z)</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: /[a-z]/.test(form.password) ? '#22c55e' : '#ef4444', fontSize: '1rem' }}>
+                          {/[a-z]/.test(form.password) ? '✓' : '✗'}
+                        </span>
+                        <span>One lowercase letter (a-z)</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: /[0-9]/.test(form.password) ? '#22c55e' : '#ef4444', fontSize: '1rem' }}>
+                          {/[0-9]/.test(form.password) ? '✓' : '✗'}
+                        </span>
+                        <span>One number (0-9)</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(form.password) ? '#22c55e' : '#ef4444', fontSize: '1rem' }}>
+                          {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(form.password) ? '✓' : '✗'}
+                        </span>
+                        <span>One special character (@ # $ % !)</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">

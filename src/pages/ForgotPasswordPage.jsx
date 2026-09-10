@@ -30,7 +30,9 @@ export default function ForgotPasswordPage() {
         showToast(data.message || 'Account not found');
       }
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Account not found. Please check your mobile number or email.');
+      // Backend already returns field-specific errors - pass them through
+      const errorMessage = err?.response?.data?.message || 'Mobile Number or Email incorrect';
+      showToast(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -64,7 +66,9 @@ export default function ForgotPasswordPage() {
         showToast(data.message || 'Failed to reset password');
       }
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to reset password');
+      // Backend already returns field-specific errors - pass them through
+      const errorMessage = err?.response?.data?.message || 'Security Answer incorrect';
+      showToast(errorMessage);
     } finally {
       setLoading(false);
     }

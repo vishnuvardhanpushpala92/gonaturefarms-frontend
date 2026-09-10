@@ -849,9 +849,9 @@ header{background:var(--hdr-bg);padding:0 5%;position:fixed;top:0;left:0;right:0
  * Use object-fit: contain to preserve complete original artwork.
  * Container height adapts to image dimensions to prevent empty green space.
  */
-.slider-wrap{position:relative;width:100%;max-width:none;overflow:hidden;background:#1a2e17;height:auto;}
-.slide{position:absolute;inset:0;opacity:0;transition:opacity 0.8s ease-in-out;pointer-events:none;}
-.slide.active{position:relative;opacity:1;pointer-events:auto;}
+.slider-wrap{position:relative;width:100%;max-width:none;overflow:hidden;background:#1a2e17;height:auto;display:flex;flex-direction:column;}
+.slide{position:absolute;inset:0;opacity:0;transition:opacity 0.8s ease-in-out;pointer-events:none;height:0;overflow:hidden;}
+.slide.active{position:relative;opacity:1;pointer-events:auto;height:auto;overflow:visible;}
 .hero-picture{display:block;width:100%;height:auto;}
 .slide-image{display:block;width:100%;height:auto;object-fit:contain;object-position:center;}
 .slide-mask{position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,.55) 0%,rgba(0,0,0,.15) 60%,transparent 100%);pointer-events:none;}
