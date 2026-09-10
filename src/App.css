@@ -32,7 +32,7 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);li
 #root{overflow-x:hidden;min-height:100vh;}
 
 /* Fixed header spacer for main content */
-.main-content{padding-top:68px;}
+.main-content{padding-top:68px;min-height:100vh;}
 
 /* Auth pages don't need header spacer */
 .auth-page,.admin-login-page{padding-top:0;}
@@ -166,6 +166,28 @@ html,body{font-family:'Inter',sans-serif;background:#ffffff;color:var(--text);li
 .form-group{display:flex;flex-direction:column;gap:5px;}
 
 .form-group label{font-weight:600;color:#374151;font-size:0.8rem;}
+
+.security-question-display{
+  background:#f9fafb;
+  padding:12px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  font-size:0.9rem;
+  color:var(--text);
+  font-weight:500;
+}
+
+.auth-button.secondary{
+  background:#fff;
+  color:var(--text);
+  border:1px solid var(--border);
+}
+
+.auth-button.secondary:hover{
+  background:var(--bg-tertiary);
+  border-color:var(--p);
+  color:var(--p);
+}
 
 .form-group input,.form-group select,.form-group textarea{
   padding:10px 12px;

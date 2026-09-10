@@ -17,6 +17,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage.jsx'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage.jsx'));
 const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage.jsx'));
 const TrackingPage = lazy(() => import('./pages/TrackingPage.jsx'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage.jsx'));
 
 function MainLayout({ children, showHeader = true }) {
   const [search, setSearch] = useState('');
@@ -96,6 +97,7 @@ export default function App() {
         <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/tracking" element={<MainLayout><TrackingPage /></MainLayout>} />
         <Route path="/dashboard" element={<MainLayout><CustomerDashboard /></MainLayout>} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
