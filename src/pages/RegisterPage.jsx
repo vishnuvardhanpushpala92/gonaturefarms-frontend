@@ -232,6 +232,12 @@ export default function RegisterPage() {
             <div className="auth-footer">
               <p>Already have an account? <Link to="/login">Login</Link></p>
               <p><Link to="/tracking">Track your order</Link></p>
+              <button
+                onClick={() => navigate('/')}
+                className="view-store-btn"
+              >
+                View Store
+              </button>
             </div>
           </div>
         </div>

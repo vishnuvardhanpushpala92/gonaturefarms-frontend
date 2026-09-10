@@ -124,6 +124,12 @@ export default function LoginPage() {
             <div className="auth-footer">
               <p>Don't have an account? <Link to="/register">Register</Link></p>
               <p><Link to="/tracking">Track your order</Link></p>
+              <button
+                onClick={() => navigate('/')}
+                className="view-store-btn"
+              >
+                View Store
+              </button>
             </div>
           </div>
         </div>
