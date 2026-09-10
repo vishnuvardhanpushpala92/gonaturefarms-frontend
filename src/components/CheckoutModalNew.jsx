@@ -231,8 +231,7 @@ export default function CheckoutModal({ open, onClose }) {
 
   return (
     <Modal open={open} onClose={close} title="Checkout" wide subtitle="Customer Details">
-      {step === 1 && (
-        <form onSubmit={(e) => {
+      <form onSubmit={(e) => {
           e.preventDefault();
           // Require address selection when addresses exist
           if (addresses.length > 0 && !selectedAddressId && !showAddressForm) {
@@ -361,7 +360,6 @@ export default function CheckoutModal({ open, onClose }) {
             onClose();
           }}>Continue to Payment</button>
         </form>
-      )}
     </Modal>
   );
 }
