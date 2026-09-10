@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useSite } from '../context/SiteContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { ensureHttps } from '../context/SiteContext.jsx';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/client.js';
 
 export default function CheckoutModal({ open, onClose }) {
@@ -12,8 +13,8 @@ export default function CheckoutModal({ open, onClose }) {
   const { user } = useAuth();
   const { settings } = useSite();
   const showToast = useToast();
+  const navigate = useNavigate();
 
-  const [step, setStep] = useState(1);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -28,10 +29,6 @@ export default function CheckoutModal({ open, onClose }) {
     address: '', area: '', city: '', state: '', pincode: '', paymentMethod: 'UPI',
     paymentUtr: ''
   });
-  const [coupon, setCoupon] = useState('');
-  const [discount, setDiscount] = useState(0);
-  const [placing, setPlacing] = useState(false);
-  const [placedOrder, setPlacedOrder] = useState(null);
   const [pincodeError, setPincodeError] = useState('');
   const [deliveryCharge, setDeliveryCharge] = useState(0);
   const [loadingDeliveryCharge, setLoadingDeliveryCharge] = useState(false);
@@ -39,7 +36,7 @@ export default function CheckoutModal({ open, onClose }) {
   const freeDeliveryAbove = parseFloat(settings.free_delivery_above || 500);
   const deliveryChargeBelow = parseFloat(settings.delivery_charge_below || 50);
   const subtotalWithGst = totals.subtotal + totals.gstAmount;
-  const grandTotal = Math.max(0, subtotalWithGst + deliveryCharge - discount);
+  const grandTotal = Math.max(0, subtotalWithGst + deliveryCharge);
 
   useEffect(() => {
     if (open && user) {
@@ -215,146 +212,7 @@ export default function CheckoutModal({ open, onClose }) {
     }
   };
 
-  const applyCoupon = async () => {
-    if (!coupon.trim()) return;
-    try {
-      const { data } = await api.post('/coupons/validate', { code: coupon, orderTotal: subtotalWithGst });
-      if (data.success) {
-        setDiscount(parseFloat(data.discount || 0));
-        showToast(data.message);
-      } else {
-        showToast(data.message);
-      }
-    } catch (err) {
-      showToast(err?.userMessage || err?.response?.data?.message || 'Invalid coupon');
-    }
-  };
-
-  const placeOrder = async () => {
-    // Validate required fields before submission
-    if (!form.customerName?.trim()) {
-      showToast('Please enter your name');
-      return;
-    }
-    if (!form.phone?.trim()) {
-      showToast('Please enter your phone number');
-      return;
-    }
-    if (!form.email?.trim()) {
-      showToast('Please enter your email');
-      return;
-    }
-    if (!form.address?.trim()) {
-      showToast('Please enter your address');
-      return;
-    }
-    if (!form.city?.trim()) {
-      showToast('Please enter your city');
-      return;
-    }
-    if (!form.state?.trim()) {
-      showToast('Please enter your state');
-      return;
-    }
-    if (!form.pincode?.trim()) {
-      showToast('Please enter your pincode');
-      return;
-    }
-    if (pincodeError) {
-      showToast('Please fix the pincode error before placing order');
-      return;
-    }
-    if (!form.paymentMethod) {
-      showToast('Please select a payment method');
-      return;
-    }
-    if (form.paymentMethod === 'UPI' && !form.paymentUtr?.trim()) {
-      showToast('Transaction ID is required.');
-      return;
-    }
-    if (form.paymentMethod === 'UPI' && form.paymentUtr?.trim().length < 12) {
-      showToast('Transaction ID must be at least 12 characters.');
-      return;
-    }
-    if (items.length === 0) {
-      showToast('Your cart is empty');
-      return;
-    }
-    
-    // Validate items array structure
-    const invalidItems = items.filter(item => 
-      !item.id || !item.name || !item.price || !item.qty || item.qty <= 0
-    );
-    if (invalidItems.length > 0) {
-      showToast('Some items in your cart have invalid data. Please remove them and try again.');
-      console.error('Invalid items:', invalidItems);
-      return;
-    }
-
-    setPlacing(true);
-    try {
-      const payload = {
-        customer_name: form.customerName,
-        phone: form.phone,
-        email: form.email || '',
-        address: form.address,
-        area: form.area || '',
-        city: form.city,
-        state: form.state || '',
-        pincode: form.pincode,
-        payment_method: form.paymentMethod,
-        payment_utr: form.paymentUtr ? form.paymentUtr.trim() : '',
-        subtotal: totals.subtotal,
-        gst_amount: totals.gstAmount,
-        delivery_charge: deliveryCharge,
-        discount: discount,
-        total: grandTotal,
-        coupon_code: coupon || undefined,
-        user_id: user?.id,
-        items: items.map((item) => ({
-          id: item.id,
-          name: item.name,
-          img: item.img || '',
-          price: Number(item.price),
-          gst: item.gst ? Number(item.gst) : 0,
-          qty: Number(item.qty)
-        }))
-      };
-      
-      // Order payload prepared for submission
-      
-      const { data } = await api.post('/orders', payload);
-      
-      if (data.success) {
-        const orderedItems = [...items];
-        setPlacedOrder({ 
-          orderId: data.orderId,
-          customerName: form.customerName,
-          address: form.address,
-          city: form.city,
-          pincode: form.pincode,
-          phone: form.phone,
-          items: orderedItems
-        });
-        // Don't clear cart - let user decide when to clear it
-        setStep(3);
-        showToast('Order placed successfully!');
-      } else {
-        showToast(data.message || 'Failed to place order');
-      }
-    } catch (err) {
-      console.error('Order placement error:', err);
-      console.error('Error response data:', err?.response?.data);
-      console.error('Error status:', err?.response?.status);
-      const errorMsg = err?.response?.data?.message || err?.userMessage || err?.message || 'Could not place order';
-      showToast(errorMsg);
-    } finally {
-      setPlacing(false);
-    }
-  };
   const close = () => {
-    setStep(1);
-    setPlacedOrder(null);
     onClose();
   };
 
@@ -372,13 +230,7 @@ export default function CheckoutModal({ open, onClose }) {
   };
 
   return (
-    <Modal open={open} onClose={close} title="Checkout" wide subtitle={step < 3 ? `Step ${step} of 2` : 'Order placed!'}>
-      <div className="steps">
-        <div className="step"><div className={`step-num${step >= 1 ? ' active' : ''}${step > 1 ? ' done' : ''}`}>1</div><div className="step-lbl">Details</div></div>
-        <div className={`step-line${step > 1 ? ' done' : ''}`} />
-        <div className="step"><div className={`step-num${step >= 2 ? ' active' : ''}${step > 2 ? ' done' : ''}`}>2</div><div className="step-lbl">Payment</div></div>
-      </div>
-
+    <Modal open={open} onClose={close} title="Checkout" wide subtitle="Customer Details">
       {step === 1 && (
         <form onSubmit={(e) => {
           e.preventDefault();
@@ -392,7 +244,6 @@ export default function CheckoutModal({ open, onClose }) {
             showToast('Please enter your address details');
             return;
           }
-          setStep(2);
         }}>
           {addresses.length > 0 && (
             <div style={{ marginBottom: 20 }}>
@@ -458,85 +309,58 @@ export default function CheckoutModal({ open, onClose }) {
           <div className="fg"><label htmlFor="checkout-pincode">Pincode</label><input id="checkout-pincode" name="pincode" required value={form.pincode} onChange={(e) => { setForm({ ...form, pincode: e.target.value }); if (e.target.value.length === 6) fetchDeliveryCharge(e.target.value); }} /></div>
           {pincodeError && <div style={{ color: '#dc2626', fontSize: '.8rem', marginTop: 4 }}>{pincodeError}</div>}
           {loadingDeliveryCharge && <div style={{ color: 'var(--muted)', fontSize: '.8rem', marginTop: 4 }}>Checking delivery availability...</div>}
-          <button className="btn btn-primary btn-block">Continue to Payment</button>
+          <button className="btn btn-primary btn-block" onClick={() => {
+            // Validate form before proceeding
+            if (!form.customerName?.trim()) {
+              showToast('Please enter your name');
+              return;
+            }
+            if (!form.phone?.trim()) {
+              showToast('Please enter your phone number');
+              return;
+            }
+            if (!form.email?.trim()) {
+              showToast('Please enter your email');
+              return;
+            }
+            if (!form.address?.trim()) {
+              showToast('Please enter your address');
+              return;
+            }
+            if (!form.city?.trim()) {
+              showToast('Please enter your city');
+              return;
+            }
+            if (!form.state?.trim()) {
+              showToast('Please enter your state');
+              return;
+            }
+            if (!form.pincode?.trim()) {
+              showToast('Please enter your pincode');
+              return;
+            }
+            if (pincodeError) {
+              showToast('Please fix the pincode error before proceeding');
+              return;
+            }
+            // Navigate to transaction page with order data
+            navigate('/transaction', { 
+              state: { 
+                orderData: {
+                  customerName: form.customerName,
+                  phone: form.phone,
+                  email: form.email,
+                  address: form.address,
+                  area: form.area,
+                  city: form.city,
+                  state: form.state,
+                  pincode: form.pincode
+                }
+              }
+            });
+            onClose();
+          }}>Continue to Payment</button>
         </form>
-      )}
-
-      {step === 2 && (
-        <div>
-          <div className="fg"><label htmlFor="checkout-coupon">Coupon Code</label><div style={{ display: 'flex', gap: 8 }}><input id="checkout-coupon" name="coupon" value={coupon} onChange={(e) => setCoupon(e.target.value.toUpperCase())} style={{ flex: 1 }} /><button type="button" className="btn btn-secondary" onClick={applyCoupon}>Apply</button></div></div>
-          <div className="fg"><label htmlFor="checkout-payment-method">Payment Method</label><select id="checkout-payment-method" name="paymentMethod" value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}><option value="UPI">UPI</option></select></div>
-          {form.paymentMethod === 'UPI' && (
-            <>
-              {settings.upi_scanner_url && <div className="qr-box"><img src={getImageUrl(settings.upi_scanner_url)} alt="UPI Scanner" /></div>}
-              {!settings.upi_scanner_url && <div className="qr-box" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb' }}><img src="/qr-placeholder.png" alt="Payment QR" style={{ maxWidth: 200 }} onError={(e) => e.target.style.display = 'none'} /><span style={{ color: 'var(--muted)' }}>QR Code Placeholder</span></div>}
-              {settings.upi_id && <div className="upi-box"><span className="upi-id">{settings.upi_id}</span></div>}
-              <div className="fg"><label htmlFor="checkout-payment-utr">Transaction ID / UTR (required)</label><input id="checkout-payment-utr" name="paymentUtr" required value={form.paymentUtr} onChange={(e) => setForm({ ...form, paymentUtr: e.target.value.trim() })} placeholder="Enter your transaction ID" />
-                {form.paymentUtr && form.paymentUtr.length > 0 && form.paymentUtr.length < 12 && (
-                  <div style={{ color: '#dc2626', fontSize: '.8rem', marginTop: 4 }}>Transaction ID must be at least 12 characters.</div>
-                )}
-              </div>
-              
-              {/* Transaction ID Visual Guidance */}
-              <div style={{ marginTop: '16px', padding: '16px', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                <h4 style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '8px', color: '#374151' }}>How to find your Transaction ID / UTR</h4>
-                <p style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '12px' }}>After payment, open your payment transaction details and enter the Transaction ID shown in the example below.</p>
-                
-                <div className="transaction-id-demo-images">
-                  <div style={{ textAlign: 'center' }}>
-                    <img 
-                      src="/transaction-id-demo-1.svg" 
-                      alt="Transaction ID Example 1" 
-                      style={{ 
-                        maxWidth: '100%', 
-                        height: 'auto', 
-                        borderRadius: '8px',
-                        border: '1px solid #e5e7eb'
-                      }}
-                    />
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <img 
-                      src="/transaction-id-demo-2.svg" 
-                      alt="Transaction ID Example 2" 
-                      style={{ 
-                        maxWidth: '100%', 
-                        height: 'auto', 
-                        borderRadius: '8px',
-                        border: '1px solid #e5e7eb'
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-          {settings.payment_instructions && <p style={{ fontSize: '.75rem', color: 'var(--muted)', whiteSpace: 'pre-line', marginBottom: 12 }}>{settings.payment_instructions}</p>}
-          <div className="cart-summary">
-            <div className="cs-row"><span>Subtotal</span><span>₹{totals.subtotal.toFixed(2)}</span></div>
-            <div className="cs-row"><span>GST</span><span>₹{totals.gstAmount.toFixed(2)}</span></div>
-            <div className="cs-row"><span>Delivery</span><span>{deliveryCharge === 0 ? 'FREE' : `₹${deliveryCharge}`}</span></div>
-            {discount > 0 && <div className="cs-row"><span>Discount</span><span>-₹{discount.toFixed(2)}</span></div>}
-            <div className="cs-row total"><span>Total</span><span>₹{grandTotal.toFixed(2)}</span></div>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}><button type="button" className="btn btn-secondary" onClick={() => setStep(1)}>Back</button><button type="button" className="btn btn-primary btn-block" disabled={placing} onClick={placeOrder}>{placing ? 'Placing order...' : 'Place Order'}</button></div>
-        </div>
-      )}
-
-      {step === 3 && placedOrder && (
-        <div>
-          <span className="s-icon">✅</span>
-          <div className="bill">
-            <div className="bill-hdr"><h3>Order Confirmed</h3><p>Order ID: {placedOrder.orderId}</p></div>
-            <div className="bill-body">
-              <div className="bill-info">{placedOrder.customerName}<br />{placedOrder.address}, {placedOrder.city} - {placedOrder.pincode}<br />{placedOrder.phone}</div>
-              <table className="bill-table"><thead><tr><th>Item</th><th>Qty</th><th>Price</th></tr></thead><tbody>{(placedOrder.items || []).map((it, i) => (<tr key={i}><td>{it.name}</td><td>{it.qty}</td><td>₹{(it.price * it.qty).toFixed(2)}</td></tr>))}</tbody></table>
-              <div className="bill-total"><span>Total</span><span>₹{grandTotal.toFixed(2)}</span></div>
-            </div>
-            <div className="bill-footer">Thank you for shopping with {settings.site_name || 'Go Nature Farms'}!</div>
-          </div>
-          <button className="btn btn-primary btn-block" onClick={close}>Done</button>
-        </div>
       )}
     </Modal>
   );
