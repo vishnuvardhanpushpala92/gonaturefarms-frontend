@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
@@ -12,22 +12,6 @@ export default function LoginPage() {
   const [form, setForm] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const pageRef = useRef(null);
-
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      const { clientX, clientY } = e;
-      const { innerWidth, innerHeight } = window;
-      const x = (clientX / innerWidth - 0.5) * 20;
-      const y = (clientY / innerHeight - 0.5) * 20;
-      setMousePosition({ x, y });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
 
   // Handle intended action after successful login
   useEffect(() => {
@@ -55,76 +39,92 @@ export default function LoginPage() {
       showToast('Login successful');
       navigate('/dashboard');
     } catch (err) {
-      showToast(err?.userMessage || err?.response?.data?.message || 'Login failed. Please try again.');
+      showToast(err?.userMessage || err?.response?.data?.message || 'Invalid mobile number or password.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-page" ref={pageRef}>
-      <div className="auth-background login-background" style={{
-        transform: `perspective(1000px) rotateY(${mousePosition.x * 0.5}deg) rotateX(${-mousePosition.y * 0.5}deg)`,
-        transition: 'transform 0.1s ease-out'
-      }}>
-        <div className="floating-leaves">
-          <div className="leaf leaf-1"></div>
-          <div className="leaf leaf-2"></div>
-          <div className="leaf leaf-3"></div>
-          <div className="leaf leaf-4"></div>
-        </div>
-      </div>
+    <div className="auth-page">
+      <div className="auth-split-layout">
+        {/* Left Brand Section */}
+        <div className="auth-brand-section">
+          <img src="/logo.png" alt="Go Nature Farms" className="auth-brand-logo" />
+          <h1 className="auth-brand-title">Welcome to Go Nature Farms!</h1>
+          <p className="auth-brand-subtitle">Login to continue and explore our fresh organic products.</p>
 
-      <div className="auth-container">
-        <div className="auth-card">
-          <div className="auth-header">
-            <img src="/logo.png" alt="Go Nature Farms" className="auth-logo" />
-            <h1>Welcome Back</h1>
-            <p>Login to your Go Nature Farms account</p>
+          <div className="auth-features">
+            <div className="auth-feature">
+              <div className="auth-feature-icon">⭐</div>
+              <div className="auth-feature-title">Farm Fresh</div>
+              <div className="auth-feature-desc">Fresh products directly from our farms.</div>
+            </div>
+            <div className="auth-feature">
+              <div className="auth-feature-icon">🌱</div>
+              <div className="auth-feature-title">100% Natural</div>
+              <div className="auth-feature-desc">Quality-focused natural products.</div>
+            </div>
+            <div className="auth-feature">
+              <div className="auth-feature-icon">❤️</div>
+              <div className="auth-feature-title">Trusted</div>
+              <div className="auth-feature-desc">Trusted by our customers.</div>
+            </div>
           </div>
+        </div>
 
-          <form onSubmit={handleSubmit} className="auth-form">
-            <div className="form-group">
-              <label htmlFor="username">Email or Phone</label>
-              <input
-                id="username"
-                type="text"
-                value={form.username}
-                onChange={(e) => setForm({ ...form, username: e.target.value })}
-                required
-                placeholder="Enter your email or phone number"
-              />
+        {/* Right Form Section */}
+        <div className="auth-form-section">
+          <div className="auth-form-card">
+            <div className="auth-form-header">
+              <img src="/logo.png" alt="Go Nature Farms" className="auth-form-logo" />
+              <h2 className="auth-form-title">Login</h2>
+              <p className="auth-form-subtitle">Enter your credentials to access your account</p>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <div className="password-input">
+            <form onSubmit={handleSubmit} className="auth-form">
+              <div className="form-group">
+                <label htmlFor="username">Mobile Number / Email</label>
                 <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  id="username"
+                  type="text"
+                  value={form.username}
+                  onChange={(e) => setForm({ ...form, username: e.target.value })}
                   required
-                  placeholder="Enter your password"
+                  placeholder="Enter your mobile number or email"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="toggle-password"
-                >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
-                </button>
               </div>
+
+              <div className="form-group">
+                <label htmlFor="password">Password</label>
+                <div className="password-input">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    required
+                    placeholder="Enter your password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="toggle-password"
+                  >
+                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" className="auth-button" disabled={loading}>
+                {loading ? 'Logging in...' : 'Login'}
+              </button>
+            </form>
+
+            <div className="auth-footer">
+              <p>Don't have an account? <Link to="/register">Register</Link></p>
+              <p><Link to="/tracking">Track your order</Link></p>
             </div>
-
-            <button type="submit" className="auth-button" disabled={loading}>
-              {loading ? 'Logging in...' : 'Login'}
-            </button>
-          </form>
-
-          <div className="auth-footer">
-            <p>Don't have an account? <Link to="/register">Register</Link></p>
-            <p><Link to="/tracking">Track your order</Link></p>
           </div>
         </div>
       </div>

@@ -22,9 +22,7 @@ export default function TrackingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const showToast = useToast();
-  const [trackingNumber, setTrackingNumber] = useState('');
   const [phone, setPhone] = useState('');
-  const [searchType, setSearchType] = useState('orderId'); // 'orderId' or 'phone'
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -33,25 +31,24 @@ export default function TrackingPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
 
-  const lookupByOrderId = async (e) => {
-    e.preventDefault();
-    if (!trackingNumber.trim()) return;
-
-    setLoading(true);
-    try {
-      const { data } = await api.get(`/orders/${trackingNumber}`, { timeout: 60000 });
-      setOrders([data.order]);
-      setSearched(true);
-    } catch (err) {
-      showToast(err?.response?.data?.message || 'Order not found. Please check your order ID.');
-    } finally {
-      setLoading(false);
-    }
+  const validatePhone = (phoneNumber) => {
+    // Remove spaces and +91 prefix if present
+    const cleaned = phoneNumber.replace(/\s/g, '').replace(/^\+91/, '');
+    // Check if it's exactly 10 digits
+    return /^\d{10}$/.test(cleaned);
   };
 
   const lookupByPhone = async (e) => {
     e.preventDefault();
-    if (!phone.trim()) return;
+    if (!phone.trim()) {
+      showToast('Please enter a mobile number');
+      return;
+    }
+
+    if (!validatePhone(phone)) {
+      showToast('Please enter a valid 10-digit mobile number');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -59,7 +56,7 @@ export default function TrackingPage() {
       setOrders(data.orders || []);
       setSearched(true);
     } catch (err) {
-      showToast(err?.response?.data?.message || 'No orders found for this phone number.');
+      showToast(err?.response?.data?.message || 'No orders found for this mobile number.');
     } finally {
       setLoading(false);
     }
@@ -82,11 +79,7 @@ export default function TrackingPage() {
       setShowReturnForm(prev => ({ ...prev, [orderId]: false }));
       setReturnForm(prev => ({ ...prev, [orderId]: {} }));
       // Reload orders to show updated return status
-      if (searchType === 'orderId') {
-        await lookupByOrderId({ preventDefault: () => {} });
-      } else {
-        await lookupByPhone({ preventDefault: () => {} });
-      }
+      await lookupByPhone({ preventDefault: () => {} });
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to submit return request');
     } finally {
@@ -161,51 +154,24 @@ export default function TrackingPage() {
           <p>Track your Go Nature Farms orders</p>
         </div>
 
-        <div className="tracking-search-type">
-          <button
-            className={`search-type-btn ${searchType === 'orderId' ? 'active' : ''}`}
-            onClick={() => setSearchType('orderId')}
-          >
-            Search by Order ID
-          </button>
-          <button
-            className={`search-type-btn ${searchType === 'phone' ? 'active' : ''}`}
-            onClick={() => setSearchType('phone')}
-          >
-            Search by Phone
-          </button>
-        </div>
-
-        {searchType === 'orderId' ? (
-          <form onSubmit={lookupByOrderId} className="tracking-search">
-            <label>Enter Order ID:</label>
-            <input
-              type="text"
-              value={trackingNumber}
-              onChange={(e) => setTrackingNumber(e.target.value)}
-              placeholder="e.g., GN123456789"
-              required
-            />
-            <button type="submit" disabled={loading}>
-              {loading ? 'Searching...' : 'Track Order'}
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={lookupByPhone} className="tracking-search">
-            <label>Enter Phone Number:</label>
+        <form onSubmit={lookupByPhone} className="tracking-search">
+          <label>Enter your mobile number:</label>
+          <div className="phone-input-wrapper">
+            <span className="phone-prefix">+91</span>
             <input
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="10-digit phone number"
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+              placeholder="9876543210"
               pattern="[0-9]{10}"
+              maxLength={10}
               required
             />
-            <button type="submit" disabled={loading}>
-              {loading ? 'Searching...' : 'Track Order'}
-            </button>
-          </form>
-        )}
+          </div>
+          <button type="submit" disabled={loading}>
+            {loading ? 'Searching...' : 'Track Order'}
+          </button>
+        </form>
         
         {searched && orders.length === 0 && (
           <div className="no-orders">
