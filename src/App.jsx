@@ -60,9 +60,7 @@ function MainLayout({ children, showHeader = true }) {
           blinkCart={blinkCart}
         />
       )}
-      <div className={showHeader ? 'main-content' : ''}>
-        {childrenWithProps}
-      </div>
+      {childrenWithProps}
       <CartDrawer open={cartOpen} onClose={handleCartClose} onCheckout={() => { handleCartClose(); setCheckoutOpen(true); }} />
       <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
       <SupportModal open={supportOpen} onClose={() => setSupportOpen(false)} />
