@@ -65,14 +65,13 @@ export default function Header({ search, onSearch, onOpenCart, blinkLogin, blink
         className="mobile-menu-btn"
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         style={{
-          display: 'none',
           background: 'none',
           border: 'none',
           cursor: 'pointer',
           padding: '8px',
           zIndex: 1001
         }}
-        aria-label="Toggle menu"
+        aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
       >
         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           {mobileMenuOpen ? (
