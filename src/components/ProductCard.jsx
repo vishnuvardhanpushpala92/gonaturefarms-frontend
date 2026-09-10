@@ -184,14 +184,16 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1000
+          zIndex: 1000,
+          padding: 20,
+          overflow: 'auto'
         }} onClick={() => setShowGallery(false)}>
-          <div style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh', margin: 'auto' }} onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setShowGallery(false)}
               style={{
                 position: 'absolute',
-                top: -40,
+                top: -50,
                 right: 0,
                 background: '#fff',
                 color: '#000',
@@ -211,7 +213,7 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete }
             <img
               src={getImageUrl(allImages[currentImageIndex])}
               alt={`${product.name} - Image ${currentImageIndex + 1}`}
-              style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+              style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain' }}
             />
             <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
               {allImages.map((_, index) => (
