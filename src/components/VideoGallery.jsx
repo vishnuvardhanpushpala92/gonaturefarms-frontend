@@ -57,6 +57,14 @@ export default function VideoGallery({ onOpenCart }) {
   const openVideo = (video) => {
     if (mounted) {
       setSelectedVideo(video);
+      // Auto-play video when modal opens
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.play().catch(err => {
+            console.log('Autoplay prevented by browser:', err);
+          });
+        }
+      }, 100);
     }
   };
 
@@ -301,10 +309,9 @@ export default function VideoGallery({ onOpenCart }) {
               crossOrigin="anonymous"
               ref={videoRef}
               controls
-              preload="none"
+              preload="metadata"
               src={getVideoUrl(selectedVideo.filePath)}
               style={{ width: '100%', maxHeight: '80vh', borderRadius: '12px' }}
-              onLoadedData={() => videoRef.current?.play()}
             />
             <div className="video-modal-title">
               <h3>{selectedVideo.title}</h3>

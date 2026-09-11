@@ -98,10 +98,12 @@ export default function AdminWhatsAppTab() {
   const loadProducts = async () => {
     try {
       const { data } = await api.get('/products');
+      console.log('[WhatsApp] Products API response:', data);
       if (data.success) {
         const sortedProducts = (data.products || [])
-          .filter(p => p.status === 'active')
+          .filter(p => p.status === 'current' || p.status === 'future')
           .sort((a, b) => a.name.localeCompare(b.name));
+        console.log('[WhatsApp] Filtered products:', sortedProducts);
         setProducts(sortedProducts);
       }
     } catch (err) {
