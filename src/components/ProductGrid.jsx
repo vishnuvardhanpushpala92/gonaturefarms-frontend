@@ -47,9 +47,6 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   const uniqueCurrent = uniqueProducts(current);
   const uniqueFuture = uniqueProducts(future);
 
-  // Don't render if no products at all
-  if (uniqueCurrent.length === 0 && uniqueFuture.length === 0) return null;
-
   return (
     <div className="section first-section last-section">
       <div className="section-head reveal">
@@ -70,7 +67,7 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
         {loading ? (
           <div className="empty-grid"><p>Loading products...</p></div>
         ) : uniqueCurrent.length === 0 ? (
-          <div className="empty-grid"><p>Products are not available</p></div>
+          <div className="empty-grid"><p>No products available in this category.</p></div>
         ) : (
           uniqueCurrent.map((p) => (
             <ProductCardMemo key={p.id} product={p} onOpenReviews={onOpenReviews} onOpenCart={onOpenCart} />

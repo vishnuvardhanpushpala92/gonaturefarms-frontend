@@ -424,15 +424,17 @@ export default function TransactionPage() {
                 
                 <div style={{ marginBottom: '12px' }}>
                   <label className="transaction-label" style={{ display: 'block', marginBottom: '4px', fontSize: '0.8rem', fontWeight: '500', color: '#374151' }}>Transaction ID / UTR (required)</label>
-                  <input
-                    className="transaction-input"
-                    type="text"
-                    value={form.paymentUtr}
-                    onChange={(e) => setForm({ ...form, paymentUtr: e.target.value.trim() })}
-                    placeholder="Enter your transaction ID"
-                    required
-                    style={{ width: '100%', padding: '8px', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.85rem' }}
-                  />
+                  <div className="transaction-id-input-wrapper">
+                    <input
+                      className="transaction-input"
+                      type="text"
+                      value={form.paymentUtr}
+                      onChange={(e) => setForm({ ...form, paymentUtr: e.target.value.trim() })}
+                      placeholder="Enter your transaction ID"
+                      required
+                      style={{ width: '100%', padding: '8px', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.85rem' }}
+                    />
+                  </div>
                   {form.paymentUtr && form.paymentUtr.length > 0 && form.paymentUtr.length < 12 && (
                     <div style={{ color: '#dc2626', fontSize: '.75rem', marginTop: 4 }}>Transaction ID must be at least 12 characters.</div>
                   )}

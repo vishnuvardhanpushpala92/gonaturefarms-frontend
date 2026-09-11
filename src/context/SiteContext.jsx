@@ -22,12 +22,12 @@ export function SiteProvider({ children }) {
   const loadAll = useCallback(async () => {
     try {
       const [s, sl, f, z, b, fl] = await Promise.all([
-        api.get('/admin/settings/public', { skipTransform: true, timeout: 60000 }),
-        api.get('/admin/slides', { timeout: 60000 }),
-        api.get('/admin/faqs', { timeout: 60000 }),
-        api.get('/admin/zones', { timeout: 60000 }),
-        api.get('/admin/scroll-content', { timeout: 60000 }),
-        api.get('/footer-links', { timeout: 60000 })
+        api.get('/admin/settings/public', { skipTransform: true, timeout: 60000, params: { _t: Date.now() } }),
+        api.get('/admin/slides', { timeout: 60000, params: { _t: Date.now() } }),
+        api.get('/admin/faqs', { timeout: 60000, params: { _t: Date.now() } }),
+        api.get('/admin/zones', { timeout: 60000, params: { _t: Date.now() } }),
+        api.get('/admin/scroll-content', { timeout: 60000, params: { _t: Date.now() } }),
+        api.get('/footer-links', { timeout: 60000, params: { _t: Date.now() } })
       ]);
       
       // Sanitize settings URLs to ensure HTTPS
