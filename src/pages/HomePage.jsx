@@ -10,11 +10,10 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 
-export default function HomePage({ onOpenCart }) {
+export default function HomePage({ onOpenCart, search }) {
   const { isAuthenticated, user } = useAuth();
   const showToast = useToast();
   const { setItemAddedCallback } = useCart();
-  const [search, setSearch] = useState('');
 
   // Set up cart callback to automatically open drawer when item is added
   useEffect(() => {

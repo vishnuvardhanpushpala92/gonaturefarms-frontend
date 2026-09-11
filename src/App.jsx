@@ -43,10 +43,10 @@ function MainLayout({ children, showHeader = true }) {
     setCartOpen(false);
   };
 
-  // Clone children to pass onOpenCart prop if they accept it
+  // Clone children to pass onOpenCart and search props if they accept it
   const childrenWithProps = React.Children.map(children, child => {
     if (React.isValidElement(child) && child.type === HomePage) {
-      return React.cloneElement(child, { onOpenCart: handleOpenCart });
+      return React.cloneElement(child, { onOpenCart: handleOpenCart, search });
     }
     return child;
   });
