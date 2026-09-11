@@ -9,19 +9,20 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   const [categories, setCategories] = useState([]);
   const [activeCat, setActiveCat] = useState('All');
   const [loading, setLoading] = useState(true);
+  const [localSearch, setLocalSearch] = useState(search || '');
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
       if (activeCat !== 'All') params.cat = activeCat;
-      if (search) params.search = search;
+      if (localSearch) params.search = localSearch;
       const { data } = await api.get('/products', { params });
       setProducts(data.products || []);
     } finally {
       setLoading(false);
     }
-  }, [activeCat, search]);
+  }, [activeCat, localSearch]);
 
   useEffect(() => {
     api.get('/products/categories').then(({ data }) => setCategories(data.categories || []));
@@ -30,6 +31,10 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    setLocalSearch(search || '');
+  }, [search]);
 
   const current = products.filter((p) => p.status !== 'future');
   const future = products.filter((p) => p.status === 'future');
@@ -61,6 +66,17 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
             {c}
           </button>
         ))}
+      </div>
+
+      {/* Search Box - Placed between category buttons and products */}
+      <div className="product-search-box">
+        <input
+          type="text"
+          placeholder="Search products..."
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
+          className="product-search-input"
+        />
       </div>
 
       <div className="pgrid">
