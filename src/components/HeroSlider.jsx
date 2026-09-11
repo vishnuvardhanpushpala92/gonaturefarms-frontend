@@ -1,11 +1,26 @@
-import React from 'react';
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSite } from '../context/SiteContext.jsx';
 
 export default function HeroSlider() {
   const { slides, loaded } = useSite();
   const [index, setIndex] = useState(0);
   const sliderRef = useRef(null);
+
+  // Preload first slide image for LCP
+  useEffect(() => {
+    if (slides.length > 0) {
+      const firstSlide = slides[0];
+      const getImageUrls = (slide) => ({
+        mobile: slide.mobileImage || slide.tabletImage || slide.desktopImage || slide.imageUrl,
+        tablet: slide.tabletImage || slide.desktopImage || slide.imageUrl,
+        desktop: slide.desktopImage || slide.imageUrl
+      });
+      const imageUrls = getImageUrls(firstSlide);
+      const img = new Image();
+      img.src = imageUrls.desktop;
+      img.fetchPriority = 'high';
+    }
+  }, [slides]);
 
   useEffect(() => {
     if (slides.length < 2) return;
@@ -62,6 +77,7 @@ export default function HeroSlider() {
                 alt={slide.caption || 'Pure and natural products from Go Nature Farms'}
                 className="slide-image"
                 loading={i === 0 ? 'eager' : 'lazy'}
+                fetchPriority={i === 0 ? 'high' : 'auto'}
               />
             </picture>
             <div className="slide-mask" />

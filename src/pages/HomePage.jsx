@@ -38,7 +38,9 @@ export default function HomePage({ onOpenCart, search }) {
     <>
       <FlowerBlast />
       <div id="top">
-        <HeroSlider />
+        <div className="slider-wrap-container">
+          <HeroSlider />
+        </div>
         <PromoStrip />
         <ScrollingBlocks />
       </div>
