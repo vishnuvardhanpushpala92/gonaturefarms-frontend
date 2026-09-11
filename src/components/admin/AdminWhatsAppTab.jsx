@@ -230,7 +230,7 @@ export default function AdminWhatsAppTab() {
                   const productId = e.target.value;
                   setForm({ ...form, productId });
                   if (selectedProduct) {
-                    const productInfo = `🌿 ${selectedProduct.name}\n\n${selectedProduct.description || 'Fresh from Go Nature Farms.'}\n\n💰 Price: ₹${selectedProduct.price}${selectedProduct.mrp ? ` (MRP: ₹${selectedProduct.mrp})` : ''}\n\n🛒 View Product:\nhttps://gonaturefarms-qf9o.onrender.com/products/${selectedProduct.id}`;
+                    const productInfo = `🌿 ${selectedProduct.name}\n\n${selectedProduct.description || 'Fresh from Go Nature Farms.'}\n\n💰 Price: ₹${selectedProduct.price}${selectedProduct.mrp ? `\nMRP: ₹${selectedProduct.mrp}` : ''}\n\n🌱 Fresh • Natural • Quality Assured\n\nGo Nature Farms\n\n🛒 Shop Now:\nhttps://gonaturefarms-frontend.vercel.app/products/${selectedProduct.id}`;
                     setForm(prev => ({ ...prev, message: productInfo }));
                     loadCustomersByProduct(productId);
                   }
@@ -372,20 +372,27 @@ export default function AdminWhatsAppTab() {
           <div style={{ marginTop: 16, padding: 16, background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8 }}>
             <h4 style={{ marginBottom: 8 }}>Message Preview</h4>
             <div style={{ padding: 12, background: '#fff', border: '1px solid var(--border)', borderRadius: 8, marginBottom: 8 }}>
+              {form.reminderType === 'Product' && form.productId && (() => {
+                const selectedProduct = products.find(p => p.id === parseInt(form.productId));
+                return selectedProduct ? (
+                  <div style={{ marginBottom: 12 }}>
+                    {selectedProduct.imgUrl && (
+                      <img 
+                        src={selectedProduct.imgUrl} 
+                        alt={selectedProduct.name}
+                        style={{ maxWidth: 200, maxHeight: 200, borderRadius: 6, border: '1px solid var(--border)', display: 'block', marginBottom: 8 }}
+                      />
+                    )}
+                  </div>
+                ) : null;
+              })()}
               <strong>Type:</strong> {form.reminderType}<br />
               <strong>Recipients:</strong> {selectedCustomers.length} customers<br />
               {form.reminderType === 'Product' && form.productId && (() => {
                 const selectedProduct = products.find(p => p.id === parseInt(form.productId));
                 return selectedProduct ? (
                   <div style={{ marginTop: 8, marginBottom: 8 }}>
-                    <strong>Product:</strong> {selectedProduct.name}<br />
-                    {selectedProduct.imgUrl && (
-                      <img 
-                        src={selectedProduct.imgUrl} 
-                        alt={selectedProduct.name}
-                        style={{ maxWidth: 200, maxHeight: 200, marginTop: 8, borderRadius: 6, border: '1px solid var(--border)' }}
-                      />
-                    )}
+                    <strong>Product:</strong> {selectedProduct.name}
                   </div>
                 ) : null;
               })()}
