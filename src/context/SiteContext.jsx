@@ -49,13 +49,12 @@ export function SiteProvider({ children }) {
       setSettings(sanitizedSettings || {});
       setSlides(data.slides || []);
       setBlocks(data.blocks || []);
+      setFaqs(data.faqs || []);
+      setZones(data.zones || []);
+      setFooterLinks(data.footerLinks || []);
+      setTestimonials(data.testimonials || []);
       setVideos(data.videos || []);
       setProducts(data.products || []);
-      setFooterLinks(data.footerLinks || []);
-      // FAQs, zones, testimonials not in homepage endpoint anymore - load separately if needed
-      setFaqs([]);
-      setZones([]);
-      setTestimonials([]);
       setLoaded(true);
     } catch (error) {
       console.error('Failed to load homepage data:', error);
