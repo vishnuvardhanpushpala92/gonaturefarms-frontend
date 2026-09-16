@@ -87,6 +87,7 @@ export default function VideoGallery({ onOpenCart }) {
   // Get video URL with proper caching handling
   const getVideoUrl = (filePath) => {
     if (!filePath) return '';
+    console.log('Video URL:', filePath);
     // Return clean URL to avoid caching issues
     return filePath;
   };

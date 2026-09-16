@@ -102,6 +102,7 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
           alt={product.name}
           loading="lazy"
           onError={(e) => {
+            console.error('Image load error:', product.imgUrl, e);
             e.target.style.display = 'none';
             e.target.parentElement.style.background = '#f0f0f0';
             e.target.parentElement.style.display = 'flex';
