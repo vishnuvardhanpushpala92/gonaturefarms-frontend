@@ -29,12 +29,16 @@ export default function VideoGallery({ onOpenCart }) {
     setLoading(true);
     try {
       const res = await api.get('/videos');
+      console.log('Videos API response:', res.data);
       if (res.data && res.data.success) {
-        setVideos(Array.isArray(res.data.videos) ? res.data.videos : []);
+        const videos = Array.isArray(res.data.videos) ? res.data.videos : [];
+        console.log('Videos loaded:', videos);
+        setVideos(videos);
       } else {
         setVideos([]);
       }
     } catch (err) {
+      console.error('Failed to load videos:', err);
       setVideos([]);
     } finally {
       setLoading(false);
@@ -66,14 +70,8 @@ export default function VideoGallery({ onOpenCart }) {
   const openVideo = (video) => {
     if (mounted) {
       setSelectedVideo(video);
-      // Auto-play video when modal opens
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.play().catch(err => {
-            console.log('Autoplay prevented by browser:', err);
-          });
-        }
-      }, 100);
+      // Video will autoplay with muted and playsInline attributes
+      // No need to manually call play()
     }
   };
 
@@ -89,6 +87,14 @@ export default function VideoGallery({ onOpenCart }) {
     if (!filePath) return '';
     console.log('Video URL:', filePath);
     // Return clean URL to avoid caching issues
+    return filePath;
+  };
+
+  // Get video URL from video object (handle both snake_case and camelCase)
+  const getVideoUrlFromVideo = (video) => {
+    const filePath = video.file_path || video.filePath;
+    if (!filePath) return '';
+    console.log('Video URL from object:', filePath);
     return filePath;
   };
 
@@ -123,6 +129,7 @@ export default function VideoGallery({ onOpenCart }) {
       url.searchParams.set('w', '400');
       url.searchParams.set('h', '300');
       url.searchParams.set('c', 'fill');
+      url.searchParams.set('f', 'jpg'); // Force output format
       return url.toString();
     } catch {
       return null;
@@ -131,13 +138,14 @@ export default function VideoGallery({ onOpenCart }) {
 
   // Get poster URL with fallbacks
   const getPosterUrl = (video) => {
-    // 1. Try existing poster URL
-    if (video.posterUrl && !isExternalImage(video.posterUrl)) return video.posterUrl;
+    // 1. Try existing poster URL (handle both snake_case and camelCase)
+    if ((video.posterUrl || video.poster_url) && !isExternalImage(video.posterUrl || video.poster_url)) return video.posterUrl || video.poster_url;
     // 2. Try product image (handle both snake_case and camelCase)
     if (video.product && (video.product.img_url || video.product.imgUrl) && !isExternalImage(video.product.img_url || video.product.imgUrl)) return video.product.img_url || video.product.imgUrl;
-    // 3. Try Cloudinary thumbnail from video URL
-    if (video.filePath) {
-      const cloudinaryThumb = getCloudinaryThumbnail(video.filePath);
+    // 3. Try Cloudinary thumbnail from video URL (handle both snake_case and camelCase)
+    const videoFilePath = video.file_path || video.filePath;
+    if (videoFilePath) {
+      const cloudinaryThumb = getCloudinaryThumbnail(videoFilePath);
       if (cloudinaryThumb) return cloudinaryThumb;
     }
     // 4. Return null to use fallback placeholder
@@ -322,8 +330,21 @@ export default function VideoGallery({ onOpenCart }) {
               ref={videoRef}
               controls
               preload="metadata"
-              src={getVideoUrl(selectedVideo.filePath)}
+              muted
+              playsInline
+              src={getVideoUrlFromVideo(selectedVideo)}
               style={{ width: '100%', maxHeight: '80vh', borderRadius: '12px' }}
+              onError={(e) => {
+                console.error('Video load error:', getVideoUrlFromVideo(selectedVideo), e);
+                console.error('Video error code:', e.target.error?.code);
+                console.error('Video error message:', e.target.error?.message);
+              }}
+              onLoadStart={() => {
+                console.log('Video load started:', getVideoUrlFromVideo(selectedVideo));
+              }}
+              onCanPlay={() => {
+                console.log('Video can play:', getVideoUrlFromVideo(selectedVideo));
+              }}
             />
             <div className="video-modal-title">
               <h3>{selectedVideo.title}</h3>
@@ -331,7 +352,7 @@ export default function VideoGallery({ onOpenCart }) {
                 <div className="video-modal-product">
                   <p className="video-modal-product-name">{selectedVideo.product.name}</p>
                   <p className="video-modal-product-price">₹{selectedVideo.product.price}</p>
-                  <button 
+                  <button
                     className="video-modal-add-to-cart-btn"
                     onClick={(e) => handleAddToCart(e, selectedVideo.product)}
                     aria-label="Add to cart"
