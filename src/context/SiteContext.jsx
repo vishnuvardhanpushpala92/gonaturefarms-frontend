@@ -23,9 +23,9 @@ export function SiteProvider({ children }) {
   const loadCritical = useCallback(async () => {
     try {
       const [s, sl, b] = await Promise.all([
-        api.get('/admin/settings/public', { skipTransform: true, timeout: 60000, params: { _t: Date.now() } }),
-        api.get('/admin/slides', { timeout: 60000, params: { _t: Date.now() } }),
-        api.get('/admin/scroll-content', { timeout: 60000, params: { _t: Date.now() } })
+        api.get('/admin/settings/public', { skipTransform: true, timeout: 30000, params: { _t: Date.now() } }),
+        api.get('/admin/slides', { timeout: 30000, params: { _t: Date.now() } }),
+        api.get('/admin/scroll-content', { timeout: 30000, params: { _t: Date.now() } })
       ]);
       
       // Sanitize settings URLs to ensure HTTPS
@@ -53,9 +53,9 @@ export function SiteProvider({ children }) {
   const loadSecondary = useCallback(async () => {
     try {
       const [f, z, fl] = await Promise.all([
-        api.get('/admin/faqs', { timeout: 60000, params: { _t: Date.now() } }),
-        api.get('/admin/zones', { timeout: 60000, params: { _t: Date.now() } }),
-        api.get('/footer-links', { timeout: 60000, params: { _t: Date.now() } })
+        api.get('/admin/faqs', { timeout: 30000, params: { _t: Date.now() } }),
+        api.get('/admin/zones', { timeout: 30000, params: { _t: Date.now() } }),
+        api.get('/footer-links', { timeout: 30000, params: { _t: Date.now() } })
       ]);
       
       setFaqs(f.data.faqs || []);
@@ -78,7 +78,7 @@ export function SiteProvider({ children }) {
       // Load secondary data after critical data is loaded
       setTimeout(() => {
         loadSecondary();
-      }, 100);
+      }, 50);
     } catch (error) {
       console.error('Failed to load site data:', error);
       setLoaded(true);

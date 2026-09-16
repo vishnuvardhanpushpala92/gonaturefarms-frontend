@@ -10,7 +10,7 @@ const ensureHttps = (url) => {
 
 export const api = axios.create({
   baseURL: API_BASE ? `${API_BASE}/api` : '/api',
-  timeout: 300000
+  timeout: 120000
 });
 
 // Transform keys (if your backend uses snake_case)
