@@ -97,7 +97,19 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
   return (
     <div className={`pcard${isFuture ? ' pcard-future' : ''}`} style={{ overflow: 'visible', zIndex: 10 }}>
       <div className="pcard-img" onClick={() => allImages.length > 1 && setShowGallery(true)} style={{ cursor: allImages.length > 1 ? 'pointer' : 'default' }}>
-        <img src={getImageUrl(product.imgUrl)} alt={product.name} loading="lazy" />
+        <img
+          src={getImageUrl(product.imgUrl)}
+          alt={product.name}
+          loading="lazy"
+          onError={(e) => {
+            e.target.style.display = 'none';
+            e.target.parentElement.style.background = '#f0f0f0';
+            e.target.parentElement.style.display = 'flex';
+            e.target.parentElement.style.alignItems = 'center';
+            e.target.parentElement.style.justifyContent = 'center';
+            e.target.parentElement.innerHTML = '<span style="color: #999; font-size: 0.8rem;">Image not available</span>';
+          }}
+        />
         {allImages.length > 1 && (
           <div style={{
             position: 'absolute',
