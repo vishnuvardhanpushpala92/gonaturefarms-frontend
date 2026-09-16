@@ -1,10 +1,12 @@
 import React, { memo, useEffect, useState, useCallback, useRef } from 'react';
 import api from '../api/client';
 import ProductCard from './ProductCard.jsx';
+import { useSite } from '../context/SiteContext.jsx';
 
 const ProductCardMemo = memo(ProductCard);
 
 export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
+  const { products: initialProducts, loaded } = useSite();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [activeCat, setActiveCat] = useState('All');
@@ -32,9 +34,22 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
     }
   }, []);
 
+  // Use products from SiteContext initially, then load filtered products
   useEffect(() => {
-    load();
-  }, [activeCat, localSearch]);
+    if (loaded && initialProducts.length > 0) {
+      setProducts(initialProducts);
+      setLoading(false);
+    }
+  }, [loaded, initialProducts]);
+
+  useEffect(() => {
+    if (activeCat !== 'All' || localSearch) {
+      load();
+    } else if (loaded) {
+      setProducts(initialProducts);
+      setLoading(false);
+    }
+  }, [activeCat, localSearch, loaded, initialProducts, load]);
 
   useEffect(() => {
     setLocalSearch(search || '');

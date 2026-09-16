@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSite } from '../context/SiteContext.jsx';
 import { useLocation } from 'react-router-dom';
-import api from '../api/client';
 
 export default function Footer({ onOpenSupport }) {
-  const { settings, footerLinks } = useSite();
+  const { settings, footerLinks, testimonials: initialTestimonials, loaded } = useSite();
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
 
@@ -27,25 +26,12 @@ export default function Footer({ onOpenSupport }) {
   // Combine default links with admin-added quick links
   const allQuickLinks = [...defaultLinks, ...quickLinks];
 
-  // Load testimonials
+  // Use testimonials from SiteContext
   useEffect(() => {
-    loadTestimonials();
-  }, []);
-
-  const loadTestimonials = async () => {
-    try {
-      const res = await api.get('/testimonials');
-      if (res.data && res.data.success) {
-        setTestimonials(Array.isArray(res.data.testimonials) ? res.data.testimonials : []);
-      } else {
-        console.error('API returned success=false:', res.data);
-        setTestimonials([]);
-      }
-    } catch (err) {
-      console.error('Failed to load testimonials:', err);
-      setTestimonials([]);
+    if (loaded && initialTestimonials.length > 0) {
+      setTestimonials(initialTestimonials);
     }
-  };
+  }, [loaded, initialTestimonials]);
 
   const scrollLeft = () => {
     if (currentIndex > 0) {

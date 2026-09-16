@@ -17,22 +17,25 @@ export function SiteProvider({ children }) {
   const [zones, setZones] = useState([]);
   const [blocks, setBlocks] = useState([]);
   const [footerLinks, setFooterLinks] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
+  const [videos, setVideos] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const loadCalledRef = useRef(false);
 
-  const loadCritical = useCallback(async () => {
+  const loadAll = useCallback(async () => {
+    if (loadCalledRef.current) return;
+    loadCalledRef.current = true;
+
     try {
-      const [s, sl, b] = await Promise.all([
-        api.get('/admin/settings/public', { skipTransform: true, timeout: 30000 }),
-        api.get('/admin/slides', { timeout: 30000 }),
-        api.get('/admin/scroll-content', { timeout: 30000 })
-      ]);
+      // Single endpoint for all homepage data - reduces API calls from 9 to 1
+      const { data } = await api.get('/homepage', { timeout: 30000, skipTransform: true });
 
       // Sanitize settings URLs to ensure HTTPS
       const sanitizedSettings = {};
-      if (s.data.settings) {
-        Object.keys(s.data.settings).forEach(key => {
-          const value = s.data.settings[key];
+      if (data.settings) {
+        Object.keys(data.settings).forEach(key => {
+          const value = data.settings[key];
           // Sanitize URLs for image fields
           if (key.includes('url') || key.includes('image') || key === 'qr_code' || key === 'logo' || key === 'favicon') {
             sanitizedSettings[key] = ensureHttps(value);
@@ -43,47 +46,20 @@ export function SiteProvider({ children }) {
       }
 
       setSettings(sanitizedSettings || {});
-      setSlides(sl.data.slides || []);
-      setBlocks(b.data.blocks || []);
-    } catch (error) {
-      console.error('Failed to load critical data:', error);
-    }
-  }, []);
-
-  const loadSecondary = useCallback(async () => {
-    try {
-      const [f, z, fl] = await Promise.all([
-        api.get('/admin/faqs', { timeout: 30000 }),
-        api.get('/admin/zones', { timeout: 30000 }),
-        api.get('/footer-links', { timeout: 30000 })
-      ]);
-
-      setFaqs(f.data.faqs || []);
-      setZones(z.data.zones || []);
-      setFooterLinks(fl.data.links || []);
-    } catch (error) {
-      console.error('Failed to load secondary data:', error);
-    }
-  }, []);
-
-  const loadAll = useCallback(async () => {
-    if (loadCalledRef.current) return;
-    loadCalledRef.current = true;
-    
-    try {
-      // Load critical data first (for first viewport)
-      await loadCritical();
+      setSlides(data.slides || []);
+      setBlocks(data.blocks || []);
+      setFaqs(data.faqs || []);
+      setZones(data.zones || []);
+      setFooterLinks(data.footerLinks || []);
+      setTestimonials(data.testimonials || []);
+      setVideos(data.videos || []);
+      setProducts(data.products || []);
       setLoaded(true);
-      
-      // Load secondary data after critical data is loaded
-      setTimeout(() => {
-        loadSecondary();
-      }, 50);
     } catch (error) {
-      console.error('Failed to load site data:', error);
+      console.error('Failed to load homepage data:', error);
       setLoaded(true);
     }
-  }, [loadCritical, loadSecondary]);
+  }, []);
 
   const updateSettings = useCallback(async (newSettings) => {
     try {
@@ -100,7 +76,7 @@ export function SiteProvider({ children }) {
   }, []);
 
   return (
-    <SiteContext.Provider value={{ settings, slides, faqs, zones, blocks, footerLinks, loaded, reload: loadAll, updateSettings }}>
+    <SiteContext.Provider value={{ settings, slides, faqs, zones, blocks, footerLinks, testimonials, videos, products, loaded, reload: loadAll, updateSettings }}>
       {children}
     </SiteContext.Provider>
   );

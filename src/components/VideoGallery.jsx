@@ -3,8 +3,10 @@ import api from '../api/client';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
+import { useSite } from '../context/SiteContext.jsx';
 
 export default function VideoGallery({ onOpenCart }) {
+  const { videos: initialVideos, loaded } = useSite();
   const [videos, setVideos] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,13 +25,11 @@ export default function VideoGallery({ onOpenCart }) {
   const loadVideos = useCallback(async () => {
     if (loadCalledRef.current) return;
     loadCalledRef.current = true;
-    
+
     setLoading(true);
     try {
       const res = await api.get('/videos');
       if (res.data && res.data.success) {
-        // Backend already sorts by priority correctly
-        // Use the order from API response
         setVideos(Array.isArray(res.data.videos) ? res.data.videos : []);
       } else {
         setVideos([]);
@@ -43,8 +43,13 @@ export default function VideoGallery({ onOpenCart }) {
 
   useEffect(() => {
     if (!mounted) return;
-    loadVideos();
-  }, [mounted, loadVideos]);
+    if (loaded && initialVideos.length > 0) {
+      setVideos(initialVideos);
+      setLoading(false);
+    } else {
+      loadVideos();
+    }
+  }, [mounted, loaded, initialVideos, loadVideos]);
 
   const scrollLeft = () => {
     if (carouselRef.current) {
