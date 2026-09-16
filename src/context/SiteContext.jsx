@@ -1,5 +1,5 @@
 import React from 'react';
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import api from '../api/client';
 
 // Helper function to ensure HTTPS URLs - export for global use
@@ -18,16 +18,14 @@ export function SiteProvider({ children }) {
   const [blocks, setBlocks] = useState([]);
   const [footerLinks, setFooterLinks] = useState([]);
   const [loaded, setLoaded] = useState(false);
+  const loadCalledRef = useRef(false);
 
-  const loadAll = useCallback(async () => {
+  const loadCritical = useCallback(async () => {
     try {
-      const [s, sl, f, z, b, fl] = await Promise.all([
+      const [s, sl, b] = await Promise.all([
         api.get('/admin/settings/public', { skipTransform: true, timeout: 60000, params: { _t: Date.now() } }),
         api.get('/admin/slides', { timeout: 60000, params: { _t: Date.now() } }),
-        api.get('/admin/faqs', { timeout: 60000, params: { _t: Date.now() } }),
-        api.get('/admin/zones', { timeout: 60000, params: { _t: Date.now() } }),
-        api.get('/admin/scroll-content', { timeout: 60000, params: { _t: Date.now() } }),
-        api.get('/footer-links', { timeout: 60000, params: { _t: Date.now() } })
+        api.get('/admin/scroll-content', { timeout: 60000, params: { _t: Date.now() } })
       ]);
       
       // Sanitize settings URLs to ensure HTTPS
@@ -46,14 +44,46 @@ export function SiteProvider({ children }) {
       
       setSettings(sanitizedSettings || {});
       setSlides(sl.data.slides || []);
-      setFaqs(f.data.faqs || []);
-      setZones(z.data.zones || []);
       setBlocks(b.data.blocks || []);
-      setFooterLinks(fl.data.links || []);
-    } finally {
-      setLoaded(true);
+    } catch (error) {
+      console.error('Failed to load critical data:', error);
     }
   }, []);
+
+  const loadSecondary = useCallback(async () => {
+    try {
+      const [f, z, fl] = await Promise.all([
+        api.get('/admin/faqs', { timeout: 60000, params: { _t: Date.now() } }),
+        api.get('/admin/zones', { timeout: 60000, params: { _t: Date.now() } }),
+        api.get('/footer-links', { timeout: 60000, params: { _t: Date.now() } })
+      ]);
+      
+      setFaqs(f.data.faqs || []);
+      setZones(z.data.zones || []);
+      setFooterLinks(fl.data.links || []);
+    } catch (error) {
+      console.error('Failed to load secondary data:', error);
+    }
+  }, []);
+
+  const loadAll = useCallback(async () => {
+    if (loadCalledRef.current) return;
+    loadCalledRef.current = true;
+    
+    try {
+      // Load critical data first (for first viewport)
+      await loadCritical();
+      setLoaded(true);
+      
+      // Load secondary data after critical data is loaded
+      setTimeout(() => {
+        loadSecondary();
+      }, 100);
+    } catch (error) {
+      console.error('Failed to load site data:', error);
+      setLoaded(true);
+    }
+  }, [loadCritical, loadSecondary]);
 
   const updateSettings = useCallback(async (newSettings) => {
     try {

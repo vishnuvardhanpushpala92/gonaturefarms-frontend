@@ -11,6 +11,7 @@ export default function VideoGallery({ onOpenCart }) {
   const [mounted, setMounted] = useState(false);
   const carouselRef = useRef(null);
   const videoRef = useRef(null);
+  const loadCalledRef = useRef(false);
   const { isAuthenticated } = useAuth();
   const { addItem } = useCart();
   const showToast = useToast();
@@ -20,6 +21,9 @@ export default function VideoGallery({ onOpenCart }) {
   }, []);
 
   const loadVideos = useCallback(async () => {
+    if (loadCalledRef.current) return;
+    loadCalledRef.current = true;
+    
     setLoading(true);
     try {
       const res = await api.get('/videos');

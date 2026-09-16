@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState, useCallback } from 'react';
+import React, { memo, useEffect, useState, useCallback, useRef } from 'react';
 import api from '../api/client';
 import ProductCard from './ProductCard.jsx';
 
@@ -10,6 +10,7 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   const [activeCat, setActiveCat] = useState('All');
   const [loading, setLoading] = useState(true);
   const [localSearch, setLocalSearch] = useState(search || '');
+  const categoriesLoadedRef = useRef(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -25,7 +26,10 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   }, [activeCat, localSearch]);
 
   useEffect(() => {
-    api.get('/products/categories').then(({ data }) => setCategories(data.categories || []));
+    if (!categoriesLoadedRef.current) {
+      categoriesLoadedRef.current = true;
+      api.get('/products/categories').then(({ data }) => setCategories(data.categories || []));
+    }
   }, []);
 
   useEffect(() => {
@@ -80,7 +84,7 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
       </div>
 
       <div className="pgrid">
-        {loading ? (
+        {loading && products.length === 0 ? (
           <div className="empty-grid"><p>Loading products...</p></div>
         ) : uniqueCurrent.length === 0 ? (
           <div className="empty-grid"><p>No products available in this category.</p></div>

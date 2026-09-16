@@ -12,21 +12,19 @@ import AdminSessionTimer from './components/admin/AdminSessionTimer.jsx';
 import AdminLockOverlay from './components/admin/AdminLockOverlay.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <ThemeProvider>
-        <ToastProvider>
-          <AuthProvider>
-            <SiteProvider>
-              <CartProvider>
-                <AdminSessionTimer />
-                <AdminLockOverlay />
-                <App />
-              </CartProvider>
-            </SiteProvider>
-          </AuthProvider>
-        </ToastProvider>
-      </ThemeProvider>
-    </BrowserRouter>
-  </React.StrictMode>
+  <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <ThemeProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <SiteProvider>
+            <CartProvider>
+              <AdminSessionTimer />
+              <AdminLockOverlay />
+              <App />
+            </CartProvider>
+          </SiteProvider>
+        </AuthProvider>
+      </ToastProvider>
+    </ThemeProvider>
+  </BrowserRouter>
 );

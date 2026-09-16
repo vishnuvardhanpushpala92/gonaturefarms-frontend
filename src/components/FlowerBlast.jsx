@@ -1,11 +1,16 @@
 import React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 export default function FlowerBlast() {
   const [visible, setVisible] = useState(false);
   const [confettiPieces, setConfettiPieces] = useState([]);
+  const hasShownRef = useRef(false);
 
   useEffect(() => {
+    // Only show once per session
+    if (hasShownRef.current) return;
+    hasShownRef.current = true;
+
     const timer = setTimeout(() => setVisible(true), 300);
     const hideTimer = setTimeout(() => setVisible(false), 5000);
     return () => {
