@@ -43,7 +43,7 @@ export function CartProvider({ children }) {
           mrp: parseFloat(product.mrp || product.price),
           gst: parseFloat(product.gst || 0),
           hsn: product.hsn || '',
-          img: product.imgUrl || '',
+          img: product.img_url || product.imgUrl || '',
           variantId: product.variantId || null,
           variantName: product.variantName || null,
           qty: 1

@@ -18,10 +18,10 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Parse additional images from JSON string if needed
-  const additionalImages = product.additionalImages
-    ? (typeof product.additionalImages === 'string' ? JSON.parse(product.additionalImages) : product.additionalImages)
+  const additionalImages = product.additional_images || product.additionalImages
+    ? (typeof (product.additional_images || product.additionalImages) === 'string' ? JSON.parse(product.additional_images || product.additionalImages) : (product.additional_images || product.additionalImages))
     : [];
-  const allImages = [product.imgUrl, ...additionalImages].filter(Boolean);
+  const allImages = [product.img_url || product.imgUrl, ...additionalImages].filter(Boolean);
 
   const hasVariants = product.variants && product.variants.length > 0;
 
@@ -98,11 +98,11 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
     <div className={`pcard${isFuture ? ' pcard-future' : ''}`} style={{ overflow: 'visible', zIndex: 10 }}>
       <div className="pcard-img" onClick={() => allImages.length > 1 && setShowGallery(true)} style={{ cursor: allImages.length > 1 ? 'pointer' : 'default' }}>
         <img
-          src={getImageUrl(product.imgUrl)}
+          src={getImageUrl(product.img_url || product.imgUrl)}
           alt={product.name}
           loading="lazy"
           onError={(e) => {
-            console.error('Image load error:', product.imgUrl, e);
+            console.error('Image load error:', product.img_url || product.imgUrl, e);
             e.target.style.display = 'none';
             e.target.parentElement.style.background = '#f0f0f0';
             e.target.parentElement.style.display = 'flex';

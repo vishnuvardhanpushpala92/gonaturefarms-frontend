@@ -133,8 +133,8 @@ export default function VideoGallery({ onOpenCart }) {
   const getPosterUrl = (video) => {
     // 1. Try existing poster URL
     if (video.posterUrl && !isExternalImage(video.posterUrl)) return video.posterUrl;
-    // 2. Try product image
-    if (video.product && video.product.imgUrl && !isExternalImage(video.product.imgUrl)) return video.product.imgUrl;
+    // 2. Try product image (handle both snake_case and camelCase)
+    if (video.product && (video.product.img_url || video.product.imgUrl) && !isExternalImage(video.product.img_url || video.product.imgUrl)) return video.product.img_url || video.product.imgUrl;
     // 3. Try Cloudinary thumbnail from video URL
     if (video.filePath) {
       const cloudinaryThumb = getCloudinaryThumbnail(video.filePath);
@@ -269,9 +269,9 @@ export default function VideoGallery({ onOpenCart }) {
                         }
                       }}
                     >
-                      {video.product.imgUrl ? (
+                      {video.product.img_url || video.product.imgUrl ? (
                         <img
-                          src={video.product.imgUrl}
+                          src={video.product.img_url || video.product.imgUrl}
                           alt={video.product.name}
                           className="video-product-image"
                           loading="lazy"
