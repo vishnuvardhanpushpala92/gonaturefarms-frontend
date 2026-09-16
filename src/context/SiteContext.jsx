@@ -57,6 +57,11 @@ export function SiteProvider({ children }) {
       setLoaded(true);
     } catch (error) {
       console.error('Failed to load homepage data:', error);
+      // Graceful error handling - don't break the app
+      if (error.response?.status === 401) {
+        console.warn('401 error on public endpoint - backend configuration issue');
+      }
+      // Set loaded to true even on error to prevent infinite loading
       setLoaded(true);
     }
   }, []);

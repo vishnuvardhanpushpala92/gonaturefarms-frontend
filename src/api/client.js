@@ -8,6 +8,40 @@ const ensureHttps = (url) => {
   return url.replace(/^http:\/\//, 'https://');
 };
 
+// List of public endpoints that don't require authentication
+const PUBLIC_ENDPOINTS = [
+  '/homepage',
+  '/products',
+  '/products/categories',
+  '/products/*',
+  '/videos',
+  '/admin/settings/public',
+  '/admin/slides',
+  '/admin/faqs',
+  '/admin/scroll-content',
+  '/footer-links',
+  '/testimonials',
+  '/admin/zones',
+  '/orders/lookup',
+  '/auth/register',
+  '/auth/login',
+  '/auth/admin-login',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/forgot-password/verify',
+  '/auth/reset-password/security-question'
+];
+
+// Check if a URL is a public endpoint
+const isPublicEndpoint = (url) => {
+  if (!url) return false;
+  const cleanUrl = url.replace(/^\//, '');
+  return PUBLIC_ENDPOINTS.some(endpoint => {
+    const pattern = endpoint.replace('*', '.*');
+    return new RegExp(`^${pattern}$`).test(cleanUrl) || cleanUrl.startsWith(endpoint.replace('*', ''));
+  });
+};
+
 export const api = axios.create({
   baseURL: API_BASE ? `${API_BASE}/api` : '/api',
   timeout: 120000
@@ -37,24 +71,28 @@ function transformKeys(data, converter) {
   return data;
 }
 
-// Attach token to every request
+// Attach token to every request (only for protected endpoints)
 api.interceptors.request.use((config) => {
   const ssToken = sessionStorage.getItem('gnf_token');
   const lsToken = localStorage.getItem('gnf_token');
   const token = ssToken || lsToken;
-  
+
   console.log('[AXIOS INTERCEPTOR] URL:', config.url);
   console.log('[AXIOS INTERCEPTOR] sessionStorage token:', ssToken ? 'present' : 'missing');
   console.log('[AXIOS INTERCEPTOR] localStorage token:', lsToken ? 'present' : 'missing');
   console.log('[AXIOS INTERCEPTOR] Final token:', token ? 'present' : 'missing');
-  
-  if (token) {
+  console.log('[AXIOS INTERCEPTOR] Is public endpoint:', isPublicEndpoint(config.url));
+
+  // Only attach token for protected endpoints
+  if (token && !isPublicEndpoint(config.url)) {
     config.headers.Authorization = `Bearer ${token}`;
     console.log('[AXIOS INTERCEPTOR] Authorization header attached');
+  } else if (!token && !isPublicEndpoint(config.url)) {
+    console.warn('[AXIOS INTERCEPTOR] NO TOKEN for protected endpoint - may cause 401');
   } else {
-    console.warn('[AXIOS INTERCEPTOR] NO TOKEN - Authorization header NOT attached');
+    console.log('[AXIOS INTERCEPTOR] Public endpoint - no token needed');
   }
-  
+
   if (config.skipTransform) return config;
   if (config.data && !(config.data instanceof FormData)) {
     config.data = transformKeys(config.data, camelToSnake);
@@ -110,18 +148,26 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Clear tokens if unauthorized, but keep cart intact
-      sessionStorage.removeItem('gnf_token');
-      sessionStorage.removeItem('gnf_user');
-      localStorage.removeItem('gnf_token');
-      localStorage.removeItem('gnf_user');
-      // Do NOT remove cart - it should persist independently
-      
-      // Prevent infinite console spam
-      if (!error.config?.silent) {
-        console.warn('Unauthorized request. Redirecting to login...');
-        // Optional: Redirect to home or login
-        // window.location.href = '/';
+      // Check if this is a public endpoint - if so, don't clear tokens or redirect
+      if (isPublicEndpoint(error.config?.url)) {
+        console.warn('[AXIOS INTERCEPTOR] 401 on public endpoint - this is a backend configuration issue:', error.config?.url);
+        // Don't clear tokens for public endpoints
+        // Don't redirect for public endpoints
+        error.isPublicEndpointError = true;
+      } else {
+        // Clear tokens if unauthorized for protected endpoint, but keep cart intact
+        sessionStorage.removeItem('gnf_token');
+        sessionStorage.removeItem('gnf_user');
+        localStorage.removeItem('gnf_token');
+        localStorage.removeItem('gnf_user');
+        // Do NOT remove cart - it should persist independently
+
+        // Prevent infinite console spam
+        if (!error.config?.silent) {
+          console.warn('Unauthorized request on protected endpoint. Tokens cleared.');
+          // Optional: Redirect to home or login
+          // window.location.href = '/';
+        }
       }
     }
     
