@@ -29,7 +29,8 @@ export function SiteProvider({ children }) {
 
     try {
       // Single endpoint for all homepage data - reduces API calls from 9 to 1
-      const { data } = await api.get('/homepage', { timeout: 30000, skipTransform: true });
+      // Increased timeout to 60s to handle heavy data loading
+      const { data } = await api.get('/homepage', { timeout: 60000, skipTransform: true });
 
       // Sanitize settings URLs to ensure HTTPS
       const sanitizedSettings = {};
@@ -48,12 +49,13 @@ export function SiteProvider({ children }) {
       setSettings(sanitizedSettings || {});
       setSlides(data.slides || []);
       setBlocks(data.blocks || []);
-      setFaqs(data.faqs || []);
-      setZones(data.zones || []);
-      setFooterLinks(data.footerLinks || []);
-      setTestimonials(data.testimonials || []);
       setVideos(data.videos || []);
       setProducts(data.products || []);
+      setFooterLinks(data.footerLinks || []);
+      // FAQs, zones, testimonials not in homepage endpoint anymore - load separately if needed
+      setFaqs([]);
+      setZones([]);
+      setTestimonials([]);
       setLoaded(true);
     } catch (error) {
       console.error('Failed to load homepage data:', error);

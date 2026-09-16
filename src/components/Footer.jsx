@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSite } from '../context/SiteContext.jsx';
 import { useLocation } from 'react-router-dom';
+import api from '../api/client';
 
 export default function Footer({ onOpenSupport }) {
   const { settings, footerLinks, testimonials: initialTestimonials, loaded } = useSite();
@@ -26,10 +27,20 @@ export default function Footer({ onOpenSupport }) {
   // Combine default links with admin-added quick links
   const allQuickLinks = [...defaultLinks, ...quickLinks];
 
-  // Use testimonials from SiteContext
+  // Load testimonials separately if not in homepage data
   useEffect(() => {
     if (loaded && initialTestimonials.length > 0) {
       setTestimonials(initialTestimonials);
+    } else if (loaded) {
+      // Load testimonials separately since they're not in homepage endpoint anymore
+      api.get('/testimonials').then(res => {
+        if (res.data && res.data.success) {
+          setTestimonials(Array.isArray(res.data.testimonials) ? res.data.testimonials : []);
+        }
+      }).catch(err => {
+        console.error('Failed to load testimonials:', err);
+        setTestimonials([]);
+      });
     }
   }, [loaded, initialTestimonials]);
 
