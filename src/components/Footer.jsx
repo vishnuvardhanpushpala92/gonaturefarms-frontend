@@ -138,10 +138,11 @@ export default function Footer({ onOpenSupport }) {
                 </p>
                 <div className="customer-testimonials-author">
                   {testimonials[currentIndex].avatarUrl && (
-                    <img 
-                      src={testimonials[currentIndex].avatarUrl} 
+                    <img
+                      src={testimonials[currentIndex].avatarUrl}
                       alt={testimonials[currentIndex].customerName}
                       className="customer-testimonials-avatar"
+                      loading="lazy"
                       onError={(e) => e.target.style.display = 'none'}
                     />
                   )}

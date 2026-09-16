@@ -34,7 +34,7 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
 
   useEffect(() => {
     load();
-  }, [load]);
+  }, [activeCat, localSearch]);
 
   useEffect(() => {
     setLocalSearch(search || '');

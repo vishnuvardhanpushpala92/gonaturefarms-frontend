@@ -97,7 +97,7 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
   return (
     <div className={`pcard${isFuture ? ' pcard-future' : ''}`} style={{ overflow: 'visible', zIndex: 10 }}>
       <div className="pcard-img" onClick={() => allImages.length > 1 && setShowGallery(true)} style={{ cursor: allImages.length > 1 ? 'pointer' : 'default' }}>
-        <img src={getImageUrl(product.imgUrl)} alt={product.name} />
+        <img src={getImageUrl(product.imgUrl)} alt={product.name} loading="lazy" />
         {allImages.length > 1 && (
           <div style={{
             position: 'absolute',

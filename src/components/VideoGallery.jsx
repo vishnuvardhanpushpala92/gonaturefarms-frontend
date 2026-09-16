@@ -239,6 +239,7 @@ export default function VideoGallery({ onOpenCart }) {
                       src={posterUrl}
                       alt={video.title}
                       className="video-thumbnail"
+                      loading="lazy"
                       onError={() => handlePosterError(video.id)}
                     />
                   )}
@@ -267,6 +268,7 @@ export default function VideoGallery({ onOpenCart }) {
                           src={video.product.imgUrl}
                           alt={video.product.name}
                           className="video-product-image"
+                          loading="lazy"
                           onError={(e) => {
                             if (!mounted) return;
                             e.target.style.display = 'none';

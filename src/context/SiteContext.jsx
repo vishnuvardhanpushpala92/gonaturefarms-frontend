@@ -23,11 +23,11 @@ export function SiteProvider({ children }) {
   const loadCritical = useCallback(async () => {
     try {
       const [s, sl, b] = await Promise.all([
-        api.get('/admin/settings/public', { skipTransform: true, timeout: 30000, params: { _t: Date.now() } }),
-        api.get('/admin/slides', { timeout: 30000, params: { _t: Date.now() } }),
-        api.get('/admin/scroll-content', { timeout: 30000, params: { _t: Date.now() } })
+        api.get('/admin/settings/public', { skipTransform: true, timeout: 30000 }),
+        api.get('/admin/slides', { timeout: 30000 }),
+        api.get('/admin/scroll-content', { timeout: 30000 })
       ]);
-      
+
       // Sanitize settings URLs to ensure HTTPS
       const sanitizedSettings = {};
       if (s.data.settings) {
@@ -41,7 +41,7 @@ export function SiteProvider({ children }) {
           }
         });
       }
-      
+
       setSettings(sanitizedSettings || {});
       setSlides(sl.data.slides || []);
       setBlocks(b.data.blocks || []);
@@ -53,11 +53,11 @@ export function SiteProvider({ children }) {
   const loadSecondary = useCallback(async () => {
     try {
       const [f, z, fl] = await Promise.all([
-        api.get('/admin/faqs', { timeout: 30000, params: { _t: Date.now() } }),
-        api.get('/admin/zones', { timeout: 30000, params: { _t: Date.now() } }),
-        api.get('/footer-links', { timeout: 30000, params: { _t: Date.now() } })
+        api.get('/admin/faqs', { timeout: 30000 }),
+        api.get('/admin/zones', { timeout: 30000 }),
+        api.get('/footer-links', { timeout: 30000 })
       ]);
-      
+
       setFaqs(f.data.faqs || []);
       setZones(z.data.zones || []);
       setFooterLinks(fl.data.links || []);
@@ -97,7 +97,7 @@ export function SiteProvider({ children }) {
 
   useEffect(() => {
     loadAll();
-  }, [loadAll]);
+  }, []);
 
   return (
     <SiteContext.Provider value={{ settings, slides, faqs, zones, blocks, footerLinks, loaded, reload: loadAll, updateSettings }}>

@@ -245,7 +245,7 @@ export default function TransactionPage() {
           <div style={{ textAlign: 'left', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '1rem', marginBottom: '8px', margin: 0 }}>Order Items:</h3>
             {placedOrder.items.map((item, index) => (
-              <div key={index} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #e5e7eb' }}>
+              <div key={item.id || `${item.name}-${index}`} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #e5e7eb' }}>
                 <span style={{ fontSize: '0.9rem' }}>{item.name} x {item.qty}</span>
                 <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>₹{(item.price * item.qty).toFixed(2)}</span>
               </div>
@@ -264,7 +264,7 @@ export default function TransactionPage() {
           <div className="transaction-section" style={{ background: '#f9fafb', padding: '16px', borderRadius: '6px', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '1rem', marginBottom: '12px', color: '#374151', margin: 0 }}>Order Summary</h3>
             {items.map((item, index) => (
-              <div key={index} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #e5e7eb' }}>
+              <div key={item.id || `${item.name}-${index}`} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #e5e7eb' }}>
                 <div>
                   <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{item.name}</div>
                   <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>Qty: {item.qty}</div>

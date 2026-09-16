@@ -197,7 +197,7 @@ export default function TrackingPage() {
                 <div className="order-items">
                   <h4>Items:</h4>
                   {order.items && order.items.map((item, index) => (
-                    <div key={index} className="order-item">
+                    <div key={item.id || `${item.name}-${index}`} className="order-item">
                       <span>{item.name}</span>
                       <span>Qty: {item.quantity}</span>
                       <span>₹{item.price}</span>
@@ -343,7 +343,7 @@ export default function TrackingPage() {
                 <div className="bill-items">
                   <h4>Items</h4>
                   {selectedOrder.items && selectedOrder.items.map((item, index) => (
-                    <div key={index} className="bill-item">
+                    <div key={item.id || `${item.name}-${index}`} className="bill-item">
                       <span>{item.name} x {item.quantity}</span>
                       <span>₹{(item.price * item.quantity).toFixed(2)}</span>
                     </div>
