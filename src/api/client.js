@@ -44,7 +44,7 @@ const isPublicEndpoint = (url) => {
 
 export const api = axios.create({
   baseURL: API_BASE ? `${API_BASE}/api` : '/api',
-  timeout: 120000
+  timeout: 15000
 });
 
 // Transform keys (if your backend uses snake_case)

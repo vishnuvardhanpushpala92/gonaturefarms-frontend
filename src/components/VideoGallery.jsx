@@ -28,7 +28,7 @@ export default function VideoGallery({ onOpenCart }) {
 
     setLoading(true);
     try {
-      const res = await api.get('/videos');
+      const res = await api.get('/videos', { timeout: 15000 });
       console.log('Videos API response:', res.data);
       if (res.data && res.data.success) {
         const videos = Array.isArray(res.data.videos) ? res.data.videos : [];

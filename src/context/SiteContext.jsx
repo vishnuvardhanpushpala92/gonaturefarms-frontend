@@ -21,16 +21,17 @@ export function SiteProvider({ children }) {
   const [videos, setVideos] = useState([]);
   const [products, setProducts] = useState([]);
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(null);
   const loadCalledRef = useRef(false);
 
   const loadAll = useCallback(async () => {
-    if (loadCalledRef.current) return;
     loadCalledRef.current = true;
+    setError(null);
 
     try {
       // Single endpoint for all homepage data - reduces API calls from 9 to 1
-      // Increased timeout to 60s to handle heavy data loading
-      const { data } = await api.get('/homepage', { timeout: 60000, skipTransform: true });
+      // Uses global timeout of 15 seconds from axios config
+      const { data } = await api.get('/homepage', { skipTransform: true });
 
       // Sanitize settings URLs to ensure HTTPS
       const sanitizedSettings = {};
@@ -56,16 +57,20 @@ export function SiteProvider({ children }) {
       setVideos(data.videos || []);
       setProducts(data.products || []);
       setLoaded(true);
+      setError(null);
     } catch (error) {
       console.error('Failed to load homepage data:', error);
-      // Graceful error handling - don't break the app
-      if (error.response?.status === 401) {
-        console.warn('401 error on public endpoint - backend configuration issue');
-      }
+      // Set error state for UI to display
+      setError(error.message || 'Failed to load data. Please check your connection.');
       // Set loaded to true even on error to prevent infinite loading
       setLoaded(true);
     }
   }, []);
+
+  const retryLoad = useCallback(() => {
+    loadCalledRef.current = false;
+    loadAll();
+  }, [loadAll]);
 
   const updateSettings = useCallback(async (newSettings) => {
     try {
@@ -82,7 +87,7 @@ export function SiteProvider({ children }) {
   }, []);
 
   return (
-    <SiteContext.Provider value={{ settings, slides, faqs, zones, blocks, footerLinks, testimonials, videos, products, loaded, reload: loadAll, updateSettings }}>
+    <SiteContext.Provider value={{ settings, slides, faqs, zones, blocks, footerLinks, testimonials, videos, products, loaded, error, reload: loadAll, retry: retryLoad, updateSettings }}>
       {children}
     </SiteContext.Provider>
   );

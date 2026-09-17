@@ -30,7 +30,7 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   useEffect(() => {
     if (!categoriesLoadedRef.current) {
       categoriesLoadedRef.current = true;
-      api.get('/products/categories').then(({ data }) => setCategories(data.categories || []));
+      api.get('/products/categories', { timeout: 15000 }).then(({ data }) => setCategories(data.categories || []));
     }
   }, []);
 

@@ -9,11 +9,13 @@ import ScrollingBlocks from '../components/ScrollingBlocks.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
+import { useSite } from '../context/SiteContext.jsx';
 
 export default function HomePage({ onOpenCart, search }) {
   const { isAuthenticated, user } = useAuth();
   const showToast = useToast();
   const { setItemAddedCallback } = useCart();
+  const { loaded, error, retry } = useSite();
 
   // Set up cart callback to automatically open drawer when item is added
   useEffect(() => {
@@ -37,18 +39,48 @@ export default function HomePage({ onOpenCart, search }) {
   return (
     <>
       <FlowerBlast />
-      <div id="top">
-        <div className="slider-wrap-container">
-          <HeroSlider />
+      {!loaded && !error && (
+        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666' }}>
+          <div style={{ fontSize: '1.2rem', marginBottom: '10px' }}>Loading...</div>
+          <div style={{ fontSize: '0.9rem', color: '#999' }}>Please wait while we load the content</div>
         </div>
-        <PromoStrip />
-        <ScrollingBlocks />
-      </div>
-      <div id="products">
-        <ProductGrid search={search} onOpenCart={onOpenCart} />
-      </div>
-      <VideoGallery onOpenCart={onOpenCart} />
-      <Footer />
+      )}
+      {error && (
+        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666' }}>
+          <div style={{ fontSize: '1.2rem', marginBottom: '10px', color: '#dc2626' }}>Failed to load content</div>
+          <div style={{ fontSize: '0.9rem', color: '#999', marginBottom: '20px' }}>{error}</div>
+          <button
+            onClick={retry}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#2d5a27',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '0.9rem'
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+      {loaded && (
+        <>
+          <div id="top">
+            <div className="slider-wrap-container">
+              <HeroSlider />
+            </div>
+            <PromoStrip />
+            <ScrollingBlocks />
+          </div>
+          <div id="products">
+            <ProductGrid search={search} onOpenCart={onOpenCart} />
+          </div>
+          <VideoGallery onOpenCart={onOpenCart} />
+          <Footer />
+        </>
+      )}
     </>
   );
 }
