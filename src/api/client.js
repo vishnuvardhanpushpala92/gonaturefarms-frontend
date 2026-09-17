@@ -13,7 +13,6 @@ const PUBLIC_ENDPOINTS = [
   '/homepage',
   '/products',
   '/products/categories',
-  '/products/*',
   '/videos',
   '/admin/settings/public',
   '/admin/slides',
