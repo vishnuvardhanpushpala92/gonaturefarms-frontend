@@ -36,6 +36,14 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
 
   const hasVariants = product.variants && product.variants.length > 0;
 
+  // Log variants for debugging
+  React.useEffect(() => {
+    if (hasVariants) {
+      console.log('Product variants:', product.variants);
+      console.log('First variant:', product.variants[0]);
+    }
+  }, [product.variants, hasVariants]);
+
   // Initialize with first variant if available (only on mount or when product.id changes)
   React.useEffect(() => {
     if (hasVariants && product.variants.length > 0) {
@@ -161,7 +169,7 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
             >
               {product.variants.map(variant => (
                 <option key={variant.id} value={variant.id}>
-                  {variant.variantName || 'Standard'} - ₹{variant.price}
+                  {variant.variantName} - ₹{variant.price}
                 </option>
               ))}
             </select>

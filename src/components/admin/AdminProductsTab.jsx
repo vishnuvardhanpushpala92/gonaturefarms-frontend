@@ -180,9 +180,9 @@ export default function AdminProductsTab() {
           stock: 100
         }];
       } else {
-        // Ensure all variant fields are populated with defaults if missing
+        // Use variants exactly as entered - do not override variantName
         finalVariants = finalVariants.map(v => ({
-          variantName: v.variantName || '1 Piece',
+          variantName: v.variantName,
           price: v.price ? parseFloat(v.price) : (v.mrp ? parseFloat(v.mrp) : 0),
           mrp: v.mrp ? parseFloat(v.mrp) : (v.price ? parseFloat(v.price) : 0),
           stock: v.stock ? parseInt(v.stock) : 100
@@ -199,7 +199,10 @@ export default function AdminProductsTab() {
           stock: v.stock ? parseInt(v.stock) : 100
         }))
       };
-      
+
+      console.log('Product payload:', payload);
+      console.log('Variants being sent:', payload.variants);
+
       const data = editing
         ? (await api.put(`/products/${editing}`, payload)).data
         : (await api.post('/products', payload)).data;
