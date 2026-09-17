@@ -18,8 +18,20 @@ export default function AdminProductsTab() {
   const [removingDemoVariants, setRemovingDemoVariants] = useState(false);
 
   const load = () => {
-    api.get('/products/admin-list').then(({ data }) => setProducts(data.products || []));
-    api.get('/products/categories').then(({ data }) => setCategories(data.categories || []));
+    console.log('=== ADMIN PRODUCT LOAD DEBUG ===');
+    api.get('/products/admin-list').then(({ data }) => {
+      console.log('API Response:', data);
+      console.log('Products from response:', data.products);
+      console.log('Number of products:', data.products ? data.products.length : 0);
+      setProducts(data.products || []);
+    }).catch(error => {
+      console.error('Error loading products:', error);
+      console.error('Error response:', error.response);
+    });
+    api.get('/products/categories').then(({ data }) => {
+      console.log('Categories:', data.categories);
+      setCategories(data.categories || []);
+    });
   };
 
   useEffect(() => {
