@@ -117,12 +117,12 @@ export default function AdminWhatsAppTab() {
       showToast('Please select at least one customer');
       return;
     }
-    
+
     if (form.reminderType === 'Product' && !form.productId) {
       showToast('Please select a product for Product Reminder');
       return;
     }
-    
+
     setLoading(true);
     try {
       const payload = {
@@ -132,6 +132,10 @@ export default function AdminWhatsAppTab() {
         scheduledAt: form.scheduledAt || new Date().toISOString(),
         productId: form.productId || null
       };
+
+      // Log message before sending to backend
+      console.log('[WhatsApp] Message BEFORE API call:', payload.message);
+      console.log('[WhatsApp] Message contains emojis:', /[🥜✨💰🏷️🌿🌱🛒]/.test(payload.message));
 
       // Check for duplicate reminders
       if (form.reminderType === 'Product' && form.productId) {
@@ -150,27 +154,32 @@ export default function AdminWhatsAppTab() {
 
       // Sending WhatsApp message
       const { data } = await api.post('/admin/whatsapp/send', payload);
+      console.log('[WhatsApp] Backend response:', data);
       showToast(data.message);
-      
+
       if (data.success) {
         // Check if backend returns links, otherwise construct them
         const links = data.whatsappLinks || [];
-        
+
+        console.log('[WhatsApp] WhatsApp links:', links);
+
         if (links.length > 0) {
           links.forEach((link, index) => {
+            console.log(`[WhatsApp] Opening link ${index + 1}:`, link);
             setTimeout(() => window.open(link, '_blank'), index * 500);
           });
         } else {
           // Fallback: Just reset form and show success
           showToast('Reminder created successfully');
         }
-        
+
         setForm({ reminderType: 'Custom', message: '', scheduledAt: '', customerIds: [], productId: '', customerSelectionType: 'Manually selected' });
         setSelectedCustomers([]);
         setShowPreview(false);
         loadReminders();
       }
     } catch (err) {
+      console.error('[WhatsApp] Error:', err);
       showToast(err?.response?.data?.message || 'Failed to create reminder');
     } finally {
       setLoading(false);
