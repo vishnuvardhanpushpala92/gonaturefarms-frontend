@@ -19,18 +19,43 @@ export default function AdminProductsTab() {
 
   const load = () => {
     console.log('=== ADMIN PRODUCT LOAD DEBUG ===');
-    api.get('/products/admin-list').then(({ data }) => {
-      console.log('API Response:', data);
-      console.log('Products from response:', data.products);
-      console.log('Number of products:', data.products ? data.products.length : 0);
-      setProducts(data.products || []);
-    }).catch(error => {
-      console.error('Error loading products:', error);
-      console.error('Error response:', error.response);
-    });
+    console.log('Starting product load...');
+    
+    // Load categories first
     api.get('/products/categories').then(({ data }) => {
-      console.log('Categories:', data.categories);
+      console.log('Categories loaded successfully:', data.categories);
       setCategories(data.categories || []);
+    }).catch(error => {
+      console.error('Error loading categories:', error);
+    });
+    
+    // Load products
+    console.log('Loading products from /products/admin-list');
+    api.get('/products/admin-list').then(({ data }) => {
+      console.log('=== API RESPONSE RECEIVED ===');
+      console.log('Full response:', data);
+      console.log('Response keys:', Object.keys(data));
+      console.log('Response.success:', data.success);
+      console.log('Response.products:', data.products);
+      console.log('Number of products:', data.products ? data.products.length : 0);
+      
+      if (data.products && Array.isArray(data.products)) {
+        console.log('Products array details:');
+        data.products.forEach((p, i) => {
+          console.log(`  Product ${i}: ID=${p.id}, Name=${p.name}, Category=${p.cat}`);
+        });
+      }
+      
+      setProducts(data.products || []);
+      console.log('=== END API RESPONSE ===');
+    }).catch(error => {
+      console.error('=== ERROR LOADING PRODUCTS ===');
+      console.error('Error:', error);
+      console.error('Error message:', error.message);
+      console.error('Error response:', error.response);
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('=== END ERROR ===');
     });
   };
 
