@@ -35,10 +35,16 @@ const PUBLIC_ENDPOINTS = [
 const isPublicEndpoint = (url) => {
   if (!url) return false;
   const cleanUrl = url.replace(/^\//, '');
-  return PUBLIC_ENDPOINTS.some(endpoint => {
+  console.log('[isPublicEndpoint] Checking URL:', cleanUrl);
+  console.log('[isPublicEndpoint] Public endpoints:', PUBLIC_ENDPOINTS);
+  const isPublic = PUBLIC_ENDPOINTS.some(endpoint => {
     const pattern = endpoint.replace('*', '.*');
-    return new RegExp(`^${pattern}$`).test(cleanUrl) || cleanUrl.startsWith(endpoint.replace('*', ''));
+    const matches = new RegExp(`^${pattern}$`).test(cleanUrl) || cleanUrl.startsWith(endpoint.replace('*', ''));
+    console.log('[isPublicEndpoint] Endpoint:', endpoint, 'Matches:', matches);
+    return matches;
   });
+  console.log('[isPublicEndpoint] Final result:', isPublic);
+  return isPublic;
 };
 
 export const api = axios.create({

@@ -41,7 +41,9 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
     if (hasVariants) {
       console.log('Product variants from API:', product.variants);
       console.log('First variant:', product.variants[0]);
-      console.log('First variant name:', product.variants[0].variantName);
+      console.log('First variant keys:', Object.keys(product.variants[0]));
+      console.log('First variant name (camelCase):', product.variants[0].variantName);
+      console.log('First variant name (snake_case):', product.variants[0].variant_name);
       console.log('First variant price:', product.variants[0].price);
     }
   }, [product.variants, hasVariants]);
@@ -171,11 +173,14 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
             >
               {product.variants.map(variant => {
                 console.log('Rendering variant option:', variant);
-                console.log('Variant name:', variant.variantName);
-                console.log('Variant price:', variant.price);
+                console.log('Variant keys:', Object.keys(variant));
+                console.log('Variant name (camelCase):', variant.variantName);
+                console.log('Variant name (snake_case):', variant.variant_name);
+                const displayName = variant.variantName || variant.variant_name || 'Unknown';
+                console.log('Display name:', displayName);
                 return (
                   <option key={variant.id} value={variant.id}>
-                    {variant.variantName} - ₹{variant.price}
+                    {displayName} - ₹{variant.price}
                   </option>
                 );
               })}
