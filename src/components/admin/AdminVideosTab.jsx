@@ -14,8 +14,25 @@ export default function AdminVideosTab() {
   const [uploading, setUploading] = useState(false);
 
   const load = () => {
-    api.get('/videos/admin/all').then(({ data }) => setVideos(data.videos || []));
-    api.get('/products').then(({ data }) => setProducts(data.products || []));
+    console.log('=== ADMIN VIDEOS LOAD DEBUG ===');
+    api.get('/videos/admin/all').then(({ data }) => {
+      console.log('Videos API response:', data);
+      console.log('Videos array:', data.videos);
+      console.log('Number of videos:', data.videos ? data.videos.length : 0);
+      if (data.videos && data.videos.length > 0) {
+        console.log('First video:', data.videos[0]);
+        console.log('First video keys:', Object.keys(data.videos[0]));
+        console.log('First video product:', data.videos[0].product);
+      }
+      setVideos(data.videos || []);
+    }).catch(error => {
+      console.error('Error loading videos:', error);
+      console.error('Error response:', error.response);
+    });
+    api.get('/products').then(({ data }) => {
+      console.log('Products loaded:', data.products);
+      setProducts(data.products || []);
+    });
   };
 
   useEffect(() => {
@@ -26,10 +43,10 @@ export default function AdminVideosTab() {
     setEditing(video.id);
     setForm({
       title: video.title || '',
-      productId: video.productId || '',
-      posterUrl: video.posterUrl || '',
+      productId: video.productId || video.product_id || '',
+      posterUrl: video.posterUrl || video.poster_url || '',
       enabled: video.enabled,
-      sortOrder: video.sortOrder !== null && video.sortOrder !== undefined ? video.sortOrder : '',
+      sortOrder: video.sortOrder !== null && video.sortOrder !== undefined ? video.sortOrder : (video.sort_order !== null && video.sort_order !== undefined ? video.sort_order : ''),
       orientation: video.orientation
     });
     setFile(null);
