@@ -49,6 +49,13 @@ export default function AdminProductsTab() {
     setVariants([...variants, { variantName: '', price: '', mrp: '', stock: 100 }]);
   };
 
+  const formatVariantDisplay = (variant) => {
+    if (variant.variantName) {
+      return `${variant.variantName} - ₹${variant.price}`;
+    }
+    return `Standard - ₹${variant.price}`;
+  };
+
   const removeVariant = (index) => {
     setVariants(variants.filter((_, i) => i !== index));
   };
@@ -156,7 +163,8 @@ export default function AdminProductsTab() {
     try {
       // Remove duplicate variant names before sending
       const seen = new Set();
-      const filteredVariants = variants.filter(v => v.variantName).filter(v => {
+      const filteredVariants = variants.filter(v => {
+        if (!v.variantName) return false;
         if (seen.has(v.variantName)) return false;
         seen.add(v.variantName);
         return true;
@@ -166,7 +174,7 @@ export default function AdminProductsTab() {
       let finalVariants = filteredVariants;
       if (finalVariants.length === 0) {
         finalVariants = [{
-          variantName: 'Standard',
+          variantName: '1 Piece',
           price: form.price ? parseFloat(form.price) : 0,
           mrp: form.mrp ? parseFloat(form.mrp) : (form.price ? parseFloat(form.price) : 0),
           stock: 100
@@ -174,7 +182,7 @@ export default function AdminProductsTab() {
       } else {
         // Ensure all variant fields are populated with defaults if missing
         finalVariants = finalVariants.map(v => ({
-          variantName: v.variantName || 'Standard',
+          variantName: v.variantName || '1 Piece',
           price: v.price ? parseFloat(v.price) : (v.mrp ? parseFloat(v.mrp) : 0),
           mrp: v.mrp ? parseFloat(v.mrp) : (v.price ? parseFloat(v.price) : 0),
           stock: v.stock ? parseInt(v.stock) : 100
@@ -369,12 +377,13 @@ export default function AdminProductsTab() {
                 {variants.map((variant, index) => (
                   <div key={index} style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
                     <div style={{ flex: 2 }}>
-                      <label style={{ fontSize: '.7rem', color: 'var(--muted)' }}>Variant Name/Size</label>
+                      <label style={{ fontSize: '.7rem', color: 'var(--muted)' }}>Quantity + Unit (Required)</label>
                       <input
                         type="text"
-                        placeholder="e.g., 500gms, 1 Litre, 2 pieces"
+                        placeholder="e.g., 500 g, 1 kg, 1 L, 2 Pieces"
                         value={variant.variantName}
                         onChange={(e) => updateVariant(index, 'variantName', e.target.value)}
+                        required
                         style={{ width: '100%', padding: '6px 8px', border: '1px solid var(--border)', borderRadius: 4 }}
                       />
                     </div>

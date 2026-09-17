@@ -50,6 +50,7 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
     if (variant) {
       setSelectedVariant(variant);
       setDisplayPrice(variant.price);
+      console.log('Selected variant:', variant);
     }
   };
 
@@ -160,7 +161,7 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
             >
               {product.variants.map(variant => (
                 <option key={variant.id} value={variant.id}>
-                  {variant.variantName} - ₹{variant.price}
+                  {variant.variantName || 'Standard'} - ₹{variant.price}
                 </option>
               ))}
             </select>
