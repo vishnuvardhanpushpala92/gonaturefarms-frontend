@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../../api/client';
+import api, { uploadApi } from '../../api/client';
 import { useToast } from '../../context/ToastContext.jsx';
 
 const EMPTY = { title: '', productId: '', posterUrl: '', enabled: true, sortOrder: '', orientation: 'landscape' };
@@ -66,11 +66,11 @@ export default function AdminVideosTab() {
       formData.append('orientation', form.orientation);
 
       const data = editing
-        ? (await api.put(`/videos/admin/${editing}`, formData, {
+        ? (await uploadApi.put(`/videos/admin/${editing}`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
             skipTransform: true
           })).data
-        : (await api.post('/videos/admin', formData, {
+        : (await uploadApi.post('/videos/admin', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
             skipTransform: true
           })).data;

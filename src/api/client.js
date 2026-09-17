@@ -47,6 +47,62 @@ export const api = axios.create({
   timeout: 15000
 });
 
+// Dedicated API instance for file uploads with longer timeout
+export const uploadApi = axios.create({
+  baseURL: API_BASE ? `${API_BASE}/api` : '/api',
+  timeout: 120000 // 2 minutes for file uploads
+});
+
+// Attach same interceptors to uploadApi
+uploadApi.interceptors.request.use((config) => {
+  const ssToken = sessionStorage.getItem('gnf_token');
+  const lsToken = localStorage.getItem('gnf_token');
+  const token = ssToken || lsToken;
+
+  // Only attach token for protected endpoints
+  if (token && !isPublicEndpoint(config.url)) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  if (config.skipTransform) return config;
+  if (config.data && !(config.data instanceof FormData)) {
+    config.data = transformKeys(config.data, camelToSnake);
+  }
+  if (config.params) {
+    config.params = transformKeys(config.params, camelToSnake);
+  }
+  return config;
+});
+
+uploadApi.interceptors.response.use(
+  (response) => {
+    if (response.config?.skipTransform) {
+      if (response.data && !(response.data instanceof Blob) && !(response.data instanceof ArrayBuffer)) {
+        response.data = sanitizeUrlsInObject(response.data);
+      }
+      return response;
+    }
+    if (response.data && !(response.data instanceof Blob) && !(response.data instanceof ArrayBuffer)) {
+      response.data = transformKeys(response.data, snakeToCamel);
+    }
+    return response;
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      if (isPublicEndpoint(error.config?.url)) {
+        console.warn('[UPLOAD API] 401 on public endpoint - backend configuration issue:', error.config?.url);
+        error.isPublicEndpointError = true;
+      } else {
+        console.warn('[UPLOAD API] 401 on protected endpoint - clearing tokens');
+        sessionStorage.removeItem('gnf_token');
+        localStorage.removeItem('gnf_token');
+        sessionStorage.removeItem('gnf_intended_action');
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Transform keys (if your backend uses snake_case)
 function isPlainObject(val) {
   return val !== null && typeof val === 'object' && !Array.isArray(val) && !(val instanceof File) && !(val instanceof Blob);
