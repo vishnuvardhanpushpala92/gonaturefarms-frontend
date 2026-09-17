@@ -39,8 +39,10 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
   // Log variants for debugging
   React.useEffect(() => {
     if (hasVariants) {
-      console.log('Product variants:', product.variants);
+      console.log('Product variants from API:', product.variants);
       console.log('First variant:', product.variants[0]);
+      console.log('First variant name:', product.variants[0].variantName);
+      console.log('First variant price:', product.variants[0].price);
     }
   }, [product.variants, hasVariants]);
 
@@ -167,11 +169,16 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
                 zIndex: 100
               }}
             >
-              {product.variants.map(variant => (
-                <option key={variant.id} value={variant.id}>
-                  {variant.variantName} - ₹{variant.price}
-                </option>
-              ))}
+              {product.variants.map(variant => {
+                console.log('Rendering variant option:', variant);
+                console.log('Variant name:', variant.variantName);
+                console.log('Variant price:', variant.price);
+                return (
+                  <option key={variant.id} value={variant.id}>
+                    {variant.variantName} - ₹{variant.price}
+                  </option>
+                );
+              })}
             </select>
           </div>
         )}

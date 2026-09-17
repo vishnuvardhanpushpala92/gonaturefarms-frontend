@@ -64,6 +64,8 @@ export default function AdminProductsTab() {
     const updated = [...variants];
     updated[index][field] = value;
     setVariants(updated);
+    console.log('Updated variant at index', index, ':', field, '=', value);
+    console.log('Updated variant object:', updated[index]);
   };
 
   const handleImageUpload = async (e) => {
