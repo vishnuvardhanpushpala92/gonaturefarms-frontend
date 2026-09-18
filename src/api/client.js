@@ -11,6 +11,7 @@ const ensureHttps = (url) => {
 // List of public endpoints that don't require authentication
 const PUBLIC_ENDPOINTS = [
   '/homepage',
+  '/homepage-data',
   '/products',
   '/products/categories',
   '/videos',
@@ -35,22 +36,44 @@ const PUBLIC_ENDPOINTS = [
 const isPublicEndpoint = (url) => {
   if (!url) return false;
   const cleanUrl = url.replace(/^\//, '');
-  console.log('[isPublicEndpoint] Checking URL:', cleanUrl);
-  console.log('[isPublicEndpoint] Public endpoints:', PUBLIC_ENDPOINTS);
-  const isPublic = PUBLIC_ENDPOINTS.some(endpoint => {
+  return PUBLIC_ENDPOINTS.some(endpoint => {
     const pattern = endpoint.replace('*', '.*');
-    const matches = new RegExp(`^${pattern}$`).test(cleanUrl) || cleanUrl.startsWith(endpoint.replace('*', ''));
-    console.log('[isPublicEndpoint] Endpoint:', endpoint, 'Matches:', matches);
-    return matches;
+    return new RegExp(`^${pattern}$`).test(cleanUrl) || cleanUrl.startsWith(endpoint.replace('*', ''));
   });
-  console.log('[isPublicEndpoint] Final result:', isPublic);
-  return isPublic;
 };
 
 export const api = axios.create({
   baseURL: API_BASE ? `${API_BASE}/api` : '/api',
-  timeout: 15000
+  timeout: 60000 // Increased from 15000ms to 60000ms to handle cold starts
 });
+
+// Add retry logic for failed requests
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const config = error.config;
+    
+    // Retry on timeout or network errors
+    if (!config || !config.retry) {
+      config.retry = 0;
+    }
+    
+    // Only retry on timeout or network errors (not 4xx errors)
+    if (error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK') {
+      config.retry += 1;
+      
+      // Retry up to 3 times
+      if (config.retry <= 3) {
+        console.log(`[API RETRY] Attempt ${config.retry} for ${config.url}`);
+        return new Promise((resolve) => {
+          setTimeout(() => resolve(api(config)), 2000); // Wait 2 seconds before retry
+        });
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
 // Dedicated API instance for file uploads with longer timeout
 export const uploadApi = axios.create({
@@ -138,20 +161,9 @@ api.interceptors.request.use((config) => {
   const lsToken = localStorage.getItem('gnf_token');
   const token = ssToken || lsToken;
 
-  console.log('[AXIOS INTERCEPTOR] URL:', config.url);
-  console.log('[AXIOS INTERCEPTOR] sessionStorage token:', ssToken ? 'present' : 'missing');
-  console.log('[AXIOS INTERCEPTOR] localStorage token:', lsToken ? 'present' : 'missing');
-  console.log('[AXIOS INTERCEPTOR] Final token:', token ? 'present' : 'missing');
-  console.log('[AXIOS INTERCEPTOR] Is public endpoint:', isPublicEndpoint(config.url));
-
   // Only attach token for protected endpoints
   if (token && !isPublicEndpoint(config.url)) {
     config.headers.Authorization = `Bearer ${token}`;
-    console.log('[AXIOS INTERCEPTOR] Authorization header attached');
-  } else if (!token && !isPublicEndpoint(config.url)) {
-    console.warn('[AXIOS INTERCEPTOR] NO TOKEN for protected endpoint - may cause 401');
-  } else {
-    console.log('[AXIOS INTERCEPTOR] Public endpoint - no token needed');
   }
 
   if (config.skipTransform) return config;
