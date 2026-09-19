@@ -44,21 +44,23 @@ export default function HomePage({ onOpenCart, search }) {
       {/* Show skeleton while loading - renders immediately */}
       {!loaded && !error && <HomePageSkeleton />}
       
-      {/* Show error state with retry button */}
+      {/* Show error state with retry button - Fixed container to prevent layout shift */}
       {error && (
-        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666' }}>
+        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666', minHeight: '200px' }}>
           <div style={{ fontSize: '1.2rem', marginBottom: '10px', color: '#dc2626' }}>Failed to load content</div>
           <div style={{ fontSize: '0.9rem', color: '#999', marginBottom: '20px' }}>{error}</div>
           <button
             onClick={retry}
             style={{
-              padding: '10px 20px',
+              padding: '12px 24px',
               backgroundColor: '#2d5a27',
               color: '#fff',
               border: 'none',
               borderRadius: '4px',
               cursor: 'pointer',
-              fontSize: '0.9rem'
+              fontSize: '0.9rem',
+              minHeight: '44px',
+              minWidth: '44px'
             }}
           >
             Retry
