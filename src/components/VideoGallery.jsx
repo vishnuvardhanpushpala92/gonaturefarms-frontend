@@ -260,12 +260,10 @@ export default function VideoGallery({ onOpenCart }) {
                   <div className="video-play-overlay">
                     <span className="play-icon">▶</span>
                   </div>
-                </div>
-                <div className="video-card-info">
-                  {video.title && <h4>{video.title}</h4>}
+                  {/* Product Tag Overlay */}
                   {video.product && (
                     <div
-                      className="video-product-info clickable"
+                      className="video-product-overlay"
                       onClick={(e) => handleProductClick(e, video.product)}
                       role="button"
                       tabIndex={0}
@@ -281,36 +279,25 @@ export default function VideoGallery({ onOpenCart }) {
                         <img
                           src={video.product.img_url || video.product.imgUrl}
                           alt={video.product.name}
-                          className="video-product-image"
+                          className="video-product-overlay-image"
                           loading="lazy"
                           onError={(e) => {
                             if (!mounted) return;
                             e.target.style.display = 'none';
-                            e.target.parentElement.style.background = '#f3f4f6';
-                            const errorDiv = document.createElement('div');
-                            errorDiv.style.cssText = 'display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:#f3f4f6;border-radius:8px;color:#999;font-size:12px;';
-                            errorDiv.textContent = 'No Image';
-                            e.target.parentElement.appendChild(errorDiv);
                           }}
                         />
                       ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', background: '#f3f4f6', borderRadius: '8px', color: '#999', fontSize: '12px' }}>
-                          No Image
-                        </div>
+                        <div className="video-product-overlay-no-image">No Image</div>
                       )}
-                      <div className="video-product-details">
-                        <p className="video-product-name">{video.product.name}</p>
-                        <p className="video-product-price">₹{video.product.price}</p>
-                        <button
-                          className="video-add-to-cart-btn"
-                          onClick={(e) => handleAddToCart(e, video.product)}
-                          aria-label="Add to cart"
-                        >
-                          Add to Cart
-                        </button>
+                      <div className="video-product-overlay-details">
+                        <p className="video-product-overlay-name">{video.product.name}</p>
+                        <p className="video-product-overlay-price">₹{video.product.price}</p>
                       </div>
                     </div>
                   )}
+                </div>
+                <div className="video-card-info">
+                  {video.title && <h4>{video.title}</h4>}
                 </div>
               </div>
             );
@@ -325,42 +312,66 @@ export default function VideoGallery({ onOpenCart }) {
         <div className="video-modal" onClick={closeVideo}>
           <div className="video-modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="video-modal-close" onClick={closeVideo}>×</button>
-            <video
-              crossOrigin="anonymous"
-              ref={videoRef}
-              controls
-              preload="metadata"
-              muted
-              playsInline
-              src={getVideoUrlFromVideo(selectedVideo)}
-              style={{ width: '100%', maxHeight: '80vh', borderRadius: '12px' }}
-              onError={(e) => {
-                console.error('Video load error:', getVideoUrlFromVideo(selectedVideo), e);
-                console.error('Video error code:', e.target.error?.code);
-                console.error('Video error message:', e.target.error?.message);
-              }}
-              onLoadStart={() => {
-                console.log('Video load started:', getVideoUrlFromVideo(selectedVideo));
-              }}
-              onCanPlay={() => {
-                console.log('Video can play:', getVideoUrlFromVideo(selectedVideo));
-              }}
-            />
-            <div className="video-modal-title">
-              <h3>{selectedVideo.title}</h3>
+            <div className="video-modal-wrapper">
+              <video
+                crossOrigin="anonymous"
+                ref={videoRef}
+                controls
+                preload="metadata"
+                muted
+                playsInline
+                src={getVideoUrlFromVideo(selectedVideo)}
+                className="video-modal-video"
+                onError={(e) => {
+                  console.error('Video load error:', getVideoUrlFromVideo(selectedVideo), e);
+                  console.error('Video error code:', e.target.error?.code);
+                  console.error('Video error message:', e.target.error?.message);
+                }}
+                onLoadStart={() => {
+                  console.log('Video load started:', getVideoUrlFromVideo(selectedVideo));
+                }}
+                onCanPlay={() => {
+                  console.log('Video can play:', getVideoUrlFromVideo(selectedVideo));
+                }}
+              />
+              {/* Product Tag Overlay in Modal */}
               {selectedVideo.product && (
-                <div className="video-modal-product">
-                  <p className="video-modal-product-name">{selectedVideo.product.name}</p>
-                  <p className="video-modal-product-price">₹{selectedVideo.product.price}</p>
-                  <button
-                    className="video-modal-add-to-cart-btn"
-                    onClick={(e) => handleAddToCart(e, selectedVideo.product)}
-                    aria-label="Add to cart"
-                  >
-                    Add to Cart
-                  </button>
+                <div
+                  className="video-modal-product-overlay"
+                  onClick={(e) => handleProductClick(e, selectedVideo.product)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View ${selectedVideo.product.name}`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleProductClick(e, selectedVideo.product);
+                    }
+                  }}
+                >
+                  {selectedVideo.product.img_url || selectedVideo.product.imgUrl ? (
+                    <img
+                      src={selectedVideo.product.img_url || selectedVideo.product.imgUrl}
+                      alt={selectedVideo.product.name}
+                      className="video-modal-product-overlay-image"
+                      loading="lazy"
+                      onError={(e) => {
+                        if (!mounted) return;
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="video-modal-product-overlay-no-image">No Image</div>
+                  )}
+                  <div className="video-modal-product-overlay-details">
+                    <p className="video-modal-product-overlay-name">{selectedVideo.product.name}</p>
+                    <p className="video-modal-product-overlay-price">₹{selectedVideo.product.price}</p>
+                  </div>
                 </div>
               )}
+            </div>
+            <div className="video-modal-title">
+              <h3>{selectedVideo.title}</h3>
             </div>
           </div>
         </div>
