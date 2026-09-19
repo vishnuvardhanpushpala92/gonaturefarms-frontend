@@ -100,12 +100,12 @@ export default function AdminPage() {
           <p style={{ color: 'var(--muted)', fontSize: '.8rem', marginBottom: 16 }}>Go Nature Farms Admin Panel</p>
           <form onSubmit={handleLogin}>
             <div className="fg">
-              <label>Username</label>
-              <input required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="Enter username" />
+              <label htmlFor="admin-username">Username</label>
+              <input id="admin-username" name="username" required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="Enter username" />
             </div>
             <div className="fg">
-              <label>Password</label>
-              <input required type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Enter password" />
+              <label htmlFor="admin-password">Password</label>
+              <input id="admin-password" name="password" required type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Enter password" />
             </div>
             <button className="btn btn-primary btn-block" disabled={busy}>{busy ? 'Please wait...' : 'Login'}</button>
           </form>
@@ -119,18 +119,24 @@ export default function AdminPage() {
 
   return (
     <div className="admin-shell">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-        <h2>Admin Dashboard</h2>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <span style={{ alignSelf: 'center', fontSize: '.82rem', color: 'var(--muted)' }}>Hi, {user?.name}</span>
-          <button className="btn btn-secondary" onClick={() => navigate('/')}>View Store</button>
-          <button className="btn btn-danger" onClick={logout}>Logout</button>
+      {/* Header Section */}
+      <div className="admin-header">
+        <h2 className="admin-title">Admin Dashboard</h2>
+        <div className="admin-header-actions">
+          <span className="admin-greeting">Hi, {user?.name}</span>
+          <button className="btn btn-secondary admin-header-btn" onClick={() => navigate('/')}>View Store</button>
+          <button className="btn btn-danger admin-header-btn" onClick={logout}>Logout</button>
         </div>
       </div>
 
-      <div className="admin-tabs">
+      {/* Menu Grid */}
+      <div className="admin-tabs-grid">
         {TABS.map((t) => (
-          <button key={t.key} className={`fbtn${tab === t.key ? ' active' : ''}`} onClick={() => setTab(t.key)}>
+          <button 
+            key={t.key} 
+            className={`fbtn${tab === t.key ? ' active' : ''}${t.key === 'data-deletion' ? ' data-deletion' : ''}`} 
+            onClick={() => setTab(t.key)}
+          >
             {t.label}
           </button>
         ))}
