@@ -47,34 +47,6 @@ export const api = axios.create({
   timeout: 60000 // Increased from 15000ms to 60000ms to handle cold starts
 });
 
-// Add retry logic for failed requests
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const config = error.config;
-    
-    // Retry on timeout or network errors
-    if (!config || !config.retry) {
-      config.retry = 0;
-    }
-    
-    // Only retry on timeout or network errors (not 4xx errors)
-    if (error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK') {
-      config.retry += 1;
-      
-      // Retry up to 3 times
-      if (config.retry <= 3) {
-        console.log(`[API RETRY] Attempt ${config.retry} for ${config.url}`);
-        return new Promise((resolve) => {
-          setTimeout(() => resolve(api(config)), 2000); // Wait 2 seconds before retry
-        });
-      }
-    }
-    
-    return Promise.reject(error);
-  }
-);
-
 // Dedicated API instance for file uploads with longer timeout
 export const uploadApi = axios.create({
   baseURL: API_BASE ? `${API_BASE}/api` : '/api',

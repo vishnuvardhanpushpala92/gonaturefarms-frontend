@@ -24,6 +24,34 @@ export function SiteProvider({ children }) {
   const [error, setError] = useState(null);
   const loadCalledRef = useRef(false);
 
+  // Load cached data on mount (stale-while-revalidate pattern)
+  useEffect(() => {
+    try {
+      const cachedData = localStorage.getItem('gnf_homepage_cache');
+      if (cachedData) {
+        const parsed = JSON.parse(cachedData);
+        const cacheAge = Date.now() - parsed.timestamp;
+        
+        // Use cache if it's less than 5 minutes old
+        if (cacheAge < 5 * 60 * 1000) {
+          console.log('Using cached homepage data (age:', Math.floor(cacheAge / 1000), 'seconds)');
+          setSettings(parsed.settings || {});
+          setSlides(parsed.slides || []);
+          setBlocks(parsed.blocks || []);
+          setFaqs(parsed.faqs || []);
+          setZones(parsed.zones || []);
+          setFooterLinks(parsed.footerLinks || []);
+          setTestimonials(parsed.testimonials || []);
+          setVideos(parsed.videos || []);
+          setProducts(parsed.products || []);
+          setLoaded(true);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load cached data:', e);
+    }
+  }, []);
+
   const loadAll = useCallback(async () => {
     loadCalledRef.current = true;
     setError(null);
@@ -57,6 +85,7 @@ export function SiteProvider({ children }) {
         });
       }
 
+      // Update state
       setSettings(sanitizedSettings || {});
       setSlides(data.slides || []);
       setBlocks(data.blocks || []);
@@ -68,6 +97,26 @@ export function SiteProvider({ children }) {
       setProducts(data.products || []);
       setLoaded(true);
       setError(null);
+
+      // Cache the data for future visits
+      try {
+        const cacheData = {
+          timestamp: Date.now(),
+          settings: sanitizedSettings,
+          slides: data.slides,
+          blocks: data.blocks,
+          faqs: data.faqs,
+          zones: data.zones,
+          footerLinks: data.footerLinks,
+          testimonials: data.testimonials,
+          videos: data.videos,
+          products: data.products
+        };
+        localStorage.setItem('gnf_homepage_cache', JSON.stringify(cacheData));
+        console.log('Homepage data cached successfully');
+      } catch (e) {
+        console.warn('Failed to cache homepage data:', e);
+      }
     } catch (error) {
       // Clear timeout on error
       clearTimeout(timeoutId);

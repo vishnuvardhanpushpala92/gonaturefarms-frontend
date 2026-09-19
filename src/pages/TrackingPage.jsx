@@ -144,10 +144,12 @@ export default function TrackingPage() {
 
         {!isAuthenticated ? (
           <form onSubmit={lookupByPhone} className="tracking-search">
-            <label>Enter your mobile number:</label>
+            <label htmlFor="tracking-phone">Enter your mobile number:</label>
             <div className="phone-input-wrapper">
               <span className="phone-prefix">+91</span>
               <input
+                id="tracking-phone"
+                name="phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
