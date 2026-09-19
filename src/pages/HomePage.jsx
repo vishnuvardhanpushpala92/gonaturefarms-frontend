@@ -6,6 +6,7 @@ import VideoGallery from '../components/VideoGallery.jsx';
 import Footer from '../components/Footer.jsx';
 import FlowerBlast from '../components/FlowerBlast.jsx';
 import ScrollingBlocks from '../components/ScrollingBlocks.jsx';
+import HomePageSkeleton from '../components/HomePageSkeleton.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
@@ -39,12 +40,11 @@ export default function HomePage({ onOpenCart, search }) {
   return (
     <>
       <FlowerBlast />
-      {!loaded && !error && (
-        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666' }}>
-          <div style={{ fontSize: '1.2rem', marginBottom: '10px' }}>Loading...</div>
-          <div style={{ fontSize: '0.9rem', color: '#999' }}>Please wait while we load the content</div>
-        </div>
-      )}
+      
+      {/* Show skeleton while loading - renders immediately */}
+      {!loaded && !error && <HomePageSkeleton />}
+      
+      {/* Show error state with retry button */}
       {error && (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666' }}>
           <div style={{ fontSize: '1.2rem', marginBottom: '10px', color: '#dc2626' }}>Failed to load content</div>
@@ -65,6 +65,8 @@ export default function HomePage({ onOpenCart, search }) {
           </button>
         </div>
       )}
+      
+      {/* Show actual content when loaded */}
       {loaded && (
         <>
           <div id="top">

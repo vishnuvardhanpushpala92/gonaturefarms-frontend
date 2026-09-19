@@ -28,10 +28,20 @@ export function SiteProvider({ children }) {
     loadCalledRef.current = true;
     setError(null);
 
+    // Set a timeout to show fallback content after 5 seconds
+    const timeoutId = setTimeout(() => {
+      console.warn('Homepage data loading timeout - showing fallback content');
+      setError('Loading is taking longer than expected. Please wait or refresh.');
+      setLoaded(true); // Allow page to render with fallback content
+    }, 5000);
+
     try {
       // Single endpoint for all homepage data - reduces API calls from 9 to 1
-      // Uses global timeout of 15 seconds from axios config
+      // Uses global timeout of 60 seconds from axios config
       const { data } = await api.get('/homepage', { skipTransform: true });
+
+      // Clear timeout on success
+      clearTimeout(timeoutId);
 
       // Sanitize settings URLs to ensure HTTPS
       const sanitizedSettings = {};
@@ -59,6 +69,9 @@ export function SiteProvider({ children }) {
       setLoaded(true);
       setError(null);
     } catch (error) {
+      // Clear timeout on error
+      clearTimeout(timeoutId);
+      
       console.error('Failed to load homepage data:', error);
       // Set error state for UI to display
       setError(error.message || 'Failed to load data. Please check your connection.');
