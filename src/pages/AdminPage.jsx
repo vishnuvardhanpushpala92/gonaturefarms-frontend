@@ -23,20 +23,20 @@ import CheckoutModal from '../components/CheckoutModalNew.jsx';
 
 const TABS = [
   { key: 'analytics', label: 'Dashboard' },
-  { key: 'products', label: 'Products' },
   { key: 'orders', label: 'Orders' },
-  { key: 'returns', label: 'Returns' },
   { key: 'coupons', label: 'Coupons' },
-  { key: 'reviews', label: 'Reviews' },
   { key: 'support', label: 'Support' },
-  { key: 'users', label: 'Customers' },
   { key: 'content', label: 'Content' },
-  { key: 'videos', label: 'Videos' },
   { key: 'testimonials', label: 'Testimonials' },
-  { key: 'whatsapp', label: 'WhatsApp' },
   { key: 'footer', label: 'Footer' },
-  { key: 'settings', label: 'Settings' },
-  { key: 'data-deletion', label: 'Data Deletion' }
+  { key: 'data-deletion', label: 'Data Deletion' },
+  { key: 'products', label: 'Products' },
+  { key: 'returns', label: 'Returns' },
+  { key: 'reviews', label: 'Reviews' },
+  { key: 'users', label: 'Customers' },
+  { key: 'videos', label: 'Videos' },
+  { key: 'whatsapp', label: 'WhatsApp' },
+  { key: 'settings', label: 'Settings' }
 ];
 
 export default function AdminPage() {
@@ -119,24 +119,18 @@ export default function AdminPage() {
 
   return (
     <div className="admin-shell">
-      {/* Header Section */}
-      <div className="admin-header">
-        <h2 className="admin-title">Admin Dashboard</h2>
-        <div className="admin-header-actions">
-          <span className="admin-greeting">Hi, {user?.name}</span>
-          <button className="btn btn-secondary admin-header-btn" onClick={() => navigate('/')}>View Store</button>
-          <button className="btn btn-danger admin-header-btn" onClick={logout}>Logout</button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+        <h2>Admin Dashboard</h2>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <span style={{ alignSelf: 'center', fontSize: '.82rem', color: 'var(--muted)' }}>Hi, {user?.name}</span>
+          <button className="btn btn-secondary" onClick={() => navigate('/')}>View Store</button>
+          <button className="btn btn-danger" onClick={logout}>Logout</button>
         </div>
       </div>
 
-      {/* Menu Grid */}
-      <div className="admin-tabs-grid">
+      <div className="admin-tabs">
         {TABS.map((t) => (
-          <button 
-            key={t.key} 
-            className={`fbtn${tab === t.key ? ' active' : ''}${t.key === 'data-deletion' ? ' data-deletion' : ''}`} 
-            onClick={() => setTab(t.key)}
-          >
+          <button key={t.key} className={`fbtn${tab === t.key ? ' active' : ''}`} onClick={() => setTab(t.key)}>
             {t.label}
           </button>
         ))}
