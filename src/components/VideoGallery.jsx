@@ -148,14 +148,6 @@ export default function VideoGallery({ onOpenCart }) {
     }
   };
 
-  const openVideo = (video) => {
-    if (mounted) {
-      setSelectedVideo(video);
-      // Video will autoplay with muted and playsInline attributes
-      // No need to manually call play()
-    }
-  };
-
   const [posterStates, setPosterStates] = useState({});
 
   const handlePosterError = (videoId) => {
@@ -233,13 +225,6 @@ export default function VideoGallery({ onOpenCart }) {
     return null;
   };
 
-  const closeVideo = () => {
-    if (videoRef.current) {
-      videoRef.current.pause();
-    }
-    setSelectedVideo(null);
-  };
-
   const handleAddToCart = (e, product) => {
     e.stopPropagation();
     if (!isAuthenticated) {
@@ -263,14 +248,6 @@ export default function VideoGallery({ onOpenCart }) {
     // For now, just add to cart. In future, could open product detail modal
     handleAddToCart(e, product);
   };
-
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') closeVideo();
-    };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, []);
 
   if (!mounted || videosLoading) {
     return (
@@ -531,75 +508,6 @@ export default function VideoGallery({ onOpenCart }) {
           ›
         </button>
       </div>
-
-      {selectedVideo && mounted && (
-        <div className="video-modal" onClick={closeVideo}>
-          <div className="video-modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="video-modal-close" onClick={closeVideo}>×</button>
-            <div className="video-modal-wrapper">
-              <video
-                crossOrigin="anonymous"
-                ref={videoRef}
-                controls
-                preload="metadata"
-                muted
-                playsInline
-                src={getVideoUrlFromVideo(selectedVideo)}
-                className="video-modal-video"
-                onError={(e) => {
-                  console.error('Video load error:', getVideoUrlFromVideo(selectedVideo), e);
-                  console.error('Video error code:', e.target.error?.code);
-                  console.error('Video error message:', e.target.error?.message);
-                }}
-                onLoadStart={() => {
-                  console.log('Video load started:', getVideoUrlFromVideo(selectedVideo));
-                }}
-                onCanPlay={() => {
-                  console.log('Video can play:', getVideoUrlFromVideo(selectedVideo));
-                }}
-              />
-              {/* Product Tag Overlay in Modal */}
-              {selectedVideo.product && (
-                <div
-                  className="video-modal-product-overlay"
-                  onClick={(e) => handleProductClick(e, selectedVideo.product)}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`View ${selectedVideo.product.name}`}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleProductClick(e, selectedVideo.product);
-                    }
-                  }}
-                >
-                  {selectedVideo.product.img_url || selectedVideo.product.imgUrl ? (
-                    <img
-                      src={selectedVideo.product.img_url || selectedVideo.product.imgUrl}
-                      alt={selectedVideo.product.name}
-                      className="video-modal-product-overlay-image"
-                      loading="lazy"
-                      onError={(e) => {
-                        if (!mounted) return;
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <div className="video-modal-product-overlay-no-image">No Image</div>
-                  )}
-                  <div className="video-modal-product-overlay-details">
-                    <p className="video-modal-product-overlay-name">{selectedVideo.product.name}</p>
-                    <p className="video-modal-product-overlay-price">₹{selectedVideo.product.price}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="video-modal-title">
-              <h3>{selectedVideo.title}</h3>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }
