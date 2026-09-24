@@ -2,17 +2,53 @@ import React, { memo, useEffect, useState, useCallback, useRef } from 'react';
 import api from '../api/client';
 import ProductCard from './ProductCard.jsx';
 import { useSite } from '../context/SiteContext.jsx';
+import useSWR from 'swr';
+
+// Add shimmer animation for skeleton loading
+const shimmerStyle = `
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  
+  .skeleton-loading {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+`;
+
+// Inject shimmer styles
+if (typeof document !== 'undefined' && !document.getElementById('shimmer-styles')) {
+  const styleSheet = document.createElement('style');
+  styleSheet.id = 'shimmer-styles';
+  styleSheet.textContent = shimmerStyle;
+  document.head.appendChild(styleSheet);
+}
+
+// SWR fetcher function
+const fetcher = (url) => api.get(url).then(res => res.data);
 
 const ProductCardMemo = memo(ProductCard);
 
 export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   const { products: initialProducts, loaded } = useSite();
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [activeCat, setActiveCat] = useState('All');
   const [loading, setLoading] = useState(true);
   const [localSearch, setLocalSearch] = useState(search || '');
-  const categoriesLoadedRef = useRef(false);
+  
+  // Use SWR for categories with automatic caching
+  const { data: categoriesData, error: categoriesError, isLoading: categoriesLoading } = useSWR('/products/categories', fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    dedupingInterval: 60000, // Deduplicate requests within 60 seconds
+    onError: (err) => {
+      console.error('SWR error loading categories:', err);
+    }
+  });
+  
+  const categories = categoriesData?.categories || [];
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -26,13 +62,6 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
       setLoading(false);
     }
   }, [activeCat, localSearch]);
-
-  useEffect(() => {
-    if (!categoriesLoadedRef.current) {
-      categoriesLoadedRef.current = true;
-      api.get('/products/categories', { timeout: 15000 }).then(({ data }) => setCategories(data.categories || []));
-    }
-  }, []);
 
   // Use products from SiteContext initially, then load filtered products
   useEffect(() => {
@@ -50,6 +79,9 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
       setLoading(false);
     }
   }, [activeCat, localSearch, loaded, initialProducts, load]);
+  
+  // Determine if we should show skeleton
+  const showSkeleton = (loading && products.length === 0) || categoriesLoading;
 
   useEffect(() => {
     setLocalSearch(search || '');
@@ -99,8 +131,14 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
       </div>
 
       <div className="pgrid">
-        {loading && products.length === 0 ? (
-          <div className="empty-grid"><p>Loading products...</p></div>
+        {showSkeleton ? (
+          // Skeleton loading cards instead of text
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="skeleton-loading" style={{ 
+              height: '300px', 
+              borderRadius: '8px'
+            }} />
+          ))
         ) : uniqueCurrent.length === 0 ? (
           <div className="empty-grid"><p>No products available in this category.</p></div>
         ) : (

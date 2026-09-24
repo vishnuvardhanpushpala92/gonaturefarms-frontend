@@ -4,56 +4,58 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { useSite } from '../context/SiteContext.jsx';
+import useSWR from 'swr';
+
+// Add shimmer animation for skeleton loading
+const shimmerStyle = `
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  
+  .skeleton-loading {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+`;
+
+// Inject shimmer styles
+if (typeof document !== 'undefined' && !document.getElementById('shimmer-styles')) {
+  const styleSheet = document.createElement('style');
+  styleSheet.id = 'shimmer-styles';
+  styleSheet.textContent = shimmerStyle;
+  document.head.appendChild(styleSheet);
+}
+
+// SWR fetcher function
+const fetcher = (url) => api.get(url).then(res => res.data);
 
 export default function VideoGallery({ onOpenCart }) {
   const { videos: initialVideos, loaded } = useSite();
-  const [videos, setVideos] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const carouselRef = useRef(null);
   const videoRef = useRef(null);
-  const loadCalledRef = useRef(false);
   const { isAuthenticated } = useAuth();
   const { addItem } = useCart();
   const showToast = useToast();
+  
+  // Use SWR for videos with automatic caching
+  const { data: videosData, error: videosError, isLoading: videosLoading } = useSWR('/videos', fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    dedupingInterval: 60000, // Deduplicate requests within 60 seconds
+    onError: (err) => {
+      console.error('SWR error loading videos:', err);
+    }
+  });
+  
+  const videos = videosData?.videos || [];
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const loadVideos = useCallback(async () => {
-    if (loadCalledRef.current) return;
-    loadCalledRef.current = true;
-
-    setLoading(true);
-    try {
-      const res = await api.get('/videos', { timeout: 15000 });
-      console.log('Videos API response:', res.data);
-      if (res.data && res.data.success) {
-        const videos = Array.isArray(res.data.videos) ? res.data.videos : [];
-        console.log('Videos loaded:', videos);
-        setVideos(videos);
-      } else {
-        setVideos([]);
-      }
-    } catch (err) {
-      console.error('Failed to load videos:', err);
-      setVideos([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    if (loaded && initialVideos.length > 0) {
-      setVideos(initialVideos);
-      setLoading(false);
-    } else {
-      loadVideos();
-    }
-  }, [mounted, loaded, initialVideos, loadVideos]);
 
   const scrollLeft = () => {
     if (carouselRef.current) {
@@ -191,7 +193,7 @@ export default function VideoGallery({ onOpenCart }) {
     return () => window.removeEventListener('keydown', handleEscape);
   }, []);
 
-  if (!mounted || loading) {
+  if (!mounted || videosLoading) {
     return (
       <section className="section video-section last-section">
         <div className="section-head">
@@ -200,8 +202,29 @@ export default function VideoGallery({ onOpenCart }) {
             <span />
           </h2>
         </div>
-        <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
-          Loading videos...
+        <div className="video-carousel-container">
+          <button className="video-nav-btn video-nav-left" disabled>‹</button>
+          <div className="video-carousel-track">
+            {/* Skeleton loading cards */}
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="video-card" style={{ pointerEvents: 'none' }}>
+                <div className="video-card-wrapper">
+                  <div className="skeleton-loading" style={{ 
+                    height: '200px', 
+                    borderRadius: '8px'
+                  }} />
+                </div>
+                <div className="video-card-info">
+                  <div className="skeleton-loading" style={{ 
+                    height: '20px', 
+                    borderRadius: '4px',
+                    width: '80%'
+                  }} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <button className="video-nav-btn video-nav-right" disabled>›</button>
         </div>
       </section>
     );

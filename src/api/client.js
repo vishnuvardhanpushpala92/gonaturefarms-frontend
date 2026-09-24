@@ -44,7 +44,7 @@ const isPublicEndpoint = (url) => {
 
 export const api = axios.create({
   baseURL: API_BASE ? `${API_BASE}/api` : '/api',
-  timeout: 60000 // Increased from 15000ms to 60000ms to handle cold starts
+  timeout: 5000 // Reduced from 60000ms to 5000ms for faster failure detection
 });
 
 // Dedicated API instance for file uploads with longer timeout

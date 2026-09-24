@@ -20,7 +20,7 @@ export function SiteProvider({ children }) {
   const [testimonials, setTestimonials] = useState([]);
   const [videos, setVideos] = useState([]);
   const [products, setProducts] = useState([]);
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(true); // Set to true immediately for instant page render
   const [error, setError] = useState(null);
   const loadCalledRef = useRef(false);
 
@@ -44,7 +44,6 @@ export function SiteProvider({ children }) {
           setTestimonials(parsed.testimonials || []);
           setVideos(parsed.videos || []);
           setProducts(parsed.products || []);
-          setLoaded(true);
         }
       }
     } catch (e) {
@@ -56,20 +55,10 @@ export function SiteProvider({ children }) {
     loadCalledRef.current = true;
     setError(null);
 
-    // Set a timeout to show fallback content after 5 seconds
-    const timeoutId = setTimeout(() => {
-      console.warn('Homepage data loading timeout - showing fallback content');
-      setError('Loading is taking longer than expected. Please wait or refresh.');
-      setLoaded(true); // Allow page to render with fallback content
-    }, 5000);
-
     try {
       // Single endpoint for all homepage data - reduces API calls from 9 to 1
-      // Uses global timeout of 60 seconds from axios config
+      // Uses global timeout of 5 seconds from axios config
       const { data } = await api.get('/homepage', { skipTransform: true });
-
-      // Clear timeout on success
-      clearTimeout(timeoutId);
 
       // Sanitize settings URLs to ensure HTTPS
       const sanitizedSettings = {};
@@ -95,7 +84,6 @@ export function SiteProvider({ children }) {
       setTestimonials(data.testimonials || []);
       setVideos(data.videos || []);
       setProducts(data.products || []);
-      setLoaded(true);
       setError(null);
 
       // Cache the data for future visits
@@ -118,14 +106,9 @@ export function SiteProvider({ children }) {
         console.warn('Failed to cache homepage data:', e);
       }
     } catch (error) {
-      // Clear timeout on error
-      clearTimeout(timeoutId);
-      
       console.error('Failed to load homepage data:', error);
-      // Set error state for UI to display
+      // Set error state but don't block page render
       setError(error.message || 'Failed to load data. Please check your connection.');
-      // Set loaded to true even on error to prevent infinite loading
-      setLoaded(true);
     }
   }, []);
 
