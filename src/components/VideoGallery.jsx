@@ -18,6 +18,24 @@ const shimmerStyle = `
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
+  
+  /* Mobile optimization for video gallery */
+  @media (max-width: 768px) {
+    .video-carousel-track {
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .video-card {
+      scroll-snap-align: start;
+      flex-shrink: 0;
+    }
+    
+    .video-card-wrapper {
+      width: 85vw;
+      max-width: 320px;
+    }
+  }
 `;
 
 // Inject shimmer styles
@@ -33,19 +51,29 @@ const fetcher = (url) => api.get(url).then(res => res.data);
 
 export default function VideoGallery({ onOpenCart }) {
   const { videos: initialVideos, loaded } = useSite();
-  const [selectedVideo, setSelectedVideo] = useState(null);
   const [mounted, setMounted] = useState(false);
   const carouselRef = useRef(null);
-  const videoRef = useRef(null);
+  const videoRefs = useRef({});
+  const [playingVideoId, setPlayingVideoId] = useState(null);
   const { isAuthenticated } = useAuth();
   const { addItem } = useCart();
   const showToast = useToast();
   
-  // Use SWR for videos with automatic caching
+  // Use SWR for videos with automatic caching and retry logic
   const { data: videosData, error: videosError, isLoading: videosLoading } = useSWR('/videos', fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
     dedupingInterval: 60000, // Deduplicate requests within 60 seconds
+    onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
+      // Never retry on 404 or 401 errors
+      if (error.status === 404 || error.status === 401) return;
+      
+      // Only retry up to 3 times
+      if (retryCount >= 3) return;
+      
+      // Retry after 2 seconds with exponential backoff
+      setTimeout(() => revalidate({ retryCount }), 2000 * Math.pow(2, retryCount));
+    },
     onError: (err) => {
       console.error('SWR error loading videos:', err);
     }
@@ -56,6 +84,44 @@ export default function VideoGallery({ onOpenCart }) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Handle video play/pause
+  const handleVideoClick = (e, video) => {
+    e.stopPropagation();
+    
+    const videoElement = videoRefs.current[video.id];
+    if (!videoElement) return;
+    
+    // If clicking the same video that's playing, pause it
+    if (playingVideoId === video.id) {
+      videoElement.pause();
+      setPlayingVideoId(null);
+      return;
+    }
+    
+    // Pause any currently playing video
+    if (playingVideoId && videoRefs.current[playingVideoId]) {
+      videoRefs.current[playingVideoId].pause();
+    }
+    
+    // Play the clicked video
+    videoElement.play().catch(err => {
+      console.error('Video play error:', err);
+    });
+    setPlayingVideoId(video.id);
+  };
+
+  // Handle video play state
+  const handleVideoPlay = (videoId) => {
+    setPlayingVideoId(videoId);
+  };
+
+  // Handle video pause state
+  const handleVideoPause = (videoId) => {
+    if (playingVideoId === videoId) {
+      setPlayingVideoId(null);
+    }
+  };
 
   const scrollLeft = () => {
     if (carouselRef.current) {
@@ -205,13 +271,16 @@ export default function VideoGallery({ onOpenCart }) {
         <div className="video-carousel-container">
           <button className="video-nav-btn video-nav-left" disabled>‹</button>
           <div className="video-carousel-track">
-            {/* Skeleton loading cards */}
+            {/* Skeleton loading cards with vertical aspect ratio */}
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="video-card" style={{ pointerEvents: 'none' }}>
-                <div className="video-card-wrapper">
+                <div className="video-card-wrapper" style={{ 
+                  aspectRatio: '9/16',
+                  maxWidth: '280px'
+                }}>
                   <div className="skeleton-loading" style={{ 
-                    height: '200px', 
-                    borderRadius: '8px'
+                    height: '100%', 
+                    borderRadius: '12px'
                   }} />
                 </div>
                 <div className="video-card-info">
@@ -263,37 +332,109 @@ export default function VideoGallery({ onOpenCart }) {
             const posterUrl = getPosterUrl(video);
             const posterState = posterStates[video.id];
             const showPlaceholder = !posterUrl || posterState === 'error';
+            const isPlaying = playingVideoId === video.id;
 
             return (
-              <div key={video.id} className="video-card" onClick={() => openVideo(video)}>
-                <div className="video-card-wrapper">
+              <div key={video.id} className="video-card">
+                <div 
+                  className="video-card-wrapper"
+                  style={{ 
+                    aspectRatio: '9/16',
+                    maxWidth: '280px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    borderRadius: '12px',
+                    backgroundColor: '#000'
+                  }}
+                  onClick={(e) => handleVideoClick(e, video)}
+                >
                   {showPlaceholder ? (
-                    <div className="video-thumbnail-placeholder">
+                    <div className="video-thumbnail-placeholder" style={{ height: '100%' }}>
                       <span className="video-placeholder-icon">🎬</span>
                     </div>
                   ) : (
-                    <img
-                      src={posterUrl}
-                      alt={video.title}
-                      className="video-thumbnail"
-                      loading="lazy"
-                      onError={() => handlePosterError(video.id)}
-                    />
+                    <>
+                      {/* Video element with click-to-play */}
+                      <video
+                        ref={(el) => videoRefs.current[video.id] = el}
+                        src={getVideoUrlFromVideo(video)}
+                        poster={posterUrl}
+                        preload="none"
+                        muted
+                        playsInline
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          cursor: 'pointer'
+                        }}
+                        onPlay={() => handleVideoPlay(video.id)}
+                        onPause={() => handleVideoPause(video.id)}
+                        onClick={(e) => handleVideoClick(e, video)}
+                      />
+                      
+                      {/* Play/Pause overlay */}
+                      {!isPlaying && (
+                        <div 
+                          style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '60px',
+                            height: '60px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'transform 0.2s',
+                            zIndex: 10
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)'}
+                        >
+                          <span style={{ 
+                            fontSize: '24px', 
+                            color: '#333',
+                            marginLeft: '4px'
+                          }}>▶</span>
+                        </div>
+                      )}
+                    </>
                   )}
-                  <div className="video-play-overlay">
-                    <span className="play-icon">▶</span>
-                  </div>
-                  {/* Product Tag Overlay */}
+                  
+                  {/* Product Tag - Fixed design at bottom */}
                   {video.product && (
                     <div
-                      className="video-product-overlay"
-                      onClick={(e) => handleProductClick(e, video.product)}
+                      style={{
+                        position: 'absolute',
+                        bottom: '12px',
+                        left: '12px',
+                        right: '12px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        borderRadius: '8px',
+                        padding: '8px 12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        cursor: 'pointer',
+                        zIndex: 20,
+                        backdropFilter: 'blur(10px)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleProductClick(e, video.product);
+                      }}
                       role="button"
                       tabIndex={0}
                       aria-label={`View ${video.product.name}`}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
+                          e.stopPropagation();
                           handleProductClick(e, video.product);
                         }
                       }}
@@ -302,7 +443,13 @@ export default function VideoGallery({ onOpenCart }) {
                         <img
                           src={video.product.img_url || video.product.imgUrl}
                           alt={video.product.name}
-                          className="video-product-overlay-image"
+                          style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '6px',
+                            objectFit: 'cover',
+                            flexShrink: 0
+                          }}
                           loading="lazy"
                           onError={(e) => {
                             if (!mounted) return;
@@ -310,11 +457,35 @@ export default function VideoGallery({ onOpenCart }) {
                           }}
                         />
                       ) : (
-                        <div className="video-product-overlay-no-image">No Image</div>
+                        <div style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '6px',
+                          backgroundColor: '#f0f0f0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          fontSize: '12px',
+                          color: '#999'
+                        }}>No Image</div>
                       )}
-                      <div className="video-product-overlay-details">
-                        <p className="video-product-overlay-name">{video.product.name}</p>
-                        <p className="video-product-overlay-price">₹{video.product.price}</p>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{
+                          margin: 0,
+                          fontSize: '13px',
+                          fontWeight: '600',
+                          color: '#333',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}>{video.product.name}</p>
+                        <p style={{
+                          margin: '2px 0 0 0',
+                          fontSize: '12px',
+                          color: '#2d5a27',
+                          fontWeight: '500'
+                        }}>₹{video.product.price}</p>
                       </div>
                     </div>
                   )}

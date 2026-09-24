@@ -38,11 +38,21 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   const [loading, setLoading] = useState(true);
   const [localSearch, setLocalSearch] = useState(search || '');
   
-  // Use SWR for categories with automatic caching
+  // Use SWR for categories with automatic caching and retry logic
   const { data: categoriesData, error: categoriesError, isLoading: categoriesLoading } = useSWR('/products/categories', fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
     dedupingInterval: 60000, // Deduplicate requests within 60 seconds
+    onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
+      // Never retry on 404 or 401 errors
+      if (error.status === 404 || error.status === 401) return;
+      
+      // Only retry up to 3 times
+      if (retryCount >= 3) return;
+      
+      // Retry after 2 seconds with exponential backoff
+      setTimeout(() => revalidate({ retryCount }), 2000 * Math.pow(2, retryCount));
+    },
     onError: (err) => {
       console.error('SWR error loading categories:', err);
     }

@@ -55,61 +55,85 @@ export function SiteProvider({ children }) {
     loadCalledRef.current = true;
     setError(null);
 
-    try {
-      // Single endpoint for all homepage data - reduces API calls from 9 to 1
-      // Uses global timeout of 5 seconds from axios config
-      const { data } = await api.get('/homepage', { skipTransform: true });
-
-      // Sanitize settings URLs to ensure HTTPS
-      const sanitizedSettings = {};
-      if (data.settings) {
-        Object.keys(data.settings).forEach(key => {
-          const value = data.settings[key];
-          // Sanitize URLs for image fields
-          if (key.includes('url') || key.includes('image') || key === 'qr_code' || key === 'logo' || key === 'favicon') {
-            sanitizedSettings[key] = ensureHttps(value);
-          } else {
-            sanitizedSettings[key] = value;
-          }
-        });
-      }
-
-      // Update state
-      setSettings(sanitizedSettings || {});
-      setSlides(data.slides || []);
-      setBlocks(data.blocks || []);
-      setFaqs(data.faqs || []);
-      setZones(data.zones || []);
-      setFooterLinks(data.footerLinks || []);
-      setTestimonials(data.testimonials || []);
-      setVideos(data.videos || []);
-      setProducts(data.products || []);
-      setError(null);
-
-      // Cache the data for future visits
+    // Retry logic with exponential backoff
+    const maxRetries = 3;
+    let retryCount = 0;
+    
+    const attemptLoad = async () => {
       try {
-        const cacheData = {
-          timestamp: Date.now(),
-          settings: sanitizedSettings,
-          slides: data.slides,
-          blocks: data.blocks,
-          faqs: data.faqs,
-          zones: data.zones,
-          footerLinks: data.footerLinks,
-          testimonials: data.testimonials,
-          videos: data.videos,
-          products: data.products
-        };
-        localStorage.setItem('gnf_homepage_cache', JSON.stringify(cacheData));
-        console.log('Homepage data cached successfully');
-      } catch (e) {
-        console.warn('Failed to cache homepage data:', e);
+        // Single endpoint for all homepage data - reduces API calls from 9 to 1
+        // Uses global timeout of 30 seconds from axios config
+        const { data } = await api.get('/homepage', { skipTransform: true });
+
+        // Sanitize settings URLs to ensure HTTPS
+        const sanitizedSettings = {};
+        if (data.settings) {
+          Object.keys(data.settings).forEach(key => {
+            const value = data.settings[key];
+            // Sanitize URLs for image fields
+            if (key.includes('url') || key.includes('image') || key === 'qr_code' || key === 'logo' || key === 'favicon') {
+              sanitizedSettings[key] = ensureHttps(value);
+            } else {
+              sanitizedSettings[key] = value;
+            }
+          });
+        }
+
+        // Update state
+        setSettings(sanitizedSettings || {});
+        setSlides(data.slides || []);
+        setBlocks(data.blocks || []);
+        setFaqs(data.faqs || []);
+        setZones(data.zones || []);
+        setFooterLinks(data.footerLinks || []);
+        setTestimonials(data.testimonials || []);
+        setVideos(data.videos || []);
+        setProducts(data.products || []);
+        setError(null);
+
+        // Cache the data for future visits
+        try {
+          const cacheData = {
+            timestamp: Date.now(),
+            settings: sanitizedSettings,
+            slides: data.slides,
+            blocks: data.blocks,
+            faqs: data.faqs,
+            zones: data.zones,
+            footerLinks: data.footerLinks,
+            testimonials: data.testimonials,
+            videos: data.videos,
+            products: data.products
+          };
+          localStorage.setItem('gnf_homepage_cache', JSON.stringify(cacheData));
+          console.log('Homepage data cached successfully');
+        } catch (e) {
+          console.warn('Failed to cache homepage data:', e);
+        }
+      } catch (error) {
+        console.error(`Failed to load homepage data (attempt ${retryCount + 1}/${maxRetries}):`, error);
+        
+        // Don't retry on 404 or 401 errors
+        if (error.response?.status === 404 || error.response?.status === 401) {
+          setError(error.message || 'Failed to load data. Please check your connection.');
+          return;
+        }
+        
+        // Retry with exponential backoff
+        if (retryCount < maxRetries) {
+          retryCount++;
+          const delay = 2000 * Math.pow(2, retryCount - 1); // 2s, 4s, 8s
+          console.log(`Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return attemptLoad();
+        } else {
+          // Max retries reached
+          setError(error.message || 'Failed to load data. Please check your connection.');
+        }
       }
-    } catch (error) {
-      console.error('Failed to load homepage data:', error);
-      // Set error state but don't block page render
-      setError(error.message || 'Failed to load data. Please check your connection.');
-    }
+    };
+    
+    await attemptLoad();
   }, []);
 
   const retryLoad = useCallback(() => {

@@ -2,6 +2,41 @@ import axios from 'axios';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://gonaturefarms-qf9o.onrender.com';
 
+// Keep-alive mechanism to prevent cold starts
+let keepAliveInterval = null;
+
+export const startKeepAlive = () => {
+  if (keepAliveInterval) return; // Already running
+  
+  // Ping the server every 4 minutes to keep it warm
+  keepAliveInterval = setInterval(async () => {
+    try {
+      await axios.get(`${API_BASE}/api/health`, { timeout: 5000 });
+      console.log('Keep-alive ping successful');
+    } catch (error) {
+      console.log('Keep-alive ping failed (server may be sleeping):', error.message);
+    }
+  }, 4 * 60 * 1000); // 4 minutes
+  
+  console.log('Keep-alive mechanism started');
+};
+
+export const stopKeepAlive = () => {
+  if (keepAliveInterval) {
+    clearInterval(keepAliveInterval);
+    keepAliveInterval = null;
+    console.log('Keep-alive mechanism stopped');
+  }
+};
+
+// Start keep-alive when page loads
+if (typeof window !== 'undefined') {
+  startKeepAlive();
+  
+  // Stop when page unloads
+  window.addEventListener('beforeunload', stopKeepAlive);
+}
+
 // Helper function to ensure HTTPS URLs
 const ensureHttps = (url) => {
   if (!url) return url;
@@ -44,7 +79,7 @@ const isPublicEndpoint = (url) => {
 
 export const api = axios.create({
   baseURL: API_BASE ? `${API_BASE}/api` : '/api',
-  timeout: 5000 // Reduced from 60000ms to 5000ms for faster failure detection
+  timeout: 30000 // 30 seconds to handle cold starts on free hosting
 });
 
 // Dedicated API instance for file uploads with longer timeout
