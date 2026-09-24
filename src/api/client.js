@@ -2,8 +2,6 @@ import axios from 'axios';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://gonaturefarms-qf9o.onrender.com';
 
-console.log('API Base URL:', API_BASE);
-
 // Wake-up mechanism to prevent cold starts
 let wakeUpPromise = null;
 
@@ -12,9 +10,7 @@ export const wakeUpBackend = async () => {
   
   wakeUpPromise = (async () => {
     try {
-      console.log('Waking up backend with health check...');
-      const response = await axios.get(`${API_BASE}/api/health`, { timeout: 8000 });
-      console.log('Backend wake-up successful:', response.data);
+      await axios.get(`${API_BASE}/api/health`, { timeout: 8000 });
       return true;
     } catch (error) {
       console.error('Backend wake-up failed:', error.message);
@@ -37,20 +33,16 @@ export const startKeepAlive = () => {
   keepAliveInterval = setInterval(async () => {
     try {
       await axios.get(`${API_BASE}/api/health`, { timeout: 5000 });
-      console.log('Keep-alive ping successful');
     } catch (error) {
-      console.log('Keep-alive ping failed (server may be sleeping):', error.message);
+      // Silent fail - server may be sleeping
     }
   }, 4 * 60 * 1000); // 4 minutes
-  
-  console.log('Keep-alive mechanism started');
 };
 
 export const stopKeepAlive = () => {
   if (keepAliveInterval) {
     clearInterval(keepAliveInterval);
     keepAliveInterval = null;
-    console.log('Keep-alive mechanism stopped');
   }
 };
 

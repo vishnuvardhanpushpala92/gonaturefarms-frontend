@@ -158,7 +158,6 @@ export default function VideoGallery({ onOpenCart }) {
   // Get video URL with proper caching handling
   const getVideoUrl = (filePath) => {
     if (!filePath) return '';
-    console.log('Video URL:', filePath);
     // Return clean URL to avoid caching issues
     return filePath;
   };
@@ -167,7 +166,6 @@ export default function VideoGallery({ onOpenCart }) {
   const getVideoUrlFromVideo = (video) => {
     const filePath = video.file_path || video.filePath;
     if (!filePath) return '';
-    console.log('Video URL from object:', filePath);
     return filePath;
   };
 

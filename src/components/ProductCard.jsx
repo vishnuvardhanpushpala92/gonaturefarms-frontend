@@ -38,15 +38,11 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
 
   // Log variants for debugging
   React.useEffect(() => {
-    if (hasVariants) {
-      console.log('Product variants from API:', product.variants);
-      console.log('First variant:', product.variants[0]);
-      console.log('First variant keys:', Object.keys(product.variants[0]));
-      console.log('First variant name (camelCase):', product.variants[0].variantName);
-      console.log('First variant name (snake_case):', product.variants[0].variant_name);
-      console.log('First variant price:', product.variants[0].price);
+    if (hasVariants && product.variants.length > 0) {
+      setSelectedVariant(product.variants[0]);
+      setDisplayPrice(product.variants[0].price);
     }
-  }, [product.variants, hasVariants]);
+  }, [product.id, hasVariants]);
 
   // Initialize with first variant if available (only on mount or when product.id changes)
   React.useEffect(() => {
@@ -62,7 +58,6 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
     if (variant) {
       setSelectedVariant(variant);
       setDisplayPrice(variant.price);
-      console.log('Selected variant:', variant);
     }
   };
 
@@ -172,12 +167,7 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
               }}
             >
               {product.variants.map(variant => {
-                console.log('Rendering variant option:', variant);
-                console.log('Variant keys:', Object.keys(variant));
-                console.log('Variant name (camelCase):', variant.variantName);
-                console.log('Variant name (snake_case):', variant.variant_name);
                 const displayName = variant.variantName || variant.variant_name || 'Unknown';
-                console.log('Display name:', displayName);
                 return (
                   <option key={variant.id} value={variant.id}>
                     {displayName} - ₹{variant.price}

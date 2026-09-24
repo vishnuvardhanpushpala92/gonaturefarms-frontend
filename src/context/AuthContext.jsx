@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import api from '../api/client';
+import { safeLocalStorage, safeSessionStorage } from './SiteContext';
 
 const TIMER_START_TIME = 'admin_timer_start';
 const TIMER_DURATION = 'admin_timer_duration';
@@ -10,15 +11,15 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const stored = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
+    const stored = safeSessionStorage.getItem('gnf_user') || safeLocalStorage.getItem('gnf_user');
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
         if (parsed.role === 'admin') {
-          sessionStorage.removeItem('gnf_token');
-          sessionStorage.removeItem('gnf_user');
-          localStorage.removeItem('gnf_token');
-          localStorage.removeItem('gnf_user');
+          safeSessionStorage.removeItem('gnf_token');
+          safeSessionStorage.removeItem('gnf_user');
+          safeLocalStorage.removeItem('gnf_token');
+          safeLocalStorage.removeItem('gnf_user');
           return null;
         }
         return parsed;
@@ -30,8 +31,8 @@ export function AuthProvider({ children }) {
   });
 
   const [token, setToken] = useState(() => {
-    const stored = sessionStorage.getItem('gnf_token') || localStorage.getItem('gnf_token');
-    const storedUser = sessionStorage.getItem('gnf_user') || localStorage.getItem('gnf_user');
+    const stored = safeSessionStorage.getItem('gnf_token') || safeLocalStorage.getItem('gnf_token');
+    const storedUser = safeSessionStorage.getItem('gnf_user') || safeLocalStorage.getItem('gnf_user');
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
@@ -61,28 +62,22 @@ export function AuthProvider({ children }) {
   const isAuthenticated = !!user && !!token;
 
   const persist = (t, u) => {
-    console.log('[PERSIST] Called with token:', t ? 'present' : 'missing', 'user:', u ? 'present' : 'missing');
     if (t) {
-      sessionStorage.setItem('gnf_token', t);
-      localStorage.setItem('gnf_token', t);
-      console.log('[PERSIST] Token stored in both storage locations');
+      safeSessionStorage.setItem('gnf_token', t);
+      safeLocalStorage.setItem('gnf_token', t);
     } else {
-      sessionStorage.removeItem('gnf_token');
-      localStorage.removeItem('gnf_token');
-      console.log('[PERSIST] Token removed from both storage locations');
+      safeSessionStorage.removeItem('gnf_token');
+      safeLocalStorage.removeItem('gnf_token');
     }
     if (u) {
-      sessionStorage.setItem('gnf_user', JSON.stringify(u));
-      localStorage.setItem('gnf_user', JSON.stringify(u));
-      console.log('[PERSIST] User stored in both storage locations');
+      safeSessionStorage.setItem('gnf_user', JSON.stringify(u));
+      safeLocalStorage.setItem('gnf_user', JSON.stringify(u));
     } else {
-      sessionStorage.removeItem('gnf_user');
-      localStorage.removeItem('gnf_user');
-      console.log('[PERSIST] User removed from both storage locations');
+      safeSessionStorage.removeItem('gnf_user');
+      safeLocalStorage.removeItem('gnf_user');
     }
     setToken(t);
     setUser(u);
-    console.log('[PERSIST] React state updated');
     // Note: Cart is preserved independently in CartContext
   };
 
@@ -95,8 +90,8 @@ export function AuthProvider({ children }) {
     //   console.log('[REGISTER] Token received from backend:', data.token ? 'present' : 'missing');
     //   console.log('[REGISTER] User received from backend:', data.user ? 'present' : 'missing');
     //   persist(data.token, data.user);
-    //   console.log('[REGISTER] After persist - sessionStorage token:', sessionStorage.getItem('gnf_token') ? 'present' : 'missing');
-    //   console.log('[REGISTER] After persist - localStorage token:', localStorage.getItem('gnf_token') ? 'present' : 'missing');
+    //   console.log('[REGISTER] After persist - safeSessionStorage token:', safeSessionStorage.getItem('gnf_token') ? 'present' : 'missing');
+    //   console.log('[REGISTER] After persist - safeLocalStorage token:', safeLocalStorage.getItem('gnf_token') ? 'present' : 'missing');
     // }
     return data;
   }, []);
@@ -141,7 +136,7 @@ export function AuthProvider({ children }) {
     } catch (err) {
       // Fallback to the basic forgot-password endpoint if verify endpoint doesn't exist
       if (err.response?.status === 404) {
-        console.warn('Verify endpoint not found, falling back to basic forgot-password');
+
         const { data } = await api.post('/auth/forgot-password', { identifier }, { timeout: 60000 });
         return data;
       }
@@ -160,12 +155,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(() => {
-    console.log('[LOGOUT] Called - isAdmin:', isAdmin);
+
     // Clear only auth tokens, preserve cart
-    sessionStorage.removeItem('gnf_token');
-    sessionStorage.removeItem('gnf_user');
-    localStorage.removeItem('gnf_token');
-    localStorage.removeItem('gnf_user');
+    safeSessionStorage.removeItem('gnf_token');
+    safeSessionStorage.removeItem('gnf_user');
+    safeLocalStorage.removeItem('gnf_token');
+    safeLocalStorage.removeItem('gnf_user');
     setToken(null);
     setUser(null);
     setIsLocked(false);
@@ -181,12 +176,12 @@ export function AuthProvider({ children }) {
       startTimeRef.current = null;
       durationRef.current = null;
       try {
-        localStorage.removeItem(TIMER_START_TIME);
-        localStorage.removeItem(TIMER_DURATION);
-        localStorage.removeItem(TIMER_EXPIRED);
-        localStorage.removeItem(TIMER_STARTED);
+        safeLocalStorage.removeItem(TIMER_START_TIME);
+        safeLocalStorage.removeItem(TIMER_DURATION);
+        safeLocalStorage.removeItem(TIMER_EXPIRED);
+        safeLocalStorage.removeItem(TIMER_STARTED);
       } catch (e) {
-        console.error('Failed to clear timer from localStorage:', e);
+
       }
     }
   }, [isAdmin]);
@@ -216,14 +211,14 @@ export function AuthProvider({ children }) {
     startTimeRef.current = startTime;
     durationRef.current = durationMs;
     
-    // Save to localStorage for persistence across navigation
+    // Save to safeLocalStorage for persistence across navigation
     try {
-      localStorage.setItem(TIMER_START_TIME, startTime.toString());
-      localStorage.setItem(TIMER_DURATION, minutes.toString());
-      localStorage.setItem(TIMER_EXPIRED, 'false');
-      localStorage.setItem(TIMER_STARTED, 'true');
+      safeLocalStorage.setItem(TIMER_START_TIME, startTime.toString());
+      safeLocalStorage.setItem(TIMER_DURATION, minutes.toString());
+      safeLocalStorage.setItem(TIMER_EXPIRED, 'false');
+      safeLocalStorage.setItem(TIMER_STARTED, 'true');
     } catch (e) {
-      console.error('Failed to save timer to localStorage:', e);
+
     }
     
     setTimeLeft(durationMs);
@@ -254,11 +249,11 @@ export function AuthProvider({ children }) {
         setIsSessionExpired(true);
         setIsLocked(true);
         try {
-          localStorage.setItem(TIMER_EXPIRED, 'true');
-          localStorage.removeItem(TIMER_START_TIME);
-          localStorage.removeItem(TIMER_DURATION);
+          safeLocalStorage.setItem(TIMER_EXPIRED, 'true');
+          safeLocalStorage.removeItem(TIMER_START_TIME);
+          safeLocalStorage.removeItem(TIMER_DURATION);
         } catch (e) {
-          console.error('Failed to update timer in localStorage:', e);
+
         }
       } else {
         setTimeLeft(remaining);
@@ -286,14 +281,14 @@ export function AuthProvider({ children }) {
     startTimeRef.current = null;
     durationRef.current = null;
     
-    // Clear localStorage
+    // Clear safeLocalStorage
     try {
-      localStorage.removeItem(TIMER_START_TIME);
-      localStorage.removeItem(TIMER_DURATION);
-      localStorage.removeItem(TIMER_EXPIRED);
-      localStorage.removeItem(TIMER_STARTED);
+      safeLocalStorage.removeItem(TIMER_START_TIME);
+      safeLocalStorage.removeItem(TIMER_DURATION);
+      safeLocalStorage.removeItem(TIMER_EXPIRED);
+      safeLocalStorage.removeItem(TIMER_STARTED);
     } catch (e) {
-      console.error('Failed to clear timer from localStorage:', e);
+
     }
   }, []);
 
@@ -326,10 +321,10 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const expired = localStorage.getItem(TIMER_EXPIRED);
-      const started = localStorage.getItem(TIMER_STARTED);
-      const startTime = localStorage.getItem(TIMER_START_TIME);
-      const duration = localStorage.getItem(TIMER_DURATION);
+      const expired = safeLocalStorage.getItem(TIMER_EXPIRED);
+      const started = safeLocalStorage.getItem(TIMER_STARTED);
+      const startTime = safeLocalStorage.getItem(TIMER_START_TIME);
+      const duration = safeLocalStorage.getItem(TIMER_DURATION);
 
       // Restore hasTimerStarted state
       if (started === 'true') {
@@ -348,8 +343,8 @@ export function AuthProvider({ children }) {
         const durationMs = parseInt(duration, 10) * 60 * 1000;
         
         if (isNaN(startTimeMs) || isNaN(durationMs)) {
-          localStorage.removeItem(TIMER_START_TIME);
-          localStorage.removeItem(TIMER_DURATION);
+          safeLocalStorage.removeItem(TIMER_START_TIME);
+          safeLocalStorage.removeItem(TIMER_DURATION);
           return;
         }
         
@@ -365,9 +360,9 @@ export function AuthProvider({ children }) {
           setIsSessionExpired(true);
           setIsTimerActive(false);
           setIsLocked(true);
-          localStorage.setItem(TIMER_EXPIRED, 'true');
-          localStorage.removeItem(TIMER_START_TIME);
-          localStorage.removeItem(TIMER_DURATION);
+          safeLocalStorage.setItem(TIMER_EXPIRED, 'true');
+          safeLocalStorage.removeItem(TIMER_START_TIME);
+          safeLocalStorage.removeItem(TIMER_DURATION);
         } else {
           // Timer still running, restore it
           setIsTimerActive(true);
@@ -393,9 +388,9 @@ export function AuthProvider({ children }) {
               setIsTimerActive(false);
               setIsSessionExpired(true);
               setIsLocked(true);
-              localStorage.setItem(TIMER_EXPIRED, 'true');
-              localStorage.removeItem(TIMER_START_TIME);
-              localStorage.removeItem(TIMER_DURATION);
+              safeLocalStorage.setItem(TIMER_EXPIRED, 'true');
+              safeLocalStorage.removeItem(TIMER_START_TIME);
+              safeLocalStorage.removeItem(TIMER_DURATION);
             } else {
               setTimeLeft(newRemaining);
               
@@ -408,7 +403,7 @@ export function AuthProvider({ children }) {
         }
       }
     } catch (e) {
-      console.error('Timer initialization error:', e);
+
     }
 
     return () => {
