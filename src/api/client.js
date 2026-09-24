@@ -2,7 +2,32 @@ import axios from 'axios';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://gonaturefarms-qf9o.onrender.com';
 
-// Keep-alive mechanism to prevent cold starts
+console.log('API Base URL:', API_BASE);
+
+// Wake-up mechanism to prevent cold starts
+let wakeUpPromise = null;
+
+export const wakeUpBackend = async () => {
+  if (wakeUpPromise) return wakeUpPromise; // Already in progress
+  
+  wakeUpPromise = (async () => {
+    try {
+      console.log('Waking up backend with health check...');
+      const response = await axios.get(`${API_BASE}/api/health`, { timeout: 8000 });
+      console.log('Backend wake-up successful:', response.data);
+      return true;
+    } catch (error) {
+      console.error('Backend wake-up failed:', error.message);
+      return false;
+    } finally {
+      wakeUpPromise = null;
+    }
+  })();
+  
+  return wakeUpPromise;
+};
+
+// Keep-alive mechanism to prevent cold starts after initial wake-up
 let keepAliveInterval = null;
 
 export const startKeepAlive = () => {
@@ -29,9 +54,15 @@ export const stopKeepAlive = () => {
   }
 };
 
-// Start keep-alive when page loads
+// Start wake-up and keep-alive when page loads
 if (typeof window !== 'undefined') {
-  startKeepAlive();
+  // Immediate wake-up call
+  wakeUpBackend();
+  
+  // Start keep-alive after a short delay
+  setTimeout(() => {
+    startKeepAlive();
+  }, 1000);
   
   // Stop when page unloads
   window.addEventListener('beforeunload', stopKeepAlive);

@@ -37,6 +37,7 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   const [activeCat, setActiveCat] = useState('All');
   const [loading, setLoading] = useState(true);
   const [localSearch, setLocalSearch] = useState(search || '');
+  const [showTimeoutMessage, setShowTimeoutMessage] = useState(false);
   
   // Use SWR for categories with automatic caching and retry logic
   const { data: categoriesData, error: categoriesError, isLoading: categoriesLoading } = useSWR('/products/categories', fetcher, {
@@ -59,6 +60,18 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   });
   
   const categories = categoriesData?.categories || [];
+  
+  // Show timeout message after 8 seconds if still loading
+  useEffect(() => {
+    if (categoriesLoading) {
+      const timeoutId = setTimeout(() => {
+        setShowTimeoutMessage(true);
+      }, 8000);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setShowTimeoutMessage(false);
+    }
+  }, [categoriesLoading]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -142,13 +155,31 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
 
       <div className="pgrid">
         {showSkeleton ? (
-          // Skeleton loading cards instead of text
-          Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="skeleton-loading" style={{ 
-              height: '300px', 
-              borderRadius: '8px'
-            }} />
-          ))
+          <>
+            {/* Skeleton loading cards instead of text */}
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="skeleton-loading" style={{ 
+                height: '300px', 
+                borderRadius: '8px'
+              }} />
+            ))}
+            {/* Show timeout message if taking too long */}
+            {showTimeoutMessage && (
+              <div style={{ 
+                gridColumn: '1 / -1', 
+                textAlign: 'center', 
+                padding: '20px',
+                backgroundColor: '#fff3cd',
+                borderRadius: '8px',
+                marginTop: '20px',
+                color: '#856404'
+              }}>
+                <p style={{ margin: 0, fontSize: '14px' }}>
+                  Server is starting up... Please wait (this may take a few seconds on first visit)
+                </p>
+              </div>
+            )}
+          </>
         ) : uniqueCurrent.length === 0 ? (
           <div className="empty-grid"><p>No products available in this category.</p></div>
         ) : (

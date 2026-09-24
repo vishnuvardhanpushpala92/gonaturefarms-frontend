@@ -55,6 +55,7 @@ export default function VideoGallery({ onOpenCart }) {
   const carouselRef = useRef(null);
   const videoRefs = useRef({});
   const [playingVideoId, setPlayingVideoId] = useState(null);
+  const [showTimeoutMessage, setShowTimeoutMessage] = useState(false);
   const { isAuthenticated } = useAuth();
   const { addItem } = useCart();
   const showToast = useToast();
@@ -80,6 +81,18 @@ export default function VideoGallery({ onOpenCart }) {
   });
   
   const videos = videosData?.videos || [];
+  
+  // Show timeout message after 8 seconds if still loading
+  useEffect(() => {
+    if (videosLoading) {
+      const timeoutId = setTimeout(() => {
+        setShowTimeoutMessage(true);
+      }, 8000);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setShowTimeoutMessage(false);
+    }
+  }, [videosLoading]);
 
   useEffect(() => {
     setMounted(true);
@@ -295,6 +308,23 @@ export default function VideoGallery({ onOpenCart }) {
           </div>
           <button className="video-nav-btn video-nav-right" disabled>›</button>
         </div>
+        {/* Show timeout message if taking too long */}
+        {showTimeoutMessage && (
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '20px',
+            backgroundColor: '#fff3cd',
+            borderRadius: '8px',
+            marginTop: '20px',
+            color: '#856404',
+            maxWidth: '600px',
+            margin: '20px auto'
+          }}>
+            <p style={{ margin: 0, fontSize: '14px' }}>
+              Server is starting up... Please wait (this may take a few seconds on first visit)
+            </p>
+          </div>
+        )}
       </section>
     );
   }

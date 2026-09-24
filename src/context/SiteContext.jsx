@@ -22,6 +22,7 @@ export function SiteProvider({ children }) {
   const [products, setProducts] = useState([]);
   const [loaded, setLoaded] = useState(true); // Set to true immediately for instant page render
   const [error, setError] = useState(null);
+  const [showTimeoutMessage, setShowTimeoutMessage] = useState(false);
   const loadCalledRef = useRef(false);
 
   // Load cached data on mount (stale-while-revalidate pattern)
@@ -54,6 +55,12 @@ export function SiteProvider({ children }) {
   const loadAll = useCallback(async () => {
     loadCalledRef.current = true;
     setError(null);
+    setShowTimeoutMessage(false);
+
+    // Show timeout message after 8 seconds
+    const timeoutId = setTimeout(() => {
+      setShowTimeoutMessage(true);
+    }, 8000);
 
     // Retry logic with exponential backoff
     const maxRetries = 3;
@@ -64,6 +71,10 @@ export function SiteProvider({ children }) {
         // Single endpoint for all homepage data - reduces API calls from 9 to 1
         // Uses global timeout of 30 seconds from axios config
         const { data } = await api.get('/homepage', { skipTransform: true });
+
+        // Clear timeout on success
+        clearTimeout(timeoutId);
+        setShowTimeoutMessage(false);
 
         // Sanitize settings URLs to ensure HTTPS
         const sanitizedSettings = {};
@@ -115,6 +126,7 @@ export function SiteProvider({ children }) {
         
         // Don't retry on 404 or 401 errors
         if (error.response?.status === 404 || error.response?.status === 401) {
+          clearTimeout(timeoutId);
           setError(error.message || 'Failed to load data. Please check your connection.');
           return;
         }
@@ -128,6 +140,7 @@ export function SiteProvider({ children }) {
           return attemptLoad();
         } else {
           // Max retries reached
+          clearTimeout(timeoutId);
           setError(error.message || 'Failed to load data. Please check your connection.');
         }
       }
@@ -156,7 +169,7 @@ export function SiteProvider({ children }) {
   }, []);
 
   return (
-    <SiteContext.Provider value={{ settings, slides, faqs, zones, blocks, footerLinks, testimonials, videos, products, loaded, error, reload: loadAll, retry: retryLoad, updateSettings }}>
+    <SiteContext.Provider value={{ settings, slides, faqs, zones, blocks, footerLinks, testimonials, videos, products, loaded, error, showTimeoutMessage, reload: loadAll, retry: retryLoad, updateSettings }}>
       {children}
     </SiteContext.Provider>
   );
