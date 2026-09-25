@@ -32,7 +32,7 @@ const fetcher = (url) => api.get(url).then(res => res.data);
 const ProductCardMemo = memo(ProductCard);
 
 export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
-  const { products: initialProducts, loaded } = useSite();
+  const { products: initialProducts, loaded, backendDown } = useSite();
   const [products, setProducts] = useState([]);
   const [activeCat, setActiveCat] = useState('All');
   const [loading, setLoading] = useState(true);
@@ -48,25 +48,26 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
       // Never retry on 404 or 401 errors
       if (error.status === 404 || error.status === 401) return;
       
-      // Only retry up to 3 times
-      if (retryCount >= 3) return;
+      // Only retry up to 2 times to reduce console spam
+      if (retryCount >= 2) return;
       
-      // Retry after 2 seconds with exponential backoff
-      setTimeout(() => revalidate({ retryCount }), 2000 * Math.pow(2, retryCount));
+      // Retry after 3 seconds with exponential backoff
+      setTimeout(() => revalidate({ retryCount }), 3000 * Math.pow(2, retryCount));
     },
     onError: (err) => {
-      console.error('SWR error loading categories:', err);
+      // Only log the final error, not retry attempts
+      console.error('Categories failed to load:', err.message);
     }
   });
   
   const categories = categoriesData?.categories || [];
   
-  // Show timeout message after 8 seconds if still loading
+  // Show timeout message after 5 seconds if still loading
   useEffect(() => {
     if (categoriesLoading) {
       const timeoutId = setTimeout(() => {
         setShowTimeoutMessage(true);
-      }, 8000);
+      }, 5000);
       return () => clearTimeout(timeoutId);
     } else {
       setShowTimeoutMessage(false);
@@ -169,14 +170,31 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
                 gridColumn: '1 / -1', 
                 textAlign: 'center', 
                 padding: '20px',
-                backgroundColor: '#fff3cd',
+                backgroundColor: backendDown ? '#f8d7da' : '#fff3cd',
                 borderRadius: '8px',
                 marginTop: '20px',
-                color: '#856404'
+                color: backendDown ? '#721c24' : '#856404'
               }}>
                 <p style={{ margin: 0, fontSize: '14px' }}>
-                  Server is starting up... Please wait (this may take a few seconds on first visit)
+                  {backendDown 
+                    ? 'Server temporarily unavailable. Please refresh the page.'
+                    : 'Loading products... Server is taking longer than expected'}
                 </p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  style={{
+                    marginTop: '10px',
+                    padding: '8px 16px',
+                    backgroundColor: backendDown ? '#dc3545' : '#2d5a27',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '13px'
+                  }}
+                >
+                  Refresh Page
+                </button>
               </div>
             )}
           </>

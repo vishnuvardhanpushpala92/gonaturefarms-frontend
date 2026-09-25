@@ -2,6 +2,11 @@ import axios from 'axios';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://gonaturefarms-qf9o.onrender.com';
 
+// Log the API URL for debugging
+if (typeof window !== 'undefined') {
+  console.log('Frontend using API URL:', API_BASE);
+}
+
 // Wake-up mechanism to prevent cold starts
 let wakeUpPromise = null;
 
@@ -10,7 +15,7 @@ export const wakeUpBackend = async () => {
   
   wakeUpPromise = (async () => {
     try {
-      await axios.get(`${API_BASE}/api/health`, { timeout: 8000 });
+      await axios.get(`${API_BASE}/api/health`, { timeout: 5000 });
       return true;
     } catch (error) {
       console.error('Backend wake-up failed:', error.message);
@@ -102,7 +107,7 @@ const isPublicEndpoint = (url) => {
 
 export const api = axios.create({
   baseURL: API_BASE ? `${API_BASE}/api` : '/api',
-  timeout: 30000 // 30 seconds to handle cold starts on free hosting
+  timeout: 45000 // Increased to 45 seconds to handle severe cold starts or network issues
 });
 
 // Dedicated API instance for file uploads with longer timeout

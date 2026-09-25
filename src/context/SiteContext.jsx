@@ -83,6 +83,7 @@ export function SiteProvider({ children }) {
   const [loaded, setLoaded] = useState(true); // Set to true immediately for instant page render
   const [error, setError] = useState(null);
   const [showTimeoutMessage, setShowTimeoutMessage] = useState(false);
+  const [backendDown, setBackendDown] = useState(false);
   const loadCalledRef = useRef(false);
 
   // Load cached data on mount (stale-while-revalidate pattern)
@@ -117,13 +118,13 @@ export function SiteProvider({ children }) {
     setError(null);
     setShowTimeoutMessage(false);
 
-    // Show timeout message after 8 seconds
+    // Show timeout message after 5 seconds (faster feedback)
     const timeoutId = setTimeout(() => {
       setShowTimeoutMessage(true);
-    }, 8000);
+    }, 5000);
 
     // Retry logic with exponential backoff
-    const maxRetries = 3;
+    const maxRetries = 2; // Reduced from 3 to 2 to reduce console spam
     let retryCount = 0;
     
     const attemptLoad = async () => {
@@ -196,13 +197,14 @@ export function SiteProvider({ children }) {
         // Retry with exponential backoff
         if (retryCount < maxRetries) {
           retryCount++;
-          const delay = 2000 * Math.pow(2, retryCount - 1); // 2s, 4s, 8s
+          const delay = 3000 * Math.pow(2, retryCount - 1); // 3s, 6s
           await new Promise(resolve => setTimeout(resolve, delay));
           return attemptLoad();
         } else {
-          // Max retries reached
+          // Max retries reached - mark backend as down
           clearTimeout(timeoutId);
           setError(error.message || 'Failed to load data. Please check your connection.');
+          setBackendDown(true);
         }
       }
     };
@@ -212,6 +214,7 @@ export function SiteProvider({ children }) {
 
   const retryLoad = useCallback(() => {
     loadCalledRef.current = false;
+    setBackendDown(false); // Reset backend down state on retry
     loadAll();
   }, [loadAll]);
 
@@ -230,7 +233,7 @@ export function SiteProvider({ children }) {
   }, []);
 
   return (
-    <SiteContext.Provider value={{ settings, slides, faqs, zones, blocks, footerLinks, testimonials, videos, products, loaded, error, showTimeoutMessage, reload: loadAll, retry: retryLoad, updateSettings }}>
+    <SiteContext.Provider value={{ settings, slides, faqs, zones, blocks, footerLinks, testimonials, videos, products, loaded, error, showTimeoutMessage, backendDown, reload: loadAll, retry: retryLoad, updateSettings }}>
       {children}
     </SiteContext.Provider>
   );

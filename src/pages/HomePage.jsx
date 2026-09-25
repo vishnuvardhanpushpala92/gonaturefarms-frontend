@@ -37,7 +37,7 @@ export default function HomePage({ onOpenCart, search }) {
   const { isAuthenticated, user } = useAuth();
   const showToast = useToast();
   const { setItemAddedCallback } = useCart();
-  const { showTimeoutMessage } = useSite();
+  const { showTimeoutMessage, backendDown } = useSite();
 
   // Set up cart callback to automatically open drawer when item is added
   useEffect(() => {
@@ -69,8 +69,8 @@ export default function HomePage({ onOpenCart, search }) {
           top: '80px',
           left: '50%',
           transform: 'translateX(-50%)',
-          backgroundColor: '#fff3cd',
-          color: '#856404',
+          backgroundColor: backendDown ? '#f8d7da' : '#fff3cd',
+          color: backendDown ? '#721c24' : '#856404',
           padding: '12px 24px',
           borderRadius: '8px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
@@ -80,7 +80,9 @@ export default function HomePage({ onOpenCart, search }) {
           maxWidth: '90%',
           animation: 'fadeInDown 0.3s ease-out'
         }}>
-          Server is starting up... Please wait (this may take a few seconds on first visit)
+          {backendDown 
+            ? 'Server is temporarily unavailable. Please try again later or refresh the page.'
+            : 'Loading content... Server is taking longer than expected (this is normal on free hosting)'}
         </div>
       )}
       
