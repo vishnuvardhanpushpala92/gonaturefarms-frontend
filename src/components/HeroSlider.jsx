@@ -1,21 +1,18 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSite } from '../context/SiteContext.jsx';
+import { getResponsiveImageUrls, getImageDimensions } from '../utils/imageOptimizer.js';
 
 export default function HeroSlider() {
   const { slides, loaded } = useSite();
   const [index, setIndex] = useState(0);
   const sliderRef = useRef(null);
 
-  // Preload first slide image for LCP
+  // Preload first slide image for LCP with optimization
   useEffect(() => {
     if (slides.length > 0) {
       const firstSlide = slides[0];
-      const getImageUrls = (slide) => ({
-        mobile: slide.mobileImage || slide.tabletImage || slide.desktopImage || slide.imageUrl,
-        tablet: slide.tabletImage || slide.desktopImage || slide.imageUrl,
-        desktop: slide.desktopImage || slide.imageUrl
-      });
-      const imageUrls = getImageUrls(firstSlide);
+      const primaryImage = firstSlide.desktopImage || firstSlide.imageUrl;
+      const imageUrls = getResponsiveImageUrls(primaryImage);
       const img = new Image();
       img.src = imageUrls.desktop;
       img.fetchPriority = 'high';
@@ -47,17 +44,12 @@ export default function HeroSlider() {
 
   if (!loaded || !slides.length) return null;
 
-  // Get image URLs with fallback for backward compatibility
-  const getImageUrls = (slide) => ({
-    mobile: slide.mobileImage || slide.tabletImage || slide.desktopImage || slide.imageUrl,
-    tablet: slide.tabletImage || slide.desktopImage || slide.imageUrl,
-    desktop: slide.desktopImage || slide.imageUrl
-  });
-
   return (
     <div className="slider-wrap" ref={sliderRef} onKeyDown={handleKeyDown} tabIndex={0}>
       {slides.map((slide, i) => {
-        const imageUrls = getImageUrls(slide);
+        const imageUrls = getResponsiveImageUrls(
+          slide.desktopImage || slide.imageUrl
+        );
         return (
           <div
             key={slide.id}
@@ -78,6 +70,9 @@ export default function HeroSlider() {
                 className="slide-image"
                 loading={i === 0 ? 'eager' : 'lazy'}
                 fetchPriority={i === 0 ? 'high' : 'auto'}
+                style={{ aspectRatio: getImageDimensions('16/9', 1920) }}
+                width="1920"
+                height="1080"
               />
             </picture>
             <div className="slide-mask" />

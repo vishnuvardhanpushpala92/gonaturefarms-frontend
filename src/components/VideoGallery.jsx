@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { useSite } from '../context/SiteContext.jsx';
 import useSWR from 'swr';
+import { getVideoThumbnailUrl, getOptimizedProductImageUrl, getImageDimensions } from '../utils/imageOptimizer.js';
 
 // Add shimmer animation for skeleton loading
 const shimmerStyle = `
@@ -64,19 +65,20 @@ export default function VideoGallery({ onOpenCart }) {
   const { data: videosData, error: videosError, isLoading: videosLoading } = useSWR('/videos', fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
-    dedupingInterval: 60000, // Deduplicate requests within 60 seconds
+    dedupingInterval: 300000, // Deduplicate requests within 5 minutes to reduce API calls
     onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
       // Never retry on 404 or 401 errors
       if (error.status === 404 || error.status === 401) return;
       
-      // Only retry up to 3 times
-      if (retryCount >= 3) return;
+      // Only retry up to 2 times to reduce console spam
+      if (retryCount >= 2) return;
       
-      // Retry after 2 seconds with exponential backoff
-      setTimeout(() => revalidate({ retryCount }), 2000 * Math.pow(2, retryCount));
+      // Retry after 3 seconds with exponential backoff
+      setTimeout(() => revalidate({ retryCount }), 3000 * Math.pow(2, retryCount));
     },
     onError: (err) => {
-      console.error('SWR error loading videos:', err);
+      // Only log the final error, not retry attempts
+      console.error('Videos failed to load:', err.message);
     }
   });
   
@@ -185,38 +187,20 @@ export default function VideoGallery({ onOpenCart }) {
     }
   };
 
-  // Generate Cloudinary thumbnail URL from video URL
-  const getCloudinaryThumbnail = (videoUrl) => {
-    if (!videoUrl || !videoUrl.includes('cloudinary.com')) return null;
-    try {
-      // Cloudinary video thumbnail transformation: replace video extension with .jpg and add so_0 to get first frame
-      const url = new URL(videoUrl);
-      const pathParts = url.pathname.split('/');
-      const filename = pathParts[pathParts.length - 1];
-      const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
-      const folderPath = pathParts.slice(0, pathParts.length - 1).join('/');
-      url.pathname = `${folderPath}/${nameWithoutExt}.jpg`;
-      url.searchParams.set('so', '0'); // Get first frame
-      url.searchParams.set('w', '400');
-      url.searchParams.set('h', '300');
-      url.searchParams.set('c', 'fill');
-      url.searchParams.set('f', 'jpg'); // Force output format
-      return url.toString();
-    } catch {
-      return null;
-    }
-  };
-
-  // Get poster URL with fallbacks
+  // Get poster URL with fallbacks using optimized images
   const getPosterUrl = (video) => {
     // 1. Try existing poster URL (handle both snake_case and camelCase)
-    if ((video.posterUrl || video.poster_url) && !isExternalImage(video.posterUrl || video.poster_url)) return video.posterUrl || video.poster_url;
+    if ((video.posterUrl || video.poster_url) && !isExternalImage(video.posterUrl || video.poster_url)) {
+      return getOptimizedProductImageUrl(video.posterUrl || video.poster_url, 400, 80);
+    }
     // 2. Try product image (handle both snake_case and camelCase)
-    if (video.product && (video.product.img_url || video.product.imgUrl) && !isExternalImage(video.product.img_url || video.product.imgUrl)) return video.product.img_url || video.product.imgUrl;
+    if (video.product && (video.product.img_url || video.product.imgUrl) && !isExternalImage(video.product.img_url || video.product.imgUrl)) {
+      return getOptimizedProductImageUrl(video.product.img_url || video.product.imgUrl, 400, 80);
+    }
     // 3. Try Cloudinary thumbnail from video URL (handle both snake_case and camelCase)
     const videoFilePath = video.file_path || video.filePath;
     if (videoFilePath) {
-      const cloudinaryThumb = getCloudinaryThumbnail(videoFilePath);
+      const cloudinaryThumb = getVideoThumbnailUrl(videoFilePath, 400, 600);
       if (cloudinaryThumb) return cloudinaryThumb;
     }
     // 4. Return null to use fallback placeholder
@@ -384,11 +368,14 @@ export default function VideoGallery({ onOpenCart }) {
                         preload="none"
                         muted
                         playsInline
+                        width="280"
+                        height="500"
                         style={{
                           width: '100%',
                           height: '100%',
                           objectFit: 'cover',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          aspectRatio: getImageDimensions('9/16', 280)
                         }}
                         onPlay={() => handleVideoPlay(video.id)}
                         onPause={() => handleVideoPause(video.id)}
@@ -463,8 +450,10 @@ export default function VideoGallery({ onOpenCart }) {
                     >
                       {video.product.img_url || video.product.imgUrl ? (
                         <img
-                          src={video.product.img_url || video.product.imgUrl}
+                          src={getOptimizedProductImageUrl(video.product.img_url || video.product.imgUrl, 80, 80)}
                           alt={video.product.name}
+                          width="40"
+                          height="40"
                           style={{
                             width: '40px',
                             height: '40px',

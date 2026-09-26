@@ -43,7 +43,7 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   const { data: categoriesData, error: categoriesError, isLoading: categoriesLoading } = useSWR('/products/categories', fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
-    dedupingInterval: 60000, // Deduplicate requests within 60 seconds
+    dedupingInterval: 300000, // Deduplicate requests within 5 minutes to reduce API calls
     onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
       // Never retry on 404 or 401 errors
       if (error.status === 404 || error.status === 401) return;

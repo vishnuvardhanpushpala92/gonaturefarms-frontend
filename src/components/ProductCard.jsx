@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import api from '../api/client';
-import Lightbox from 'yet-another-react-lightbox';
+import { getOptimizedProductImageUrl, getImageDimensions } from '../utils/imageOptimizer.js';
+
+// Lazy load lightbox to reduce initial bundle size
+const Lightbox = lazy(() => import('yet-another-react-lightbox'));
 import 'yet-another-react-lightbox/styles.css';
 
 export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, onOpenCart }) {
@@ -104,22 +107,36 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
     }
   };
 
-  const getImageUrl = (imgUrl) => {
+  const getImageUrl = (imgUrl, isThumbnail = false) => {
     if (!imgUrl) return '';
-    if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) return imgUrl;
-    const apiUrl = import.meta.env.VITE_API_URL || '';
-    const cleanImgUrl = imgUrl.startsWith('/') ? imgUrl : `/${imgUrl}`;
-    const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
-    return `${cleanApiUrl}${cleanImgUrl}`;
+    
+    // Build full URL if relative
+    let fullUrl = imgUrl;
+    if (!imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) {
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const cleanImgUrl = imgUrl.startsWith('/') ? imgUrl : `/${imgUrl}`;
+      const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+      fullUrl = `${cleanApiUrl}${cleanImgUrl}`;
+    }
+    
+    // Apply Cloudinary optimization for thumbnails
+    if (isThumbnail) {
+      return getOptimizedProductImageUrl(fullUrl, 400, 80);
+    }
+    
+    return fullUrl;
   };
 
   return (
     <div className={`pcard${isFuture ? ' pcard-future' : ''}`} style={{ overflow: 'visible', zIndex: 10 }}>
       <div className="pcard-img" onClick={() => openLightbox(0)} style={{ cursor: 'pointer' }}>
         <img
-          src={getImageUrl(product.img_url || product.imgUrl)}
+          src={getImageUrl(product.img_url || product.imgUrl, true)}
           alt={product.name}
           loading="lazy"
+          width="400"
+          height="400"
+          style={{ aspectRatio: getImageDimensions('1/1', 400) }}
           onError={(e) => {
             console.error('Image load error:', product.img_url || product.imgUrl, e);
             e.target.style.display = 'none';
@@ -152,8 +169,10 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
         
         {hasVariants && (
           <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '.7rem', color: 'var(--muted)', marginBottom: 2, display: 'block' }}>Select Variant:</label>
+            <label htmlFor={`variant-select-${product.id}`} style={{ fontSize: '.7rem', color: 'var(--muted)', marginBottom: 2, display: 'block' }}>Select Variant:</label>
             <select 
+              id={`variant-select-${product.id}`}
+              name={`variant-${product.id}`}
               value={selectedVariant ? selectedVariant.id : ''} 
               onChange={handleVariantChange}
               style={{ 
@@ -213,20 +232,22 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
 
       {/* Lightbox for image gallery */}
       {isLightboxOpen && (
-        <Lightbox
-          slides={allImages.map(img => ({ src: getImageUrl(img) }))}
-          index={lightboxIndex}
-          open={isLightboxOpen}
-          close={closeLightbox}
-          on={{
-            click: () => {},
-            enter: () => {},
-            leave: () => {},
-            view: () => {},
-            prev: () => {},
-            next: () => {},
-          }}
-        />
+        <Suspense fallback={<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>Loading...</div>}>
+          <Lightbox
+            slides={allImages.map(img => ({ src: getImageUrl(img) }))}
+            index={lightboxIndex}
+            open={isLightboxOpen}
+            close={closeLightbox}
+            on={{
+              click: () => {},
+              enter: () => {},
+              leave: () => {},
+              view: () => {},
+              prev: () => {},
+              next: () => {},
+            }}
+          />
+        </Suspense>
       )}
     </div>
   );
