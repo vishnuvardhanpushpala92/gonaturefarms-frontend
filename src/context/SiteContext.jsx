@@ -229,7 +229,10 @@ export function SiteProvider({ children }) {
   }, [loadAll]);
 
   useEffect(() => {
-    loadAll();
+    // Fire-and-forget - don't await to avoid blocking initial render
+    loadAll().catch(err => {
+      console.error('Homepage data load failed:', err);
+    });
   }, []);
 
   return (

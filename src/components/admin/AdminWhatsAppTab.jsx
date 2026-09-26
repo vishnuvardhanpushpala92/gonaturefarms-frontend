@@ -307,8 +307,8 @@ export default function AdminWhatsAppTab() {
             <textarea required value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Enter your message here..." rows={4} />
           </div>
           <div className="fg">
-            <label>Schedule (optional)</label>
-            <input type="datetime-local" value={form.scheduledAt} onChange={(e) => setForm({ ...form, scheduledAt: e.target.value })} />
+            <label htmlFor="whatsapp-schedule">Schedule (optional)</label>
+            <input id="whatsapp-schedule" name="scheduledAt" type="datetime-local" value={form.scheduledAt} onChange={(e) => setForm({ ...form, scheduledAt: e.target.value })} />
           </div>
           <div className="fg">
             <label>Customer Selection</label>

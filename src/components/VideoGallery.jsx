@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { useSite } from '../context/SiteContext.jsx';
-import useSWR from 'swr';
 import { getVideoThumbnailUrl, getOptimizedProductImageUrl, getImageDimensions } from '../utils/imageOptimizer.js';
 
 // Add shimmer animation for skeleton loading
@@ -47,11 +46,8 @@ if (typeof document !== 'undefined' && !document.getElementById('shimmer-styles'
   document.head.appendChild(styleSheet);
 }
 
-// SWR fetcher function
-const fetcher = (url) => api.get(url).then(res => res.data);
-
 export default function VideoGallery({ onOpenCart }) {
-  const { videos: initialVideos, loaded } = useSite();
+  const { videos: initialVideos, loaded, backendDown } = useSite();
   const [mounted, setMounted] = useState(false);
   const carouselRef = useRef(null);
   const videoRefs = useRef({});
@@ -61,28 +57,10 @@ export default function VideoGallery({ onOpenCart }) {
   const { addItem } = useCart();
   const showToast = useToast();
   
-  // Use SWR for videos with automatic caching and retry logic
-  const { data: videosData, error: videosError, isLoading: videosLoading } = useSWR('/videos', fetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: true,
-    dedupingInterval: 300000, // Deduplicate requests within 5 minutes to reduce API calls
-    onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
-      // Never retry on 404 or 401 errors
-      if (error.status === 404 || error.status === 401) return;
-      
-      // Only retry up to 2 times to reduce console spam
-      if (retryCount >= 2) return;
-      
-      // Retry after 3 seconds with exponential backoff
-      setTimeout(() => revalidate({ retryCount }), 3000 * Math.pow(2, retryCount));
-    },
-    onError: (err) => {
-      // Only log the final error, not retry attempts
-      console.error('Videos failed to load:', err.message);
-    }
-  });
-  
-  const videos = videosData?.videos || [];
+  // Use videos from SiteContext instead of separate API call
+  // The /homepage endpoint already returns videos, avoiding duplicate requests
+  const videos = initialVideos || [];
+  const videosLoading = !loaded && videos.length === 0;
   
   // Show timeout message after 5 seconds if still loading
   useEffect(() => {

@@ -62,12 +62,12 @@ export default function AdminCouponsTab() {
             </div>
           </div>
           <div className="frow">
-            <div className="fg"><label>Discount Value</label><input required type="number" value={form.discountValue} onChange={(e) => setForm({ ...form, discountValue: e.target.value })} /></div>
-            <div className="fg"><label>Min Order</label><input type="number" value={form.minOrder} onChange={(e) => setForm({ ...form, minOrder: e.target.value })} /></div>
+            <div className="fg"><label htmlFor="coupon-discount">Discount Value</label><input id="coupon-discount" name="discountValue" required type="number" value={form.discountValue} onChange={(e) => setForm({ ...form, discountValue: e.target.value })} /></div>
+            <div className="fg"><label htmlFor="coupon-minorder">Min Order</label><input id="coupon-minorder" name="minOrder" type="number" value={form.minOrder} onChange={(e) => setForm({ ...form, minOrder: e.target.value })} /></div>
           </div>
           <div className="frow">
-            <div className="fg"><label>Max Uses</label><input type="number" value={form.maxUses} onChange={(e) => setForm({ ...form, maxUses: e.target.value })} /></div>
-            <div className="fg"><label>Expires At</label><input type="date" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} /></div>
+            <div className="fg"><label htmlFor="coupon-maxuses">Max Uses</label><input id="coupon-maxuses" name="maxUses" type="number" value={form.maxUses} onChange={(e) => setForm({ ...form, maxUses: e.target.value })} /></div>
+            <div className="fg"><label htmlFor="coupon-expires">Expires At</label><input id="coupon-expires" name="expiresAt" type="date" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} /></div>
           </div>
           <button className="btn btn-primary">Create Coupon</button>
         </form>

@@ -2,7 +2,6 @@ import React, { memo, useEffect, useState, useCallback, useRef } from 'react';
 import api from '../api/client';
 import ProductCard from './ProductCard.jsx';
 import { useSite } from '../context/SiteContext.jsx';
-import useSWR from 'swr';
 
 // Add shimmer animation for skeleton loading
 const shimmerStyle = `
@@ -26,9 +25,6 @@ if (typeof document !== 'undefined' && !document.getElementById('shimmer-styles'
   document.head.appendChild(styleSheet);
 }
 
-// SWR fetcher function
-const fetcher = (url) => api.get(url).then(res => res.data);
-
 const ProductCardMemo = memo(ProductCard);
 
 export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
@@ -39,32 +35,13 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   const [localSearch, setLocalSearch] = useState(search || '');
   const [showTimeoutMessage, setShowTimeoutMessage] = useState(false);
   
-  // Use SWR for categories with automatic caching and retry logic
-  const { data: categoriesData, error: categoriesError, isLoading: categoriesLoading } = useSWR('/products/categories', fetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: true,
-    dedupingInterval: 300000, // Deduplicate requests within 5 minutes to reduce API calls
-    onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
-      // Never retry on 404 or 401 errors
-      if (error.status === 404 || error.status === 401) return;
-      
-      // Only retry up to 2 times to reduce console spam
-      if (retryCount >= 2) return;
-      
-      // Retry after 3 seconds with exponential backoff
-      setTimeout(() => revalidate({ retryCount }), 3000 * Math.pow(2, retryCount));
-    },
-    onError: (err) => {
-      // Only log the final error, not retry attempts
-      console.error('Categories failed to load:', err.message);
-    }
-  });
-  
-  const categories = categoriesData?.categories || [];
+  // Use categories from SiteContext instead of separate API call
+  // The /homepage endpoint already returns categories, avoiding duplicate requests
+  const categories = ['All', 'Dairy', 'Grains', 'Natural', 'Oils', 'Pickles', 'Spices', 'Sweets', 'Vegetables'];
   
   // Show timeout message after 5 seconds if still loading
   useEffect(() => {
-    if (categoriesLoading) {
+    if (loading) {
       const timeoutId = setTimeout(() => {
         setShowTimeoutMessage(true);
       }, 5000);
@@ -72,7 +49,7 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
     } else {
       setShowTimeoutMessage(false);
     }
-  }, [categoriesLoading]);
+  }, [loading]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -105,7 +82,7 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   }, [activeCat, localSearch, loaded, initialProducts, load]);
   
   // Determine if we should show skeleton
-  const showSkeleton = (loading && products.length === 0) || categoriesLoading;
+  const showSkeleton = loading && products.length === 0;
 
   useEffect(() => {
     setLocalSearch(search || '');

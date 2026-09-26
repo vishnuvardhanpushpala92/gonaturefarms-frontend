@@ -302,21 +302,21 @@ export default function AdminProductsTab() {
         </div>
         <form onSubmit={save}>
           <div className="frow">
-            <div className="fg"><label>Name</label><input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-            <div className="fg"><label>Category</label>
-              <select value={form.cat} onChange={(e) => setForm({ ...form, cat: e.target.value })}>
+            <div className="fg"><label htmlFor="product-name">Name</label><input id="product-name" name="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+            <div className="fg"><label htmlFor="product-category">Category</label>
+              <select id="product-category" name="cat" value={form.cat} onChange={(e) => setForm({ ...form, cat: e.target.value })}>
                 <option value="">Select category</option>
                 {categories.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           </div>
-          <div className="fg"><label>Description</label><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+          <div className="fg"><label htmlFor="product-description">Description</label><textarea id="product-description" name="description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
           <div className="frow">
-            <div className="fg"><label>Price</label><input required type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></div>
-            <div className="fg"><label>MRP</label><input type="number" step="0.01" value={form.mrp} onChange={(e) => setForm({ ...form, mrp: e.target.value })} /></div>
+            <div className="fg"><label htmlFor="product-price">Price</label><input id="product-price" name="price" required type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></div>
+            <div className="fg"><label htmlFor="product-mrp">MRP</label><input id="product-mrp" name="mrp" type="number" step="0.01" value={form.mrp} onChange={(e) => setForm({ ...form, mrp: e.target.value })} /></div>
           </div>
           <div className="frow">
-            <div className="fg"><label>GST %</label><input type="number" step="0.01" value={form.gst} onChange={(e) => setForm({ ...form, gst: e.target.value })} /></div>
+            <div className="fg"><label htmlFor="product-gst">GST %</label><input id="product-gst" name="gst" type="number" step="0.01" value={form.gst} onChange={(e) => setForm({ ...form, gst: e.target.value })} /></div>
             <div className="fg"><label>HSN Code</label><input value={form.hsn} onChange={(e) => setForm({ ...form, hsn: e.target.value })} /></div>
           </div>
           <div className="fg">

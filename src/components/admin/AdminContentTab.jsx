@@ -573,12 +573,12 @@ export default function AdminContentTab() {
         <h3>Delivery Zones</h3>
         <form onSubmit={addZone} style={{ marginTop: 10 }}>
           <div className="frow">
-            <div className="fg"><label>Pincode</label><input required value={zoneForm.pincode} onChange={(e) => setZoneForm({ ...zoneForm, pincode: e.target.value })} /></div>
-            <div className="fg"><label>Area</label><input value={zoneForm.area} onChange={(e) => setZoneForm({ ...zoneForm, area: e.target.value })} /></div>
+            <div className="fg"><label htmlFor="zone-pincode">Pincode</label><input id="zone-pincode" name="pincode" required value={zoneForm.pincode} onChange={(e) => setZoneForm({ ...zoneForm, pincode: e.target.value })} /></div>
+            <div className="fg"><label htmlFor="zone-area">Area</label><input id="zone-area" name="area" value={zoneForm.area} onChange={(e) => setZoneForm({ ...zoneForm, area: e.target.value })} /></div>
           </div>
           <div className="frow">
-            <div className="fg"><label>City</label><input value={zoneForm.city} onChange={(e) => setZoneForm({ ...zoneForm, city: e.target.value })} /></div>
-            <div className="fg"><label>Delivery Charge</label><input type="number" value={zoneForm.charge} onChange={(e) => setZoneForm({ ...zoneForm, charge: e.target.value })} /></div>
+            <div className="fg"><label htmlFor="zone-city">City</label><input id="zone-city" name="city" value={zoneForm.city} onChange={(e) => setZoneForm({ ...zoneForm, city: e.target.value })} /></div>
+            <div className="fg"><label htmlFor="zone-charge">Delivery Charge</label><input id="zone-charge" name="charge" type="number" value={zoneForm.charge} onChange={(e) => setZoneForm({ ...zoneForm, charge: e.target.value })} /></div>
           </div>
           <button className="btn btn-primary">Save Zone</button>
         </form>
