@@ -84,6 +84,14 @@ export function AuthProvider({ children }) {
   const register = useCallback(async (payload, config = {}) => {
     // Remove confirmPassword from payload as backend doesn't expect it
     const { confirmPassword, ...registerPayload } = payload;
+    
+    // Debug: Log the payload being sent
+    console.log('=== REGISTER DEBUG ===');
+    console.log('Payload being sent:', JSON.stringify(registerPayload, null, 2));
+    console.log('Phone number being sent:', registerPayload.phone);
+    console.log('Phone number length:', registerPayload.phone?.length);
+    console.log('=====================');
+    
     const { data } = await api.post('/auth/register', registerPayload, { timeout: 60000, ...config });
     // DO NOT auto-login after registration - let user login explicitly
     // if (data.success) {

@@ -78,9 +78,12 @@ export default function RegisterPage() {
 
     // Validate phone number
     if (!/^[0-9]{10}$/.test(form.phone)) {
-      showToast('Mobile Number incorrect');
+      showToast('Mobile Number must be exactly 10 digits');
       return;
     }
+
+    // Log the phone number being sent for debugging
+    console.log('Registering with phone number:', form.phone);
 
     // Validate email
     if (form.email && !/^[A-Za-z0-9+_.-]+@(.+)$/.test(form.email)) {
@@ -188,12 +191,18 @@ export default function RegisterPage() {
                 <label htmlFor="phone">Phone Number</label>
                 <input
                   id="phone"
+                  name="phone"
                   type="tel"
                   value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  onChange={(e) => {
+                    // Remove any non-digit characters and limit to 10 digits
+                    const cleanedPhone = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setForm({ ...form, phone: cleanedPhone });
+                  }}
                   required
                   placeholder="Enter 10-digit phone number"
                   pattern="[0-9]{10}"
+                  maxLength="10"
                 />
               </div>
 
