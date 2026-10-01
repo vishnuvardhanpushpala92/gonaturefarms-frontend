@@ -53,13 +53,15 @@ export const stopKeepAlive = () => {
 
 // Start wake-up and keep-alive when page loads
 if (typeof window !== 'undefined') {
-  // Immediate wake-up call
-  wakeUpBackend();
+  // Don't block initial load with wake-up - make it fire-and-forget
+  wakeUpBackend().catch(err => {
+    console.warn('Backend wake-up failed (non-blocking):', err.message);
+  });
   
   // Start keep-alive after a short delay
   setTimeout(() => {
     startKeepAlive();
-  }, 1000);
+  }, 2000);
   
   // Stop when page unloads
   window.addEventListener('beforeunload', stopKeepAlive);

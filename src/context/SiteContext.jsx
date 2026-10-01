@@ -232,6 +232,7 @@ export function SiteProvider({ children }) {
     // Fire-and-forget - don't await to avoid blocking initial render
     loadAll().catch(err => {
       console.error('Homepage data load failed:', err);
+      // Don't set error state - let the page render with cached/skeleton data
     });
   }, []);
 
