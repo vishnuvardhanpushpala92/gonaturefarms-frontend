@@ -82,7 +82,8 @@ export default function AdminVideosTab() {
       const formData = new FormData();
       if (form.title) formData.append('title', form.title);
       if (file) formData.append('file', file);
-      if (form.productId) formData.append('productId', form.productId);
+      // Always send productId (even if empty) to allow removing product association
+      formData.append('productId', form.productId || '');
       if (form.posterUrl) formData.append('posterUrl', form.posterUrl);
       formData.append('enabled', form.enabled);
       if (form.sortOrder !== '' && form.sortOrder !== null) formData.append('sortOrder', form.sortOrder);

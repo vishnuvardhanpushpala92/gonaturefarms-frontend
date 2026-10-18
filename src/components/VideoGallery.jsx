@@ -189,7 +189,7 @@ export default function VideoGallery({ onOpenCart }) {
   const handleProductClick = (e, product) => {
     e.stopPropagation();
     if (!product) return;
-    // For now, just add to cart. In future, could open product detail modal
+    // Add to cart and open cart drawer
     handleAddToCart(e, product);
   };
 
