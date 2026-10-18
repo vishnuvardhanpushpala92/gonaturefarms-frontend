@@ -7,22 +7,33 @@ if (typeof window !== 'undefined') {
   console.log('Frontend using API URL:', API_BASE);
 }
 
-// Wake-up mechanism to prevent cold starts
+// Wake-up mechanism with improved retry logic
 let wakeUpPromise = null;
+const WAKEUP_MAX_RETRIES = 3;
+const WAKEUP_TIMEOUT = 10000; // 10 seconds to accommodate cold starts
 
 export const wakeUpBackend = async () => {
   if (wakeUpPromise) return wakeUpPromise; // Already in progress
   
   wakeUpPromise = (async () => {
-    try {
-      await axios.get(`${API_BASE}/api/health`, { timeout: 5000 });
-      return true;
-    } catch (error) {
-      console.error('Backend wake-up failed:', error.message);
-      return false;
-    } finally {
-      wakeUpPromise = null;
+    for (let attempt = 1; attempt <= WAKEUP_MAX_RETRIES; attempt++) {
+      try {
+        await axios.get(`${API_BASE}/api/health`, { 
+          timeout: WAKEUP_TIMEOUT,
+          silent: true // Prevent excessive logging
+        });
+        return true;
+      } catch (error) {
+        if (attempt === WAKEUP_MAX_RETRIES) {
+          console.warn('Backend wake-up failed after retries:', error.message);
+          return false;
+        }
+        // Exponential backoff: 2s, 4s, 8s
+        const delay = 2000 * Math.pow(2, attempt - 1);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
+    return false;
   })();
   
   return wakeUpPromise;
@@ -34,14 +45,17 @@ let keepAliveInterval = null;
 export const startKeepAlive = () => {
   if (keepAliveInterval) return; // Already running
   
-  // Ping the server every 4 minutes to keep it warm
+  // Ping the server every 5 minutes to keep it warm
   keepAliveInterval = setInterval(async () => {
     try {
-      await axios.get(`${API_BASE}/api/health`, { timeout: 5000 });
+      await axios.get(`${API_BASE}/api/health`, { 
+        timeout: 8000,
+        silent: true
+      });
     } catch (error) {
       // Silent fail - server may be sleeping
     }
-  }, 4 * 60 * 1000); // 4 minutes
+  }, 5 * 60 * 1000); // 5 minutes
 };
 
 export const stopKeepAlive = () => {
@@ -61,7 +75,7 @@ if (typeof window !== 'undefined') {
   // Start keep-alive after a short delay
   setTimeout(() => {
     startKeepAlive();
-  }, 2000);
+  }, 3000);
   
   // Stop when page unloads
   window.addEventListener('beforeunload', stopKeepAlive);
@@ -109,7 +123,7 @@ const isPublicEndpoint = (url) => {
 
 export const api = axios.create({
   baseURL: API_BASE ? `${API_BASE}/api` : '/api',
-  timeout: 45000 // Increased to 45 seconds to handle severe cold starts or network issues
+  timeout: 20000 // 20 seconds - reasonable timeout for most requests
 });
 
 // Dedicated API instance for file uploads with longer timeout
@@ -256,7 +270,26 @@ api.interceptors.response.use(
     }
     return response;
   },
-  (error) => {
+  async (error) => {
+    const config = error.config;
+    
+    // Retry logic for transient network errors
+    if (!config && error.request) {
+      // Network error - retry with exponential backoff
+      const retryCount = config?.__retryCount || 0;
+      const maxRetries = 2;
+      
+      if (retryCount < maxRetries) {
+        config.__retryCount = retryCount + 1;
+        const delay = 1000 * Math.pow(2, retryCount); // 1s, 2s, 4s
+        
+        console.log(`Retrying request after ${delay}ms (attempt ${retryCount + 1}/${maxRetries}):`, config.url);
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return api(config);
+      }
+    }
+    
     if (error.response && error.response.status === 401) {
       // Check if this is a public endpoint - if so, don't clear tokens or redirect
       if (isPublicEndpoint(error.config?.url)) {
@@ -283,15 +316,17 @@ api.interceptors.response.use(
     
     // Enhanced error logging for debugging
     if (error.response) {
-      console.error('=== API ERROR DETAILS ===');
-      console.error('Status:', error.response.status);
-      console.error('Status Text:', error.response.statusText);
-      console.error('Response Data:', JSON.stringify(error.response.data, null, 2));
-      console.error('URL:', error.config?.url);
-      console.error('Full URL:', error.config?.baseURL + error.config?.url);
-      console.error('Method:', error.config?.method);
-      console.error('Headers:', JSON.stringify(error.config?.headers, null, 2));
-      console.error('==========================');
+      if (!error.config?.silent) {
+        console.error('=== API ERROR DETAILS ===');
+        console.error('Status:', error.response.status);
+        console.error('Status Text:', error.response.statusText);
+        console.error('Response Data:', JSON.stringify(error.response.data, null, 2));
+        console.error('URL:', error.config?.url);
+        console.error('Full URL:', error.config?.baseURL + error.config?.url);
+        console.error('Method:', error.config?.method);
+        console.error('Headers:', JSON.stringify(error.config?.headers, null, 2));
+        console.error('==========================');
+      }
       
       // Transform error data if needed
       if (!error.config?.skipTransform && error.response.data && !(error.response.data instanceof Blob) && !(error.response.data instanceof ArrayBuffer)) {
@@ -352,17 +387,21 @@ api.interceptors.response.use(
         error.userMessage = `Request failed with status ${error.response.status}`;
       }
     } else if (error.request) {
-      console.error('=== NETWORK ERROR ===');
-      console.error('Message:', error.message);
-      console.error('URL:', error.config?.url);
-      console.error('Method:', error.config?.method);
-      console.error('===================');
+      if (!error.config?.silent) {
+        console.error('=== NETWORK ERROR ===');
+        console.error('Message:', error.message);
+        console.error('URL:', error.config?.url);
+        console.error('Method:', error.config?.method);
+        console.error('===================');
+      }
       error.userMessage = 'Network error. Please check your connection and try again.';
     } else {
-      console.error('=== REQUEST ERROR ===');
-      console.error('Message:', error.message);
-      console.error('Config:', JSON.stringify(error.config, null, 2));
-      console.error('===================');
+      if (!error.config?.silent) {
+        console.error('=== REQUEST ERROR ===');
+        console.error('Message:', error.message);
+        console.error('Config:', JSON.stringify(error.config, null, 2));
+        console.error('===================');
+      }
       error.userMessage = 'Request failed. Please try again.';
     }
     
