@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { useSite } from '../context/SiteContext.jsx';
 import { getVideoThumbnailUrl, getOptimizedProductImageUrl, getImageDimensions } from '../utils/imageOptimizer.js';
+import VideoPlayerModal from './VideoPlayerModal.jsx';
 
 // Add shimmer animation for skeleton loading
 const shimmerStyle = `
@@ -53,6 +54,7 @@ export default function VideoGallery({ onOpenCart }) {
   const videoRefs = useRef({});
   const [playingVideoId, setPlayingVideoId] = useState(null);
   const [showTimeoutMessage, setShowTimeoutMessage] = useState(false);
+  const [fullscreenVideo, setFullscreenVideo] = useState(null);
   const { isAuthenticated } = useAuth();
   const { addItem } = useCart();
   const showToast = useToast();
@@ -82,26 +84,8 @@ export default function VideoGallery({ onOpenCart }) {
   const handleVideoClick = (e, video) => {
     e.stopPropagation();
     
-    const videoElement = videoRefs.current[video.id];
-    if (!videoElement) return;
-    
-    // If clicking the same video that's playing, pause it
-    if (playingVideoId === video.id) {
-      videoElement.pause();
-      setPlayingVideoId(null);
-      return;
-    }
-    
-    // Pause any currently playing video
-    if (playingVideoId && videoRefs.current[playingVideoId]) {
-      videoRefs.current[playingVideoId].pause();
-    }
-    
-    // Play the clicked video
-    videoElement.play().catch(err => {
-      console.error('Video play error:', err);
-    });
-    setPlayingVideoId(video.id);
+    // Open full-screen player
+    setFullscreenVideo(video);
   };
 
   // Handle video play state
@@ -316,7 +300,6 @@ export default function VideoGallery({ onOpenCart }) {
             const posterUrl = getPosterUrl(video);
             const posterState = posterStates[video.id];
             const showPlaceholder = !posterUrl || posterState === 'error';
-            const isPlaying = playingVideoId === video.id;
 
             return (
               <div key={video.id} className="video-card">
@@ -355,40 +338,35 @@ export default function VideoGallery({ onOpenCart }) {
                           cursor: 'pointer',
                           aspectRatio: getImageDimensions('9/16', 280)
                         }}
-                        onPlay={() => handleVideoPlay(video.id)}
-                        onPause={() => handleVideoPause(video.id)}
-                        onClick={(e) => handleVideoClick(e, video)}
                       />
                       
-                      {/* Play/Pause overlay */}
-                      {!isPlaying && (
-                        <div 
-                          style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: '60px',
-                            height: '60px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            transition: 'transform 0.2s',
-                            zIndex: 10
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.1)'}
-                          onMouseLeave={(e) => e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)'}
-                        >
-                          <span style={{ 
-                            fontSize: '24px', 
-                            color: '#333',
-                            marginLeft: '4px'
-                          }}>▶</span>
-                        </div>
-                      )}
+                      {/* Play overlay */}
+                      <div 
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          width: '60px',
+                          height: '60px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          transition: 'transform 0.2s',
+                          zIndex: 10
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)'}
+                      >
+                        <span style={{ 
+                          fontSize: '24px', 
+                          color: '#333',
+                          marginLeft: '4px'
+                        }}>▶</span>
+                      </div>
                     </>
                   )}
                   
@@ -490,6 +468,15 @@ export default function VideoGallery({ onOpenCart }) {
           ›
         </button>
       </div>
+
+      {/* Full-screen Video Player Modal */}
+      {fullscreenVideo && (
+        <VideoPlayerModal
+          video={fullscreenVideo}
+          onClose={() => setFullscreenVideo(null)}
+          onOpenCart={onOpenCart}
+        />
+      )}
     </section>
   );
 }

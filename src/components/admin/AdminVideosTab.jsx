@@ -8,6 +8,8 @@ export default function AdminVideosTab() {
   const showToast = useToast();
   const [videos, setVideos] = useState([]);
   const [products, setProducts] = useState([]);
+  const [productSearch, setProductSearch] = useState('');
+  const [showProductDropdown, setShowProductDropdown] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY);
   const [file, setFile] = useState(null);
@@ -41,20 +43,24 @@ export default function AdminVideosTab() {
 
   const startEdit = (video) => {
     setEditing(video.id);
+    const productId = video.productId || video.product_id || '';
+    const product = products.find(p => p.id === productId);
     setForm({
       title: video.title || '',
-      productId: video.productId || video.product_id || '',
+      productId: productId,
       posterUrl: video.posterUrl || video.poster_url || '',
       enabled: video.enabled,
       sortOrder: video.sortOrder !== null && video.sortOrder !== undefined ? video.sortOrder : (video.sort_order !== null && video.sort_order !== undefined ? video.sort_order : ''),
       orientation: video.orientation
     });
+    setProductSearch(product ? product.name : '');
     setFile(null);
   };
 
   const resetForm = () => {
     setEditing(null);
     setForm(EMPTY);
+    setProductSearch('');
     setFile(null);
   };
 
@@ -171,17 +177,75 @@ export default function AdminVideosTab() {
           {editing && !file && <small>Current video will be kept if no new file is selected</small>}
         </div>
 
-        <div className="fg">
+        <div className="fg" style={{ position: 'relative' }}>
           <label>Link to Product (Optional)</label>
-          <select
-            value={form.productId}
-            onChange={(e) => setForm({ ...form, productId: e.target.value })}
-          >
-            <option value="">No Product</option>
-            {products.map(p => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
+          <input
+            type="text"
+            value={productSearch}
+            onChange={(e) => {
+              setProductSearch(e.target.value);
+              setShowProductDropdown(true);
+            }}
+            onFocus={() => setShowProductDropdown(true)}
+            placeholder="Search products..."
+            onBlur={() => setTimeout(() => setShowProductDropdown(false), 200)}
+          />
+          {showProductDropdown && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              maxHeight: '200px',
+              overflowY: 'auto',
+              backgroundColor: '#fff',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              marginTop: '4px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              zIndex: 1000,
+            }}>
+              <div
+                style={{
+                  padding: '8px 12px',
+                  cursor: 'pointer',
+                  borderBottom: '1px solid #f3f4f6',
+                  backgroundColor: !form.productId ? '#f9fafb' : '#fff',
+                }}
+                onClick={() => {
+                  setForm({ ...form, productId: '' });
+                  setProductSearch('');
+                  setShowProductDropdown(false);
+                }}
+              >
+                No Product
+              </div>
+              {products
+                .filter(p => 
+                  p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+                  (p.category && p.category.toLowerCase().includes(productSearch.toLowerCase()))
+                )
+                .map(p => (
+                  <div
+                    key={p.id}
+                    style={{
+                      padding: '8px 12px',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid #f3f4f6',
+                      backgroundColor: form.productId === p.id ? '#f0fdf4' : '#fff',
+                    }}
+                    onClick={() => {
+                      setForm({ ...form, productId: p.id });
+                      setProductSearch(p.name);
+                      setShowProductDropdown(false);
+                    }}
+                  >
+                    <div style={{ fontWeight: '600', fontSize: '14px' }}>{p.name}</div>
+                    <div style={{ fontSize: '12px', color: '#6b7280' }}>₹{p.price}</div>
+                  </div>
+                ))}
+            </div>
+          )}
         </div>
 
         <div className="fg">
