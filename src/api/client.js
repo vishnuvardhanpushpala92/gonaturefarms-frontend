@@ -10,7 +10,7 @@ if (typeof window !== 'undefined') {
 // Wake-up mechanism with improved retry logic
 let wakeUpPromise = null;
 const WAKEUP_MAX_RETRIES = 3;
-const WAKEUP_TIMEOUT = 10000; // 10 seconds to accommodate cold starts
+const WAKEUP_TIMEOUT = 60000; // 60 seconds to accommodate Render cold starts
 
 export const wakeUpBackend = async () => {
   if (wakeUpPromise) return wakeUpPromise; // Already in progress
@@ -123,7 +123,7 @@ const isPublicEndpoint = (url) => {
 
 export const api = axios.create({
   baseURL: API_BASE ? `${API_BASE}/api` : '/api',
-  timeout: 20000 // 20 seconds - reasonable timeout for most requests
+  timeout: 60000 // 60 seconds - accommodate Render cold starts
 });
 
 // Dedicated API instance for file uploads with longer timeout
