@@ -48,6 +48,7 @@ export default function AdminPage() {
   const [tab, setTab] = useState('analytics');
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [previewTimestamp, setPreviewTimestamp] = useState(Date.now());
 
   // ✅ FIX: Force re-render when admin logs out
   useEffect(() => {
@@ -123,7 +124,7 @@ export default function AdminPage() {
         <h2>Admin Dashboard</h2>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <span style={{ alignSelf: 'center', fontSize: '.82rem', color: 'var(--muted)' }}>Hi, {user?.name}</span>
-          <button className="btn btn-secondary" onClick={() => navigate('/')}>View Store</button>
+          <button className="btn btn-secondary" onClick={() => window.open('/', '_blank')}>View Store</button>
           <button className="btn btn-danger" onClick={logout}>Logout</button>
         </div>
       </div>

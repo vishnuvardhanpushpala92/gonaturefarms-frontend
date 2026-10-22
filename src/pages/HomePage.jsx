@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import HeroSlider from '../components/HeroSlider.jsx';
 import PromoStrip from '../components/PromoStrip.jsx';
 import ProductGrid from '../components/ProductGrid.jsx';
@@ -34,10 +35,11 @@ if (typeof document !== 'undefined' && !document.getElementById('timeout-animati
 }
 
 export default function HomePage({ onOpenCart, search }) {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isAdmin } = useAuth();
   const showToast = useToast();
   const { setItemAddedCallback } = useCart();
   const { showTimeoutMessage, backendDown } = useSite();
+  const navigate = useNavigate();
 
   // Set up cart callback to automatically open drawer when item is added
   useEffect(() => {
@@ -61,6 +63,35 @@ export default function HomePage({ onOpenCart, search }) {
   return (
     <>
       <FlowerBlast />
+      
+      {/* Admin Back Button - Only visible to authenticated admins */}
+      {isAdmin && (
+        <button
+          onClick={() => navigate('/admin')}
+          style={{
+            position: 'fixed',
+            top: '80px',
+            right: '20px',
+            zIndex: 9999,
+            backgroundColor: '#28a745',
+            color: 'white',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '14px'
+          }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = '#218838'}
+          onMouseLeave={(e) => e.target.style.backgroundColor = '#28a745'}
+        >
+          ← Back to Admin
+        </button>
+      )}
       
       {/* Global timeout message for slow backend */}
       {showTimeoutMessage && (
