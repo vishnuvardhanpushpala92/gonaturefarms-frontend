@@ -27,11 +27,12 @@ export default function ForgotPasswordPage() {
         setStep(2);
         showToast('Account found. Please answer your security question.');
       } else {
-        showToast(data.message || 'Account not found');
+        // Generic message to prevent account enumeration
+        showToast(data.message || 'If an account exists, you will receive instructions to reset your password.');
       }
     } catch (err) {
       // Backend already returns field-specific errors - pass them through
-      const errorMessage = err?.response?.data?.message || 'Mobile Number or Email incorrect';
+      const errorMessage = err?.response?.data?.message || 'If an account exists, you will receive instructions to reset your password.';
       showToast(errorMessage);
     } finally {
       setLoading(false);
@@ -46,8 +47,25 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    if (form.newPassword.length < 6) {
-      showToast('Password must be at least 6 characters');
+    // Validate password with same rules as registration
+    if (form.newPassword.length < 8) {
+      showToast('Password must be at least 8 characters');
+      return;
+    }
+    if (!/[A-Z]/.test(form.newPassword)) {
+      showToast('Password must contain at least one uppercase letter');
+      return;
+    }
+    if (!/[a-z]/.test(form.newPassword)) {
+      showToast('Password must contain at least one lowercase letter');
+      return;
+    }
+    if (!/[0-9]/.test(form.newPassword)) {
+      showToast('Password must contain at least one number');
+      return;
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(form.newPassword)) {
+      showToast('Password must contain at least one special character');
       return;
     }
 
@@ -164,8 +182,8 @@ export default function ForgotPasswordPage() {
                     value={form.newPassword}
                     onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
                     required
-                    placeholder="Enter new password (min 6 characters)"
-                    minLength={6}
+                    placeholder="Enter new password (min 8 chars, uppercase, lowercase, number, special char)"
+                    minLength={8}
                   />
                 </div>
 

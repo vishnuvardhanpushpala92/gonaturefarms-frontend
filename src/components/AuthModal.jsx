@@ -397,7 +397,7 @@ export default function AuthModal({ open, onClose }) {
           // Specific field duplication
           const fieldErrors = {};
           if (data.field === 'phone') {
-            fieldErrors.phone = 'Phone number already exists.';
+            fieldErrors.phone = 'This phone number is already registered. Please log in or click Forgot Password.';
           } else if (data.field === 'address') {
             fieldErrors.addressLine = 'This address already exists.';
           } else if (data.field === 'pincode') {
@@ -413,7 +413,7 @@ export default function AuthModal({ open, onClose }) {
         } else if (data?.error === 'DUPLICATE_FIELD') {
           setAddressFormErrors({ addressLine: data.message || 'This field already exists.' });
         } else {
-          setAddressFormErrors({ addressLine: data.message || 'This address already exists.' });
+          setAddressFormErrors({ addressLine: data.message || 'This field already exists.' });
         }
       } else if (err.response?.status === 400) {
         // Validation error
@@ -551,7 +551,7 @@ export default function AuthModal({ open, onClose }) {
           // Specific field duplication
           const fieldErrors = {};
           if (data.field === 'phone') {
-            fieldErrors.phone = 'Phone number already exists.';
+            fieldErrors.phone = 'This phone number is already registered. Please log in or click Forgot Password.';
           } else if (data.field === 'address') {
             fieldErrors.addressLine = 'This address already exists.';
           } else if (data.field === 'pincode') {
