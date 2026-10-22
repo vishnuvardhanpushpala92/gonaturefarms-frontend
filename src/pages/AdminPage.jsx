@@ -40,7 +40,7 @@ const TABS = [
 ];
 
 export default function AdminPage() {
-  const { user, isAdmin, adminLogin, logout, isTimerActive, isSessionExpired } = useAuth();
+  const { user, isAdmin, adminLogin, logout, isTimerActive, isSessionExpired, isLocked, hasTimerStarted } = useAuth();
   const showToast = useToast();
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', password: '' });
@@ -99,6 +99,20 @@ export default function AdminPage() {
         <div className="admin-card">
           <h2 style={{ marginBottom: 4 }}>Admin Login</h2>
           <p style={{ color: 'var(--muted)', fontSize: '.8rem', marginBottom: 16 }}>Go Nature Farms Admin Panel</p>
+          {/* Show session expiry message if user was logged in but session expired */}
+          {(isSessionExpired || isLocked) && (
+            <div style={{
+              backgroundColor: '#fff3cd',
+              color: '#856404',
+              padding: '10px',
+              borderRadius: '4px',
+              marginBottom: '16px',
+              fontSize: '0.85rem',
+              border: '1px solid #ffeeba'
+            }}>
+              ⚠️ Your admin session has expired. Please log in again to continue.
+            </div>
+          )}
           <form onSubmit={handleLogin}>
             <div className="fg">
               <label htmlFor="admin-username">Username</label>

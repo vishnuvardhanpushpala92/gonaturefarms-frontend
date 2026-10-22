@@ -68,11 +68,25 @@ if (typeof document !== 'undefined' && !document.getElementById('timeout-animati
 }
 
 export default function HomePage({ onOpenCart, search }) {
-  const { isAuthenticated, user, isAdmin } = useAuth();
+  const { isAuthenticated, user, isAdmin, isTimerActive, isSessionExpired, isLocked } = useAuth();
   const showToast = useToast();
   const { setItemAddedCallback } = useCart();
   const { showTimeoutMessage, backendDown } = useSite();
   const navigate = useNavigate();
+
+  // Check if admin session is valid for preview navigation
+  const isPreviewModeEnabled = isAdmin && isTimerActive && !isSessionExpired && !isLocked;
+
+  const handleBackToAdmin = () => {
+    if (isPreviewModeEnabled) {
+      // Session is valid, navigate directly to admin dashboard
+      navigate('/admin');
+    } else {
+      // Session is invalid (timer stopped/expired/locked), navigate to admin login
+      // The expired session will be detected by AdminPage and show login form
+      navigate('/admin');
+    }
+  };
 
   // Set up cart callback to automatically open drawer when item is added
   useEffect(() => {
@@ -97,11 +111,12 @@ export default function HomePage({ onOpenCart, search }) {
     <>
       <FlowerBlast />
       
-      {/* Admin Back Button - Only visible to authenticated admins */}
-      {isAdmin && (
+      {/* Admin Back Button - Only visible when admin session is valid and timer is active */}
+      {isPreviewModeEnabled && (
         <button
           className="admin-back-button"
-          onClick={() => navigate('/admin')}
+          onClick={handleBackToAdmin}
+          title="Return to Admin Dashboard (Session Active)"
         >
           ← Back to Admin
         </button>
