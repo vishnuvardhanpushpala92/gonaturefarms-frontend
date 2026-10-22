@@ -14,15 +14,7 @@ export function AuthProvider({ children }) {
     const stored = safeSessionStorage.getItem('gnf_user') || safeLocalStorage.getItem('gnf_user');
     if (stored) {
       try {
-        const parsed = JSON.parse(stored);
-        if (parsed.role === 'admin') {
-          safeSessionStorage.removeItem('gnf_token');
-          safeSessionStorage.removeItem('gnf_user');
-          safeLocalStorage.removeItem('gnf_token');
-          safeLocalStorage.removeItem('gnf_user');
-          return null;
-        }
-        return parsed;
+        return JSON.parse(stored);
       } catch (e) {
         return null;
       }
@@ -32,15 +24,6 @@ export function AuthProvider({ children }) {
 
   const [token, setToken] = useState(() => {
     const stored = safeSessionStorage.getItem('gnf_token') || safeLocalStorage.getItem('gnf_token');
-    const storedUser = safeSessionStorage.getItem('gnf_user') || safeLocalStorage.getItem('gnf_user');
-    if (storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser);
-        if (parsed.role === 'admin') return null;
-      } catch (e) {
-        return null;
-      }
-    }
     return stored;
   });
 

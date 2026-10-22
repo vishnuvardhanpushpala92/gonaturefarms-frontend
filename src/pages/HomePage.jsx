@@ -24,6 +24,39 @@ const animationStyles = `
       transform: translate(-50%, 0);
     }
   }
+  
+  .admin-back-button {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 9999;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+  }
+  
+  .admin-back-button:hover {
+    background-color: #218838;
+  }
+  
+  @media (max-width: 768px) {
+    .admin-back-button {
+      top: 70px;
+      right: 10px;
+      padding: 10px 16px;
+      font-size: 12px;
+    }
+  }
 `;
 
 // Inject animation styles
@@ -67,27 +100,8 @@ export default function HomePage({ onOpenCart, search }) {
       {/* Admin Back Button - Only visible to authenticated admins */}
       {isAdmin && (
         <button
+          className="admin-back-button"
           onClick={() => navigate('/admin')}
-          style={{
-            position: 'fixed',
-            top: '80px',
-            right: '20px',
-            zIndex: 9999,
-            backgroundColor: '#28a745',
-            color: 'white',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '14px'
-          }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#218838'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#28a745'}
         >
           ← Back to Admin
         </button>
