@@ -16,12 +16,21 @@ export default function ForgotPasswordPage() {
   });
   const [securityQuestion, setSecurityQuestion] = useState('');
 
+  // Normalize phone number: remove spaces and country code
+  const normalizePhone = (phone) => {
+    if (!phone) return phone;
+    const cleaned = phone.replace(/\s/g, '').replace(/^\+91/, '');
+    return cleaned;
+  };
+
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { data } = await api.post('/auth/forgot-password/verify', { identifier: form.username });
+      // Normalize the identifier if it's a phone number
+      const normalizedIdentifier = normalizePhone(form.username);
+      const { data } = await api.post('/auth/forgot-password/verify', { identifier: normalizedIdentifier });
       if (data.success && data.securityQuestion) {
         setSecurityQuestion(data.securityQuestion);
         setStep(2);
@@ -72,8 +81,10 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
+      // Normalize the identifier if it's a phone number
+      const normalizedIdentifier = normalizePhone(form.username);
       const { data } = await api.post('/auth/reset-password/security-question', {
-        email: form.username,
+        email: normalizedIdentifier,
         answer: form.securityAnswer,
         newPassword: form.newPassword
       });

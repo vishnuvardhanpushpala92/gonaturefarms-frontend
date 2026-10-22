@@ -175,7 +175,7 @@ export function AuthProvider({ children }) {
 
       }
     }
-  }, [isAdmin]);
+  }, [isAdmin, isTimerActive]);
 
   const refreshMe = useCallback(async () => {
     if (!token) return null;
@@ -317,10 +317,18 @@ export function AuthProvider({ children }) {
       const startTime = safeLocalStorage.getItem(TIMER_START_TIME);
       const duration = safeLocalStorage.getItem(TIMER_DURATION);
 
-      // Restore hasTimerStarted state
-      if (started === 'true') {
-        setHasTimerStarted(true);
+      // Only restore timer if it was explicitly started (hasTimerStarted flag)
+      if (started !== 'true') {
+        // Timer was never started, clear any leftover data
+        safeLocalStorage.removeItem(TIMER_START_TIME);
+        safeLocalStorage.removeItem(TIMER_DURATION);
+        safeLocalStorage.removeItem(TIMER_EXPIRED);
+        safeLocalStorage.removeItem(TIMER_STARTED);
+        return;
       }
+
+      // Restore hasTimerStarted state
+      setHasTimerStarted(true);
 
       if (expired === 'true') {
         setIsSessionExpired(true);

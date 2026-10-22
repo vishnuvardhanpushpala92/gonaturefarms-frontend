@@ -202,8 +202,15 @@ export default function AuthModal({ open, onClose }) {
     
     try {
       if (isLogin) {
+        // Normalize phone number: remove spaces and country code
+        const normalizePhone = (phone) => {
+          if (!phone) return phone;
+          const cleaned = phone.replace(/\s/g, '').replace(/^\+91/, '');
+          return cleaned;
+        };
+
         try {
-          const result = await login(form.phone, form.password);
+          const result = await login(normalizePhone(form.phone), form.password);
           if (result.success) {
             const userData = result?.user || {};
             showToast(`Welcome back, ${userData.username || userData.name || 'User'}!`);
@@ -236,11 +243,18 @@ export default function AuthModal({ open, onClose }) {
           return;
         }
       } else {
+        // Normalize phone number: remove spaces and country code
+        const normalizePhone = (phone) => {
+          if (!phone) return phone;
+          const cleaned = phone.replace(/\s/g, '').replace(/^\+91/, '');
+          return cleaned;
+        };
+
         // Ensure email is not sent as phone number - validate email properly
         const registerPayload = {
           name: form.name,
           username: form.username && form.username !== form.email ? form.username : null, // Don't use email as username
-          phone: form.phone, // Only phone should be sent as identifier
+          phone: normalizePhone(form.phone), // Normalize phone before sending
           email: form.email && validateEmail(form.email) ? form.email : null, // Only send valid email
           password: form.password,
           securityQuestion: form.securityQuestion,
@@ -269,8 +283,8 @@ export default function AuthModal({ open, onClose }) {
       let errorMessage = err?.userMessage || err?.response?.data?.message || 'Error';
       
       // Provide more user-friendly error messages
-      if (errorMessage.includes('Phone number already registered')) {
-        errorMessage = 'This phone number is already registered. Please use a different phone number or login.';
+      if (errorMessage.includes('This phone number is already registered')) {
+        errorMessage = 'This phone number is already registered. Please log in or click Forgot Password.';
       } else if (errorMessage.includes('Email already registered')) {
         errorMessage = 'This email is already registered. Please use a different email or login.';
       } else if (errorMessage.includes('Phone must be exactly 10 digits')) {

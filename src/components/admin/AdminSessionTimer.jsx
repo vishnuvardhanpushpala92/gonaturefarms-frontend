@@ -5,7 +5,7 @@ import { useToast } from '../../context/ToastContext.jsx';
 import { useLocation } from 'react-router-dom';
 
 export default function AdminSessionTimer() {
-  const { logout, isAdmin, isAuthenticated, timeLeft, showWarning, isTimerActive, isSessionExpired, startAdminTimer, stopAdminTimer } = useAuth();
+  const { logout, isAdmin, isAuthenticated, timeLeft, showWarning, isTimerActive, isSessionExpired, startAdminTimer, stopAdminTimer, hasTimerStarted } = useAuth();
   const { settings, reload, updateSettings } = useSite();
   const showToast = useToast();
   const location = useLocation();
@@ -102,7 +102,8 @@ export default function AdminSessionTimer() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  if (!isAdmin || !isAuthenticated) return null;
+  // Hide timer completely by default - only show if timer has been explicitly started
+  if (!isAdmin || !isAuthenticated || !hasTimerStarted) return null;
 
   // On admin page, show full rectangular box. On other pages, show compact version.
   if (isAdminPage) {
@@ -404,26 +405,28 @@ export default function AdminSessionTimer() {
           🔒 Session Expired
         </div>
       )}
-      <button
-        onClick={() => setShowFullControls(!showFullControls)}
-        style={{
-          background: '#6c757d',
-          color: 'white',
-          border: 'none',
-          borderRadius: '50%',
-          width: '32px',
-          height: '32px',
-          cursor: 'pointer',
-          fontSize: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          userSelect: 'none'
-        }}
-      >
-        ⏱️
-      </button>
+      {isTimerActive && (
+        <button
+          onClick={() => setShowFullControls(!showFullControls)}
+          style={{
+            background: '#6c757d',
+            color: 'white',
+            border: 'none',
+            borderRadius: '50%',
+            width: '32px',
+            height: '32px',
+            cursor: 'pointer',
+            fontSize: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            userSelect: 'none'
+          }}
+        >
+          ⏱️
+        </button>
+      )}
       
       {showFullControls && (
         <div style={{

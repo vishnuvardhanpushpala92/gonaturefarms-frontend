@@ -35,7 +35,14 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await login(form.username, form.password);
+      // Normalize phone number: remove spaces and country code
+      const normalizePhone = (identifier) => {
+        if (!identifier) return identifier;
+        const cleaned = identifier.replace(/\s/g, '').replace(/^\+91/, '');
+        return cleaned;
+      };
+
+      const result = await login(normalizePhone(form.username), form.password);
       
       // Only show success and navigate if login actually succeeded
       if (result.success) {
