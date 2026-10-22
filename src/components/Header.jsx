@@ -17,14 +17,14 @@ export default function Header({ search, onSearch, onOpenCart, blinkLogin, blink
   const getImageUrl = (imgUrl) => {
     if (!imgUrl) return '';
     if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) return imgUrl;
-    if (imgUrl === '/logo.jpeg' || imgUrl === '/brand-logo.png') return imgUrl;
+    if (imgUrl === '/image.png' || imgUrl === '/logo.jpeg' || imgUrl === '/brand-logo.png') return imgUrl;
     const apiUrl = import.meta.env.VITE_API_URL || '';
     const cleanImgUrl = imgUrl.startsWith('/') ? imgUrl : `/${imgUrl}`;
     const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
     return `${cleanApiUrl}${cleanImgUrl}`;
   };
 
-  const logoUrl = settings.logo || '/logo.jpeg';
+  const logoUrl = settings.logo || '/image.png';
 
   const handleOpenAuth = () => {
     navigate('/login');
@@ -53,7 +53,15 @@ export default function Header({ search, onSearch, onOpenCart, blinkLogin, blink
   return (
     <header style={{ backgroundColor: isAdminPage ? undefined : (settings.hdr_bg || undefined), fontSize: `${headerFontSize}px` }}>
       <div className="brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', textDecoration: 'none' }}>
-        <img src={getImageUrl(logoUrl)} alt="Go Nature Farms" style={{ height: '50px', objectFit: 'contain', maxWidth: '100%' }} loading="eager" />
+        <img src={getImageUrl(logoUrl)} alt="Go Nature Farms" style={{ 
+          height: '60px', 
+          width: '60px',
+          objectFit: 'contain', 
+          borderRadius: '50%',
+          border: '2px solid #2d5a27',
+          backgroundColor: '#fff',
+          padding: '4px'
+        }} loading="eager" />
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
           <span style={{ fontSize: '1.3rem', fontWeight: '700', color: '#2d5a27', fontFamily: 'Georgia, serif' }}>Go Nature Farms</span>
           <span style={{ fontSize: '0.7rem', fontWeight: '500', color: '#4a7c4f', letterSpacing: '1px', textTransform: 'uppercase' }}>Nature is Our future & Forever</span>

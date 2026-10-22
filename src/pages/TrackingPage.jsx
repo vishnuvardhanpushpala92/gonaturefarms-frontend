@@ -137,7 +137,7 @@ export default function TrackingPage() {
     <div className="tracking-page">
       <div className="tracking-container">
         <div className="tracking-header">
-          <img src="/logo.jpeg" alt="Go Nature Farms" className="tracking-logo" />
+          <img src="/image.png" alt="Go Nature Farms" className="tracking-logo" />
           <h1>Order Tracking</h1>
           <p>Track your Go Nature Farms orders</p>
         </div>
@@ -314,7 +314,7 @@ export default function TrackingPage() {
             <div className="modal-body">
               <div className="order-bill">
                 <div className="bill-header">
-                  <img src="/logo.jpeg" alt="Go Nature Farms" className="bill-logo" />
+                  <img src="/image.png" alt="Go Nature Farms" className="bill-logo" />
                   <h3>Go Nature Farms</h3>
                   <p>Order Bill</p>
                 </div>
