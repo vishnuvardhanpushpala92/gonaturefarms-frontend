@@ -118,7 +118,7 @@ export default function RegisterPage() {
       <div className="auth-split-layout">
         {/* Left Brand Section */}
         <div className="auth-brand-section">
-          <img src="/logo.png" alt="Go Nature Farms" className="auth-brand-logo" />
+          <img src="/logo.jpeg" alt="Go Nature Farms" className="auth-brand-logo" />
           <h1 className="auth-brand-title">Join Go Nature Farms</h1>
           <p className="auth-brand-subtitle">Create your account and experience fresh, natural products from the farm.</p>
 
@@ -145,7 +145,7 @@ export default function RegisterPage() {
         <div className="auth-form-section">
           <div className="auth-form-card">
             <div className="auth-form-header">
-              <img src="/logo.png" alt="Go Nature Farms" className="auth-form-logo" />
+              <img src="/logo.jpeg" alt="Go Nature Farms" className="auth-form-logo" />
               <h2 className="auth-form-title">Create Account</h2>
               <p className="auth-form-subtitle">Join Go Nature Farms for the best natural products</p>
             </div>

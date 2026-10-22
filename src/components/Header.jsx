@@ -17,14 +17,14 @@ export default function Header({ search, onSearch, onOpenCart, blinkLogin, blink
   const getImageUrl = (imgUrl) => {
     if (!imgUrl) return '';
     if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) return imgUrl;
-    if (imgUrl === '/logo.png' || imgUrl === '/brand-logo.png') return imgUrl;
+    if (imgUrl === '/logo.jpeg' || imgUrl === '/brand-logo.png') return imgUrl;
     const apiUrl = import.meta.env.VITE_API_URL || '';
     const cleanImgUrl = imgUrl.startsWith('/') ? imgUrl : `/${imgUrl}`;
     const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
     return `${cleanApiUrl}${cleanImgUrl}`;
   };
 
-  const logoUrl = settings.logo || '/logo.png';
+  const logoUrl = settings.logo || '/logo.jpeg';
 
   const handleOpenAuth = () => {
     navigate('/login');
