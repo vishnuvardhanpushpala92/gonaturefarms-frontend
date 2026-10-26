@@ -17,14 +17,20 @@ export default function Header({ search, onSearch, onOpenCart, blinkLogin, blink
   const getImageUrl = (imgUrl) => {
     if (!imgUrl) return '';
     if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) return imgUrl;
-    if (imgUrl === '/image.png' || imgUrl === '/logo.jpeg' || imgUrl === '/brand-logo.png') return imgUrl;
+    if (imgUrl === '/image.png' || imgUrl === '/logo.jpeg' || imgUrl === '/brand-logo.png') {
+      // Add cache-busting for image.png to ensure new logo loads
+      if (imgUrl === '/image.png') {
+        return `${imgUrl}?v=20261022`;
+      }
+      return imgUrl;
+    }
     const apiUrl = import.meta.env.VITE_API_URL || '';
     const cleanImgUrl = imgUrl.startsWith('/') ? imgUrl : `/${imgUrl}`;
     const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
     return `${cleanApiUrl}${cleanImgUrl}`;
   };
 
-  const logoUrl = settings.logo || '/image.png';
+  const logoUrl = settings.logo || '/image.png?v=20261022';
 
   const handleOpenAuth = () => {
     navigate('/login');

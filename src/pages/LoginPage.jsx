@@ -66,7 +66,7 @@ export default function LoginPage() {
       <div className="auth-split-layout">
         {/* Left Brand Section */}
         <div className="auth-brand-section">
-          <img src="/image.png" alt="Go Nature Farms" className="auth-brand-logo" />
+          <img src="/image.png?v=20261022" alt="Go Nature Farms" className="auth-brand-logo" />
           <h1 className="auth-brand-title">Welcome to Go Nature Farms!</h1>
           <p className="auth-brand-subtitle">Login to continue and explore our fresh organic products.</p>
 
@@ -93,7 +93,7 @@ export default function LoginPage() {
         <div className="auth-form-section">
           <div className="auth-form-card">
             <div className="auth-form-header">
-              <img src="/image.png" alt="Go Nature Farms" className="auth-form-logo" />
+              <img src="/image.png?v=20261022" alt="Go Nature Farms" className="auth-form-logo" />
               <h2 className="auth-form-title">Login</h2>
               <p className="auth-form-subtitle">Enter your credentials to access your account</p>
             </div>
