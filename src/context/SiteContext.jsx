@@ -117,25 +117,28 @@ export function SiteProvider({ children }) {
     loadCalledRef.current = true;
     setError(null);
     setShowTimeoutMessage(false);
+    setBackendDown(false);
 
-    // Show timeout message after 5 seconds (faster feedback)
+    // Show loading message after 3 seconds (faster feedback)
     const timeoutId = setTimeout(() => {
       setShowTimeoutMessage(true);
-    }, 5000);
+    }, 3000);
 
     // Retry logic with exponential backoff
-    const maxRetries = 2; // Reduced from 3 to 2 to reduce console spam
+    const maxRetries = 3;
     let retryCount = 0;
+    let isNetworkError = false;
     
     const attemptLoad = async () => {
       try {
         // Single endpoint for all homepage data - reduces API calls from 9 to 1
-        // Uses global timeout of 30 seconds from axios config
-        const { data } = await api.get('/homepage', { skipTransform: true });
+        // Uses 30-second timeout for this specific request
+        const { data } = await api.get('/homepage', { skipTransform: true, timeout: 30000 });
 
         // Clear timeout on success
         clearTimeout(timeoutId);
         setShowTimeoutMessage(false);
+        setBackendDown(false);
 
         // Sanitize settings URLs to ensure HTTPS
         const sanitizedSettings = {};
@@ -160,7 +163,7 @@ export function SiteProvider({ children }) {
         setFooterLinks(data.footerLinks || []);
         setTestimonials(data.testimonials || []);
         setVideos(data.videos || []);
-        setProducts(data.products || []);
+        setProducts(data.products || {});
         setError(null);
 
         // Cache the data for future visits
@@ -182,28 +185,41 @@ export function SiteProvider({ children }) {
           console.warn('Failed to cache homepage data:', e);
         }
       } catch (error) {
-        // Reduced logging to prevent console flood
+        // Detect network errors vs API errors
+        isNetworkError = !error.response && error.request;
+        
+        // Log error details for debugging
         if (retryCount === 0) {
-          console.error('Failed to load homepage data:', error.message);
+          console.error('Homepage data load failed:', error.message);
+          if (isNetworkError) {
+            console.error('Type: Network error (server unreachable)');
+          } else if (error.response) {
+            console.error('Type: API error, Status:', error.response.status);
+          }
         }
         
-        // Don't retry on 404 or 401 errors
+        // Don't retry on 404 or 401 errors (these are permanent failures)
         if (error.response?.status === 404 || error.response?.status === 401) {
           clearTimeout(timeoutId);
           setError(error.message || 'Failed to load data. Please check your connection.');
+          setBackendDown(true);
           return;
         }
         
         // Retry with exponential backoff
         if (retryCount < maxRetries) {
           retryCount++;
-          const delay = 3000 * Math.pow(2, retryCount - 1); // 3s, 6s
+          const delay = 2000 * Math.pow(2, retryCount - 1); // 2s, 4s, 8s
+          console.log(`Retrying homepage load (attempt ${retryCount}/${maxRetries}) in ${delay}ms...`);
           await new Promise(resolve => setTimeout(resolve, delay));
           return attemptLoad();
         } else {
           // Max retries reached - mark backend as down
           clearTimeout(timeoutId);
-          setError(error.message || 'Failed to load data. Please check your connection.');
+          const errorMessage = isNetworkError 
+            ? 'Server is temporarily unavailable. Please check your connection or try again later.'
+            : 'Unable to load content. Please refresh the page or try again later.';
+          setError(errorMessage);
           setBackendDown(true);
         }
       }

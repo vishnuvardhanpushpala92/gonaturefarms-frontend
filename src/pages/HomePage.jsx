@@ -141,8 +141,8 @@ export default function HomePage({ onOpenCart, search }) {
           animation: 'fadeInDown 0.3s ease-out'
         }}>
           {backendDown 
-            ? 'Server is temporarily unavailable. Please try again later or refresh the page.'
-            : 'Loading content... Server is taking longer than expected (this is normal on free hosting)'}
+            ? 'Server is temporarily unavailable. Please check your connection or try again later.'
+            : 'Loading content...'}
         </div>
       )}
       
