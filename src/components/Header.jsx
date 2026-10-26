@@ -53,8 +53,18 @@ export default function Header({ search, onSearch, onOpenCart, blinkLogin, blink
   return (
     <header style={{ backgroundColor: isAdminPage ? undefined : (settings.hdr_bg || undefined), fontSize: `${headerFontSize}px` }}>
       <div className="brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', textDecoration: 'none' }}>
-        <div className="brand-logo-container">
-          <img src={getImageUrl(logoUrl)} alt="Go Nature Farms" className="brand-logo-img" loading="eager" />
+        <div className="brand-logo-wrapper">
+          <div className="brand-logo-orbit">
+            <div className="orbit-leaf leaf-1"></div>
+            <div className="orbit-leaf leaf-2"></div>
+            <div className="orbit-leaf leaf-3"></div>
+            <div className="orbit-leaf leaf-4"></div>
+            <div className="orbit-leaf leaf-5"></div>
+            <div className="orbit-leaf leaf-6"></div>
+          </div>
+          <div className="brand-logo-container">
+            <img src={getImageUrl(logoUrl)} alt="Go Nature Farms" className="brand-logo-img" loading="eager" />
+          </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
           <span style={{ fontSize: '1.3rem', fontWeight: '700', color: '#2d5a27', fontFamily: 'Georgia, serif' }}>Go Nature Farms</span>
