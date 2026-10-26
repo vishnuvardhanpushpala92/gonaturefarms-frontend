@@ -30,7 +30,8 @@ export default function Header({ search, onSearch, onOpenCart, blinkLogin, blink
     return `${cleanApiUrl}${cleanImgUrl}`;
   };
 
-  const logoUrl = settings.logo || '/image.png?v=20261022';
+  // Always use the local image.png for the header logo to ensure it works
+  const logoUrl = '/image.png?v=20261022';
 
   const handleOpenAuth = () => {
     navigate('/login');
