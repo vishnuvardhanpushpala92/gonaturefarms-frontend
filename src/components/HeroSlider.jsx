@@ -73,6 +73,7 @@ export default function HeroSlider() {
                 style={{ aspectRatio: getImageDimensions('16/9', 1920) }}
                 width="1920"
                 height="1080"
+                objectFit="contain"
               />
             </picture>
             <div className="slide-mask" />

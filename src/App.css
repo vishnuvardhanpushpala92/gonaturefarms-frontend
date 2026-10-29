@@ -963,12 +963,12 @@ header{background:var(--hdr-bg);padding:0 5%;position:fixed;top:0;left:0;right:0
 }
 
 /* ── HERO SLIDER ────────────────────────────────────────────── */
-/* Active slide in document flow so container height adapts to image */
-.slider-wrap{position:relative;width:100%;max-width:none;overflow:hidden;background:transparent;max-height:450px;}
+/* Let image determine height naturally to show full content without cropping */
+.slider-wrap{position:relative;width:100%;max-width:none;overflow:hidden;background:#f5f5f0;}
 .slide{position:absolute;inset:0;opacity:0;transition:opacity 0.8s ease-in-out;pointer-events:none;overflow:hidden;}
 .slide.active{position:relative;opacity:1;pointer-events:auto;overflow:visible;}
 .hero-picture{display:block;width:100%;height:auto;}
-.slide-image{display:block;width:100%;height:auto;object-fit:cover;object-position:center top;}
+.slide-image{display:block;width:100%;height:auto;object-fit:contain;object-position:center;}
 .slide-mask{position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,.55) 0%,rgba(0,0,0,.15) 60%,transparent 100%);pointer-events:none;}
 .slide-content{position:absolute;bottom:18%;left:8%;color:#fff;max-width:580px;pointer-events:none;z-index:2;}
 .slide-content h2{font-family:'Playfair Display',serif;font-size:clamp(1.5rem, 4vw, 2.8rem);line-height:1.2;margin-bottom:10px;text-shadow:0 2px 8px rgba(0,0,0,.3);}
@@ -985,7 +985,6 @@ header{background:var(--hdr-bg);padding:0 5%;position:fixed;top:0;left:0;right:0
 .slider-arrow:focus{outline:2px solid #2d5a27;outline-offset:2px;}
 
 @media(max-width:767px){
-  .slider-wrap{max-height:250px;}
   .slider-arrow{width:40px;height:40px;}
   .slider-arrow-left{left:12px;}
   .slider-arrow-right{right:12px;}
@@ -996,7 +995,6 @@ header{background:var(--hdr-bg);padding:0 5%;position:fixed;top:0;left:0;right:0
 }
 
 @media(min-width:768px) and (max-width:1023px){
-  .slider-wrap{max-height:320px;}
   .slide-content{bottom:15%;left:6%;max-width:75%;}
   .slider-arrow{width:44px;height:44px;}
   .slider-arrow-left{left:20px;}
@@ -1006,12 +1004,10 @@ header{background:var(--hdr-bg);padding:0 5%;position:fixed;top:0;left:0;right:0
 }
 
 @media(min-width:1024px) and (max-width:1439px){
-  .slider-wrap{max-height:380px;}
   .slide-content{bottom:16%;left:7%;max-width:580px;}
 }
 
 @media(min-width:1440px){
-  .slider-wrap{max-height:450px;}
   .slide-content{bottom:18%;left:8%;max-width:620px;}
 }
 
