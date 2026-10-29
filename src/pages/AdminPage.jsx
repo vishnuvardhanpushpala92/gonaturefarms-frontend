@@ -17,6 +17,8 @@ import AdminTestimonialsTab from '../components/admin/AdminTestimonialsTab.jsx';
 import AdminWhatsAppTab from '../components/admin/AdminWhatsAppTab.jsx';
 import AdminDataDeletionTab from '../components/admin/AdminDataDeletionTab.jsx';
 import AdminReturnsTab from '../components/admin/AdminReturnsTab.jsx';
+import AdminHomepageEditorTab from '../components/admin/AdminHomepageEditorTab.jsx';
+import AdminSessionTimer from '../components/admin/AdminSessionTimer.jsx';
 import FloatingCart from '../components/FloatingCart.jsx';
 import CartDrawer from '../components/CartDrawer.jsx';
 import CheckoutModal from '../components/CheckoutModalNew.jsx';
@@ -30,6 +32,7 @@ const TABS = [
   { key: 'testimonials', label: 'Testimonials' },
   { key: 'footer', label: 'Footer' },
   { key: 'data-deletion', label: 'Data Deletion' },
+  { key: 'homepage-editor', label: 'Homepage Editor' },
   { key: 'products', label: 'Products' },
   { key: 'returns', label: 'Returns' },
   { key: 'reviews', label: 'Reviews' },
@@ -151,6 +154,8 @@ export default function AdminPage() {
         ))}
       </div>
 
+      <AdminSessionTimer />
+
       {tab === 'analytics' && <AdminAnalyticsTab />}
       {tab === 'products' && <AdminProductsTab />}
       {tab === 'orders' && <AdminOrdersTab />}
@@ -164,6 +169,7 @@ export default function AdminPage() {
       {tab === 'testimonials' && <AdminTestimonialsTab />}
       {tab === 'whatsapp' && <AdminWhatsAppTab />}
       {tab === 'footer' && <AdminFooterTab />}
+      {tab === 'homepage-editor' && <AdminHomepageEditorTab />}
       {tab === 'settings' && <AdminSettingsTab />}
       {tab === 'data-deletion' && <AdminDataDeletionTab />}
 
