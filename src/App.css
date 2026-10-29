@@ -964,7 +964,7 @@ header{background:var(--hdr-bg);padding:0 5%;position:fixed;top:0;left:0;right:0
 
 /* ── HERO SLIDER ────────────────────────────────────────────── */
 /* Active slide in document flow so container height adapts to image */
-.slider-wrap{position:relative;width:100%;max-width:none;overflow:hidden;background:transparent;}
+.slider-wrap{position:relative;width:100%;max-width:none;overflow:hidden;background:transparent;max-height:560px;}
 .slide{position:absolute;inset:0;opacity:0;transition:opacity 0.8s ease-in-out;pointer-events:none;overflow:hidden;}
 .slide.active{position:relative;opacity:1;pointer-events:auto;overflow:visible;}
 .hero-picture{display:block;width:100%;height:auto;}
@@ -985,6 +985,7 @@ header{background:var(--hdr-bg);padding:0 5%;position:fixed;top:0;left:0;right:0
 .slider-arrow:focus{outline:2px solid #2d5a27;outline-offset:2px;}
 
 @media(max-width:767px){
+  .slider-wrap{max-height:320px;}
   .slider-arrow{width:40px;height:40px;}
   .slider-arrow-left{left:12px;}
   .slider-arrow-right{right:12px;}
@@ -992,6 +993,11 @@ header{background:var(--hdr-bg);padding:0 5%;position:fixed;top:0;left:0;right:0
   .slide-content h2{font-size:1.3rem;}
   .slide-content p{font-size:0.85rem;}
   .slider-nav{bottom:20px;gap:6px;}
+}
+
+@media(min-width:768px) and (max-width:1023px){
+  .slider-wrap{max-height:420px;}
+}
   .snav{width:8px;height:8px;}
   .snav.active{width:24px;}
 }
