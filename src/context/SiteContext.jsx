@@ -119,21 +119,21 @@ export function SiteProvider({ children }) {
     setShowTimeoutMessage(false);
     setBackendDown(false);
 
-    // Show loading message after 3 seconds (faster feedback)
+    // Show loading message after 5 seconds (reasonable timeout for Render cold starts)
     const timeoutId = setTimeout(() => {
       setShowTimeoutMessage(true);
-    }, 3000);
+    }, 5000);
 
     // Retry logic with exponential backoff
-    const maxRetries = 3;
+    const maxRetries = 2;
     let retryCount = 0;
     let isNetworkError = false;
     
     const attemptLoad = async () => {
       try {
         // Single endpoint for all homepage data - reduces API calls from 9 to 1
-        // Uses 30-second timeout for this specific request
-        const { data } = await api.get('/homepage', { skipTransform: true, timeout: 30000 });
+        // Uses 45-second timeout to accommodate Render cold starts
+        const { data } = await api.get('/homepage', { skipTransform: true, timeout: 45000 });
 
         // Clear timeout on success
         clearTimeout(timeoutId);
