@@ -247,6 +247,12 @@ export default function AdminProductsTab() {
         : (await api.post('/products', payload)).data;
       showToast(data.message);
       if (data.success) { resetForm(); load(); }
+      // Clear homepage cache so new products appear immediately
+      try {
+        localStorage.removeItem('gnf_homepage_cache');
+      } catch (e) {
+        console.warn('Failed to clear cache:', e);
+      }
     } catch (err) {
       showToast(err?.response?.data?.message || 'Save failed');
     }
@@ -258,6 +264,12 @@ export default function AdminProductsTab() {
       const { data } = await api.delete(`/products/${p.id}`);
       showToast(data.message || 'Product deleted successfully');
       load();
+      // Clear homepage cache so changes appear immediately
+      try {
+        localStorage.removeItem('gnf_homepage_cache');
+      } catch (e) {
+        console.warn('Failed to clear cache:', e);
+      }
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to delete product');
     }

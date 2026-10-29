@@ -104,7 +104,7 @@ export function SiteProvider({ children }) {
           setFooterLinks(parsed.footerLinks || []);
           setTestimonials(parsed.testimonials || []);
           setVideos(parsed.videos || []);
-          setProducts(parsed.products || {});
+          setProducts(parsed.products || []);
         }
       }
     } catch (e) {
@@ -163,7 +163,7 @@ export function SiteProvider({ children }) {
         setFooterLinks(data.footerLinks || []);
         setTestimonials(data.testimonials || []);
         setVideos(data.videos || []);
-        setProducts(data.products || {});
+        setProducts(data.products || []);
         setError(null);
 
         // Cache the data for future visits
@@ -178,7 +178,7 @@ export function SiteProvider({ children }) {
             footerLinks: data.footerLinks,
             testimonials: data.testimonials,
             videos: data.videos,
-            products: data.products
+            products: Array.isArray(data.products) ? data.products : []
           };
           safeLocalStorage.setItem('gnf_homepage_cache', JSON.stringify(cacheData));
         } catch (e) {
