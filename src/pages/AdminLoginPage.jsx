@@ -31,7 +31,7 @@ export default function AdminLoginPage() {
       <div className="auth-split-layout">
         {/* Left Brand Section */}
         <div className="auth-brand-section">
-          <img src="/image.png?v=20261022" alt="Go Nature Farms" className="auth-brand-logo" />
+          <img src="/image.png" alt="Go Nature Farms" className="auth-brand-logo" />
           <h1 className="auth-brand-title">Admin Portal</h1>
           <p className="auth-brand-subtitle">Secure administrator access for Go Nature Farms management.</p>
 
@@ -58,7 +58,7 @@ export default function AdminLoginPage() {
         <div className="auth-form-section">
           <div className="auth-form-card">
             <div className="auth-form-header">
-              <img src="/image.png?v=20261022" alt="Go Nature Farms" className="auth-form-logo" />
+              <img src="/image.png" alt="Go Nature Farms" className="auth-form-logo" />
               <h2 className="auth-form-title">Admin Login</h2>
               <p className="auth-form-subtitle">Enter your administrator credentials</p>
             </div>

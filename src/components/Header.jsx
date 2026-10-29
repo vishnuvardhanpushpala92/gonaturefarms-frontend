@@ -18,10 +18,6 @@ export default function Header({ search, onSearch, onOpenCart, blinkLogin, blink
     if (!imgUrl) return '';
     if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) return imgUrl;
     if (imgUrl === '/image.png' || imgUrl === '/logo.jpeg' || imgUrl === '/brand-logo.png') {
-      // Add cache-busting for image.png to ensure new logo loads
-      if (imgUrl === '/image.png') {
-        return `${imgUrl}?v=20261022`;
-      }
       return imgUrl;
     }
     const apiUrl = import.meta.env.VITE_API_URL || '';
@@ -31,7 +27,7 @@ export default function Header({ search, onSearch, onOpenCart, blinkLogin, blink
   };
 
   // Always use the local image.png for the header logo to ensure it works
-  const logoUrl = '/image.png?v=20261022';
+  const logoUrl = '/image.png';
 
   const handleOpenAuth = () => {
     navigate('/login');

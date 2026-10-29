@@ -108,7 +108,7 @@ export default function ForgotPasswordPage() {
       <div className="auth-split-layout">
         {/* Left Brand Section */}
         <div className="auth-brand-section">
-          <img src="/image.png?v=20261022" alt="Go Nature Farms" className="auth-brand-logo" />
+          <img src="/image.png" alt="Go Nature Farms" className="auth-brand-logo" />
           <h1 className="auth-brand-title">Reset Your Password</h1>
           <p className="auth-brand-subtitle">Securely reset your password to access your account.</p>
 
@@ -135,7 +135,7 @@ export default function ForgotPasswordPage() {
         <div className="auth-form-section">
           <div className="auth-form-card">
             <div className="auth-form-header">
-              <img src="/image.png?v=20261022" alt="Go Nature Farms" className="auth-form-logo" />
+              <img src="/image.png" alt="Go Nature Farms" className="auth-form-logo" />
               <h2 className="auth-form-title">
                 {step === 1 && 'Forgot Password'}
                 {step === 2 && 'Reset Password'}

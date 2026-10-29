@@ -70,9 +70,9 @@ export default function HeroSlider() {
                 className="slide-image"
                 loading={i === 0 ? 'eager' : 'lazy'}
                 fetchPriority={i === 0 ? 'high' : 'auto'}
-                style={{ aspectRatio: getImageDimensions('16/7', 1920) }}
+                style={{ aspectRatio: getImageDimensions('16/9', 1920) }}
                 width="1920"
-                height="840"
+                height="1080"
               />
             </picture>
             <div className="slide-mask" />
