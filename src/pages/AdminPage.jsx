@@ -43,7 +43,7 @@ const TABS = [
 ];
 
 export default function AdminPage() {
-  const { user, isAdmin, adminLogin, logout, isTimerActive, isSessionExpired, isLocked, hasTimerStarted } = useAuth();
+  const { user, isAdmin, adminLogin, logout, isTimerActive, isSessionExpired, isLocked, hasTimerStarted, startAdminTimer } = useAuth();
   const showToast = useToast();
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', password: '' });
@@ -141,6 +141,18 @@ export default function AdminPage() {
         <h2>Admin Dashboard</h2>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <span style={{ alignSelf: 'center', fontSize: '.82rem', color: 'var(--muted)' }}>Hi, {user?.name}</span>
+          {!hasTimerStarted && (
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                startAdminTimer(30);
+                showToast('Timer started for 30 minutes');
+              }}
+              style={{ fontSize: '.85rem', padding: '6px 12px' }}
+            >
+              Start Timer
+            </button>
+          )}
           <button className="btn btn-secondary" onClick={() => window.open('/', '_blank')}>View Store</button>
           <button className="btn btn-danger" onClick={logout}>Logout</button>
         </div>
