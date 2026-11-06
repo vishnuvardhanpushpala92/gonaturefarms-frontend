@@ -3,9 +3,29 @@ import { useSite } from '../context/SiteContext.jsx';
 import { getResponsiveImageUrls, getImageDimensions } from '../utils/imageOptimizer.js';
 
 export default function HeroSlider() {
-  const { slides, loaded } = useSite();
+  const { slides, loaded, layout } = useSite();
   const [index, setIndex] = useState(0);
   const sliderRef = useRef(null);
+
+  // Get layout settings with defaults
+  const heroHeightDesktop = layout?.heroHeightDesktop || 450;
+  const heroHeightTablet = layout?.heroHeightTablet || 320;
+  const heroHeightMobile = layout?.heroHeightMobile || 250;
+  const heroImageFit = layout?.heroImageFit || 'contain';
+  const heroImagePosition = layout?.heroImagePosition || 'center';
+  const heroBackgroundColor = layout?.heroBackgroundColor || '#f5f5f0';
+  const showHero = layout?.showHero !== false; // Default true
+
+  // Add responsive height style
+  const sliderStyle = {
+    backgroundColor: heroBackgroundColor
+  };
+
+  const slideStyle = {
+    desktop: { height: `${heroHeightDesktop}px` },
+    tablet: { height: `${heroHeightTablet}px` },
+    mobile: { height: `${heroHeightMobile}px` }
+  };
 
   // Preload first slide image for LCP with optimization
   useEffect(() => {
@@ -42,10 +62,10 @@ export default function HeroSlider() {
     if (e.key === 'ArrowRight') goToNext();
   };
 
-  if (!loaded || !slides.length) return null;
+  if (!loaded || !slides.length || !showHero) return null;
 
   return (
-    <div className="slider-wrap" ref={sliderRef} onKeyDown={handleKeyDown} tabIndex={0}>
+    <div className="slider-wrap" ref={sliderRef} onKeyDown={handleKeyDown} tabIndex={0} style={sliderStyle}>
       {slides.map((slide, i) => {
         const imageUrls = getResponsiveImageUrls(
           slide.desktopImage || slide.imageUrl
@@ -54,6 +74,9 @@ export default function HeroSlider() {
           <div
             key={slide.id}
             className={`slide${i === index ? ' active' : ''}`}
+            style={{
+              height: `${window.innerWidth < 768 ? heroHeightMobile : window.innerWidth < 1024 ? heroHeightTablet : heroHeightDesktop}px`
+            }}
           >
             <picture className="hero-picture">
               <source
@@ -70,10 +93,13 @@ export default function HeroSlider() {
                 className="slide-image"
                 loading={i === 0 ? 'eager' : 'lazy'}
                 fetchPriority={i === 0 ? 'high' : 'auto'}
-                style={{ aspectRatio: getImageDimensions('16/9', 1920) }}
+                style={{
+                  aspectRatio: getImageDimensions('16/9', 1920),
+                  objectFit: heroImageFit,
+                  objectPosition: heroImagePosition
+                }}
                 width="1920"
                 height="1080"
-                objectFit="contain"
               />
             </picture>
             <div className="slide-mask" />

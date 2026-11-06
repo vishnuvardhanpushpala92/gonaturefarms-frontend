@@ -80,6 +80,7 @@ export function SiteProvider({ children }) {
   const [testimonials, setTestimonials] = useState([]);
   const [videos, setVideos] = useState([]);
   const [products, setProducts] = useState([]);
+  const [layout, setLayout] = useState(null); // Homepage layout configuration
   const [loaded, setLoaded] = useState(true); // Set to true immediately for instant page render
   const [error, setError] = useState(null);
   const [showTimeoutMessage, setShowTimeoutMessage] = useState(false);
@@ -93,7 +94,7 @@ export function SiteProvider({ children }) {
       if (cachedData) {
         const parsed = JSON.parse(cachedData);
         const cacheAge = Date.now() - parsed.timestamp;
-        
+
         // Use cache if it's less than 5 minutes old
         if (cacheAge < 5 * 60 * 1000) {
           setSettings(parsed.settings || {});
@@ -105,6 +106,7 @@ export function SiteProvider({ children }) {
           setTestimonials(parsed.testimonials || []);
           setVideos(parsed.videos || []);
           setProducts(parsed.products || []);
+          setLayout(parsed.layout || null);
         }
       }
     } catch (e) {
@@ -159,11 +161,12 @@ export function SiteProvider({ children }) {
         setSlides(data.slides || []);
         setBlocks(data.blocks || []);
         setFaqs(data.faqs || []);
-        setZones(data.zones || []);
+        setZones(data.zones || {});
         setFooterLinks(data.footerLinks || []);
         setTestimonials(data.testimonials || []);
         setVideos(data.videos || []);
         setProducts(data.products || []);
+        setLayout(data.layout || null);
         setError(null);
 
         // Cache the data for future visits
@@ -178,7 +181,8 @@ export function SiteProvider({ children }) {
             footerLinks: data.footerLinks,
             testimonials: data.testimonials,
             videos: data.videos,
-            products: Array.isArray(data.products) ? data.products : []
+            products: Array.isArray(data.products) ? data.products : [],
+            layout: data.layout || null
           };
           safeLocalStorage.setItem('gnf_homepage_cache', JSON.stringify(cacheData));
         } catch (e) {
@@ -253,7 +257,7 @@ export function SiteProvider({ children }) {
   }, []);
 
   return (
-    <SiteContext.Provider value={{ settings, slides, faqs, zones, blocks, footerLinks, testimonials, videos, products, loaded, error, showTimeoutMessage, backendDown, reload: loadAll, retry: retryLoad, updateSettings }}>
+    <SiteContext.Provider value={{ settings, slides, faqs, zones, blocks, footerLinks, testimonials, videos, products, layout, loaded, error, showTimeoutMessage, backendDown, reload: loadAll, retry: retryLoad, updateSettings }}>
       {children}
     </SiteContext.Provider>
   );

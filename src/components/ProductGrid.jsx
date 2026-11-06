@@ -28,12 +28,30 @@ if (typeof document !== 'undefined' && !document.getElementById('shimmer-styles'
 const ProductCardMemo = memo(ProductCard);
 
 export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
-  const { products: initialProducts, loaded, backendDown } = useSite();
+  const { products: initialProducts, loaded, backendDown, layout } = useSite();
   const [products, setProducts] = useState([]);
   const [activeCat, setActiveCat] = useState('All');
   const [loading, setLoading] = useState(true);
   const [localSearch, setLocalSearch] = useState(search || '');
   const [showTimeoutMessage, setShowTimeoutMessage] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
+  // Track window width for responsive layout
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Get layout settings with defaults
+  const productsPerRowDesktop = layout?.productsPerRowDesktop || 4;
+  const productsPerRowTablet = layout?.productsPerRowTablet || 3;
+  const productsPerRowMobile = layout?.productsPerRowMobile || 2;
+  const productCardSpacing = layout?.productCardSpacing || 16;
+  const showProducts = layout?.showProducts !== false; // Default true
+
+  // Determine products per row based on screen width
+  const productsPerRow = windowWidth < 768 ? productsPerRowMobile : windowWidth < 1024 ? productsPerRowTablet : productsPerRowDesktop;
   
   // Use categories from SiteContext instead of separate API call
   // The /homepage endpoint already returns categories, avoiding duplicate requests
@@ -104,8 +122,10 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   const uniqueCurrent = uniqueProducts(current);
   const uniqueFuture = uniqueProducts(future);
 
+  if (!showProducts) return null;
+
   return (
-    <div className="section first-section last-section">
+    <div className="section first-section last-section" style={{ padding: `${layout?.sectionSpacing || 48}px 0` }}>
       <div className="section-head reveal">
         <h2>Fresh Products <span></span></h2>
       </div>
@@ -131,13 +151,16 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
         />
       </div>
 
-      <div className="pgrid">
+      <div className="pgrid" style={{
+        gridTemplateColumns: `repeat(${productsPerRow}, 1fr)`,
+        gap: `${productCardSpacing}px`
+      }}>
         {showSkeleton ? (
           <>
             {/* Skeleton loading cards instead of text */}
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="skeleton-loading" style={{ 
-                height: '300px', 
+              <div key={i} className="skeleton-loading" style={{
+                height: '300px',
                 borderRadius: '8px'
               }} />
             ))}
