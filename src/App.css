@@ -1012,7 +1012,7 @@ header{background:var(--hdr-bg);padding:0 5%;position:fixed;top:0;left:0;right:0
 }
 
 /* ── PROMO STRIP ────────────────────────────────────────────── */
-.promo-strip{background:var(--p);padding:6px 0;overflow:hidden;}
+.promo-strip{background:var(--p);padding:8px 0;overflow:hidden;position:absolute;bottom:0;left:0;right:0;z-index:10;width:100%;}
 .promo-inner{display:flex;gap:60px;animation:marquee 30s linear infinite;white-space:nowrap;}
 .promo-inner span{color:#fff;font-size:.75rem;font-weight:500;display:flex;align-items:center;gap:6px;}
 .promo-inner span::before{content:'✦';opacity:.6;}

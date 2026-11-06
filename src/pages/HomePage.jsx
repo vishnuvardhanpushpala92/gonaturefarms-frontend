@@ -148,10 +148,10 @@ export default function HomePage({ onOpenCart, search }) {
       
       {/* Always render layout immediately - no blocking loading screen */}
       <div id="top">
-        <div className="slider-wrap-container">
+        <div className="slider-wrap-container" style={{ position: 'relative' }}>
           <HeroSlider />
+          <PromoStrip />
         </div>
-        <PromoStrip />
         <ScrollingBlocks />
       </div>
       <div id="products">
