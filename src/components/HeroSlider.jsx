@@ -75,10 +75,11 @@ export default function HeroSlider() {
             key={slide.id}
             className={`slide${i === index ? ' active' : ''}`}
             style={{
-              height: `${window.innerWidth < 768 ? heroHeightMobile : window.innerWidth < 1024 ? heroHeightTablet : heroHeightDesktop}px`
+              height: `${window.innerWidth < 768 ? heroHeightMobile : window.innerWidth < 1024 ? heroHeightTablet : heroHeightDesktop}px`,
+              width: '100%'
             }}
           >
-            <picture className="hero-picture">
+            <picture className="hero-picture" style={{ width: '100%', display: 'block' }}>
               <source
                 media="(max-width: 767px)"
                 srcSet={imageUrls.mobile}
@@ -94,12 +95,12 @@ export default function HeroSlider() {
                 loading={i === 0 ? 'eager' : 'lazy'}
                 fetchPriority={i === 0 ? 'high' : 'auto'}
                 style={{
-                  aspectRatio: getImageDimensions('16/9', 1920),
                   objectFit: heroImageFit,
-                  objectPosition: heroImagePosition
+                  objectPosition: heroImagePosition,
+                  width: '100%',
+                  height: 'auto',
+                  maxWidth: 'none'
                 }}
-                width="1920"
-                height="1080"
               />
             </picture>
             <div className="slide-mask" />

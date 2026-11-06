@@ -964,8 +964,8 @@ header{background:var(--hdr-bg);padding:0 5%;position:fixed;top:0;left:0;right:0
 
 /* ── HERO SLIDER ────────────────────────────────────────────── */
 /* Let image determine height naturally to show full content without cropping */
-.slider-wrap{position:relative;width:100%;max-width:none;overflow:hidden;background:#f5f5f0;}
-.slide{position:absolute;inset:0;opacity:0;transition:opacity 0.8s ease-in-out;pointer-events:none;overflow:hidden;}
+.slider-wrap{position:relative;width:100%;max-width:none;overflow:visible;background:#f5f5f0;}
+.slide{position:absolute;inset:0;opacity:0;transition:opacity 0.8s ease-in-out;pointer-events:none;overflow:visible;}
 .slide.active{position:relative;opacity:1;pointer-events:auto;overflow:visible;}
 .hero-picture{display:block;width:100%;height:auto;}
 .slide-image{display:block;width:100%;height:auto;object-fit:contain;object-position:center;}
