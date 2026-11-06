@@ -16,17 +16,6 @@ export default function HeroSlider() {
   const heroBackgroundColor = layout?.heroBackgroundColor || '#f5f5f0';
   const showHero = layout?.showHero !== false; // Default true
 
-  // Add responsive height style
-  const sliderStyle = {
-    backgroundColor: heroBackgroundColor
-  };
-
-  const slideStyle = {
-    desktop: { height: `${heroHeightDesktop}px` },
-    tablet: { height: `${heroHeightTablet}px` },
-    mobile: { height: `${heroHeightMobile}px` }
-  };
-
   // Preload first slide image for LCP with optimization
   useEffect(() => {
     if (slides.length > 0) {
@@ -65,7 +54,7 @@ export default function HeroSlider() {
   if (!loaded || !slides.length || !showHero) return null;
 
   return (
-    <div className="slider-wrap" ref={sliderRef} onKeyDown={handleKeyDown} tabIndex={0} style={sliderStyle}>
+    <div className="slider-wrap" ref={sliderRef} onKeyDown={handleKeyDown} tabIndex={0}>
       {slides.map((slide, i) => {
         const imageUrls = getResponsiveImageUrls(
           slide.desktopImage || slide.imageUrl
@@ -74,12 +63,8 @@ export default function HeroSlider() {
           <div
             key={slide.id}
             className={`slide${i === index ? ' active' : ''}`}
-            style={{
-              height: `${window.innerWidth < 768 ? heroHeightMobile : window.innerWidth < 1024 ? heroHeightTablet : heroHeightDesktop}px`,
-              width: '100%'
-            }}
           >
-            <picture className="hero-picture" style={{ width: '100%', display: 'block' }}>
+            <picture className="hero-picture">
               <source
                 media="(max-width: 767px)"
                 srcSet={imageUrls.mobile}
@@ -94,13 +79,9 @@ export default function HeroSlider() {
                 className="slide-image"
                 loading={i === 0 ? 'eager' : 'lazy'}
                 fetchPriority={i === 0 ? 'high' : 'auto'}
-                style={{
-                  objectFit: heroImageFit,
-                  objectPosition: heroImagePosition,
-                  width: '100%',
-                  height: 'auto',
-                  maxWidth: 'none'
-                }}
+                style={{ aspectRatio: getImageDimensions('16/9', 1920) }}
+                width="1920"
+                height="1080"
               />
             </picture>
             <div className="slide-mask" />

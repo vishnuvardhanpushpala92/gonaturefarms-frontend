@@ -963,10 +963,9 @@ header{background:var(--hdr-bg);padding:0 5%;position:fixed;top:0;left:0;right:0
 }
 
 /* ── HERO SLIDER ────────────────────────────────────────────── */
-/* Let image determine height naturally to show full content without cropping */
-.slider-wrap{position:relative;width:100%;max-width:none;overflow:visible;background:#f5f5f0;}
-.slide{position:absolute;inset:0;opacity:0;transition:opacity 0.8s ease-in-out;pointer-events:none;overflow:visible;}
-.slide.active{position:relative;opacity:1;pointer-events:auto;overflow:visible;}
+.slider-wrap{position:relative;width:100%;max-width:none;overflow:hidden;background:#f5f5f0;}
+.slide{position:absolute;inset:0;opacity:0;transition:opacity 0.8s ease-in-out;pointer-events:none;overflow:hidden;}
+.slide.active{position:relative;opacity:1;pointer-events:auto;}
 .hero-picture{display:block;width:100%;height:auto;}
 .slide-image{display:block;width:100%;height:auto;object-fit:contain;object-position:center;}
 .slide-mask{position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,.55) 0%,rgba(0,0,0,.15) 60%,transparent 100%);pointer-events:none;}
