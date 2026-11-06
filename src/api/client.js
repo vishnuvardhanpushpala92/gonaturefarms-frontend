@@ -91,6 +91,8 @@ const ensureHttps = (url) => {
 const PUBLIC_ENDPOINTS = [
   '/homepage',
   '/homepage-data',
+  '/homepage-layout',
+  '/homepage-layout/published',
   '/products',
   '/products/categories',
   '/videos',

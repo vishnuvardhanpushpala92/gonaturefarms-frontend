@@ -15,7 +15,7 @@ export default function AdminHomepageEditorTab() {
   const loadLayout = async () => {
     try {
       setLoading(true);
-      const { data } = await api.get('/homepage-layout/latest');
+      const { data } = await api.get('/homepage-layout/latest', { skipTransform: true });
       if (data.success && data.layout) {
         setLayout(data.layout);
       }
@@ -38,7 +38,7 @@ export default function AdminHomepageEditorTab() {
         publish,
         saveAsDraft: !publish
       };
-      const { data } = await api.post('/homepage-layout', payload);
+      const { data } = await api.post('/homepage-layout', payload, { skipTransform: true });
       if (data.success) {
         alert(data.message);
         loadLayout();
@@ -54,7 +54,7 @@ export default function AdminHomepageEditorTab() {
     if (!window.confirm('Reset to default layout? This cannot be undone.')) return;
     try {
       setSaving(true);
-      const { data } = await api.post('/homepage-layout/reset');
+      const { data } = await api.post('/homepage-layout/reset', {}, { skipTransform: true });
       if (data.success) {
         alert(data.message);
         loadLayout();
