@@ -53,9 +53,23 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   // Determine products per row based on screen width
   const productsPerRow = windowWidth < 768 ? productsPerRowMobile : windowWidth < 1024 ? productsPerRowTablet : productsPerRowDesktop;
   
-  // Use categories from SiteContext instead of separate API call
-  // The /homepage endpoint already returns categories, avoiding duplicate requests
-  const categories = ['All', 'Dairy', 'Grains', 'Natural', 'Oils', 'Pickles', 'Spices', 'Sweets', 'Vegetables'];
+  // Fetch categories from backend to ensure synchronization with admin-created categories
+  const [categories, setCategories] = useState(['All']);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await api.get('/products/categories');
+        const categoryNames = (data.categories || []).map(c => c.name);
+        setCategories(['All', ...categoryNames]);
+      } catch (error) {
+        console.error('Failed to load categories:', error);
+        // Fallback to hardcoded categories on error
+        setCategories(['All', 'Dairy', 'Grains', 'Natural', 'Oils', 'Pickles', 'Spices', 'Sweets', 'Vegetables']);
+      }
+    };
+    fetchCategories();
+  }, []);
   
   // Show timeout message after 5 seconds if still loading
   useEffect(() => {
