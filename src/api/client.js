@@ -10,7 +10,7 @@ if (typeof window !== 'undefined') {
 // Wake-up mechanism with improved retry logic and AbortController
 let wakeUpPromise = null;
 const WAKEUP_MAX_RETRIES = 2;
-const WAKEUP_TIMEOUT = 10000; // 10 seconds - fail fast and retry
+const WAKEUP_TIMEOUT = 30000; // 30 seconds - accommodate Render cold starts
 
 export const wakeUpBackend = async () => {
   if (wakeUpPromise) return wakeUpPromise; // Already in progress
@@ -31,7 +31,7 @@ export const wakeUpBackend = async () => {
         clearTimeout(timeoutId);
         
         if (error.name === 'CanceledError' || error.code === 'ECONNABORTED') {
-          console.log(`Wake-up attempt ${attempt} timed out (10s), retrying...`);
+          console.log(`Wake-up attempt ${attempt} timed out (${WAKEUP_TIMEOUT/1000}s), retrying...`);
         }
         
         if (attempt === WAKEUP_MAX_RETRIES) {
@@ -140,7 +140,7 @@ const isPublicEndpoint = (url) => {
 
 export const api = axios.create({
   baseURL: API_BASE ? `${API_BASE}/api` : '/api',
-  timeout: 10000 // 10 seconds - fail fast
+  timeout: 30000 // 30 seconds - accommodate Render cold starts
 });
 
 // Dedicated API instance for file uploads with longer timeout
@@ -239,7 +239,7 @@ api.interceptors.request.use((config) => {
     const controller = new AbortController();
     config.signal = controller.signal;
     config.abortController = controller;
-    const timeout = config.timeout || 10000; // Default 10 seconds
+    const timeout = config.timeout || 30000; // Default 30 seconds
     config.timeoutId = setTimeout(() => controller.abort(), timeout);
   }
 

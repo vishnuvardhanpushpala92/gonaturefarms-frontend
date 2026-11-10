@@ -121,16 +121,16 @@ export function SiteProvider({ children }) {
     setShowTimeoutMessage(false);
     setBackendDown(false);
 
-    // Show loading message after 3 seconds (reduced from 5 seconds)
+    // Show loading message after 5 seconds
     const timeoutId = setTimeout(() => {
       setShowTimeoutMessage(true);
-    }, 3000);
+    }, 5000);
 
     const attemptLoad = async () => {
       try {
         // Single endpoint for all homepage data - reduces API calls from 9 to 1
-        // Uses 10-second timeout to fail fast and retry
-        const { data } = await api.get('/homepage', { skipTransform: true, timeout: 10000 });
+        // Uses 30-second timeout to accommodate Render cold starts
+        const { data } = await api.get('/homepage', { skipTransform: true, timeout: 30000 });
 
         // Clear timeout on success
         clearTimeout(timeoutId);
