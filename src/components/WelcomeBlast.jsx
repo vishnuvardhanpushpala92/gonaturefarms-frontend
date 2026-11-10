@@ -38,7 +38,7 @@ export default function WelcomeBlast() {
 
   const handleButtonClick = () => {
     if (buttonLink) {
-      window.open(buttonLink, '_blank');
+      window.location.href = buttonLink;
     }
     handleClose();
   };

@@ -297,7 +297,7 @@ export default function OrdersModal({ open, onClose }) {
                 <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   <button
                     className="btn btn-secondary"
-                    onClick={() => window.open(`/api/orders/${o.orderId}`, '_blank')}
+                    onClick={() => window.location.href = `/tracking?order=${o.orderId}`}
                     style={{ fontSize: '.85rem' }}
                   >
                     📄 View Details

@@ -193,7 +193,7 @@ export default function AdminOrdersTab() {
                                   borderRadius: 8,
                                   cursor: 'pointer'
                                 }}
-                                onClick={() => window.open(o.paymentScreenshotUrl, '_blank')}
+                                onClick={() => window.location.href = o.paymentScreenshotUrl}
                               />
                             </div>
                           </div>

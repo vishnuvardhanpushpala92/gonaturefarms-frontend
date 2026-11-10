@@ -153,7 +153,7 @@ export default function AdminPage() {
               Start Timer
             </button>
           )}
-          <button className="btn btn-secondary" onClick={() => window.open('/', '_blank')}>View Store</button>
+          <button className="btn btn-secondary" onClick={() => navigate('/')}>View Store</button>
           <button className="btn btn-danger" onClick={logout}>Logout</button>
         </div>
       </div>

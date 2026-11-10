@@ -80,12 +80,12 @@ export default function Footer({ onOpenSupport }) {
       return;
     }
     
-    // Handle external URLs
+    // Handle external URLs - use same-tab navigation
     if (url.startsWith('http')) {
-      window.open(url, '_blank');
+      window.location.href = url;
       return;
     }
-    
+
     // Handle internal routes
     window.location.href = url;
   };

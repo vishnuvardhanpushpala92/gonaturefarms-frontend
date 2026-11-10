@@ -164,6 +164,8 @@ export default function AdminWhatsAppTab() {
         console.log('[WhatsApp] WhatsApp links:', links);
 
         if (links.length > 0) {
+          // WhatsApp links require separate tab (technical limitation of WhatsApp Web)
+          // This is an unavoidable third-party exception
           links.forEach((link, index) => {
             console.log(`[WhatsApp] Opening link ${index + 1}:`, link);
             setTimeout(() => window.open(link, '_blank'), index * 500);
