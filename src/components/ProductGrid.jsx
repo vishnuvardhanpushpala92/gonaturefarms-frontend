@@ -55,13 +55,35 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   
   // Fetch categories from backend to ensure synchronization with admin-created categories
   const [categories, setCategories] = useState(['All']);
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const { data } = await api.get('/products/categories');
-        const categoryNames = (data.categories || []).map(c => c.name);
-        setCategories(['All', ...categoryNames]);
+        console.log('=== CATEGORIES API RESPONSE ===');
+        console.log('Full response:', data);
+        console.log('Categories data:', data.categories);
+        console.log('Categories type:', typeof data.categories);
+        console.log('Categories isArray:', Array.isArray(data.categories));
+        
+        // Handle both string array and object array responses
+        const categoryNames = (data.categories || []).map(c => {
+          // If category is a string, use it directly
+          if (typeof c === 'string') return c;
+          // If category is an object, extract name property
+          if (c && typeof c === 'object' && c.name) return c.name;
+          // Fallback to string representation
+          return String(c);
+        });
+        
+        console.log('Extracted category names:', categoryNames);
+        
+        // Only update if we have categories (prevent empty response overwriting successful response)
+        if (categoryNames.length > 0 || !categoriesLoaded) {
+          setCategories(['All', ...categoryNames]);
+          setCategoriesLoaded(true);
+        }
       } catch (error) {
         console.error('Failed to load categories:', error);
         // Fallback to hardcoded categories on error
