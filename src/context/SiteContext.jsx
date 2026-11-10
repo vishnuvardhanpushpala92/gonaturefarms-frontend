@@ -121,21 +121,16 @@ export function SiteProvider({ children }) {
     setShowTimeoutMessage(false);
     setBackendDown(false);
 
-    // Show loading message after 5 seconds (reasonable timeout for Render cold starts)
+    // Show loading message after 3 seconds (reduced from 5 seconds)
     const timeoutId = setTimeout(() => {
       setShowTimeoutMessage(true);
-    }, 5000);
+    }, 3000);
 
-    // Retry logic with exponential backoff
-    const maxRetries = 2;
-    let retryCount = 0;
-    let isNetworkError = false;
-    
     const attemptLoad = async () => {
       try {
         // Single endpoint for all homepage data - reduces API calls from 9 to 1
-        // Uses 45-second timeout to accommodate Render cold starts
-        const { data } = await api.get('/homepage', { skipTransform: true, timeout: 45000 });
+        // Uses 10-second timeout to fail fast and retry
+        const { data } = await api.get('/homepage', { skipTransform: true, timeout: 10000 });
 
         // Clear timeout on success
         clearTimeout(timeoutId);
@@ -189,40 +184,24 @@ export function SiteProvider({ children }) {
           console.warn('Failed to cache homepage data:', e);
         }
       } catch (error) {
-        // Detect network errors vs API errors
-        isNetworkError = !error.response && error.request;
-        
-        // Log error details for debugging
-        if (retryCount === 0) {
-          console.error('Homepage data load failed:', error.message);
-          if (isNetworkError) {
-            console.error('Type: Network error (server unreachable)');
-          } else if (error.response) {
-            console.error('Type: API error, Status:', error.response.status);
-          }
-        }
+        // Clear timeout on error
+        clearTimeout(timeoutId);
         
         // Don't retry on 404 or 401 errors (these are permanent failures)
         if (error.response?.status === 404 || error.response?.status === 401) {
-          clearTimeout(timeoutId);
           setError(error.message || 'Failed to load data. Please check your connection.');
           setBackendDown(true);
           return;
         }
         
-        // Retry with exponential backoff
-        if (retryCount < maxRetries) {
-          retryCount++;
-          const delay = 2000 * Math.pow(2, retryCount - 1); // 2s, 4s, 8s
-          console.log(`Retrying homepage load (attempt ${retryCount}/${maxRetries}) in ${delay}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          return attemptLoad();
+        // Handle timeout errors
+        if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
+          const errorMessage = 'Server is waking up. Please wait a moment and refresh...';
+          setError(errorMessage);
+          setBackendDown(true);
         } else {
-          // Max retries reached - mark backend as down
-          clearTimeout(timeoutId);
-          const errorMessage = isNetworkError 
-            ? 'Server is temporarily unavailable. Please check your connection or try again later.'
-            : 'Unable to load content. Please refresh the page or try again later.';
+          // Other errors
+          const errorMessage = error.userMessage || 'Unable to load content. Please refresh the page.';
           setError(errorMessage);
           setBackendDown(true);
         }

@@ -7,30 +7,40 @@ if (typeof window !== 'undefined') {
   console.log('Frontend using API URL:', API_BASE);
 }
 
-// Wake-up mechanism with improved retry logic
+// Wake-up mechanism with improved retry logic and AbortController
 let wakeUpPromise = null;
-const WAKEUP_MAX_RETRIES = 3;
-const WAKEUP_TIMEOUT = 60000; // 60 seconds to accommodate Render cold starts
+const WAKEUP_MAX_RETRIES = 2;
+const WAKEUP_TIMEOUT = 10000; // 10 seconds - fail fast and retry
 
 export const wakeUpBackend = async () => {
   if (wakeUpPromise) return wakeUpPromise; // Already in progress
   
   wakeUpPromise = (async () => {
     for (let attempt = 1; attempt <= WAKEUP_MAX_RETRIES; attempt++) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), WAKEUP_TIMEOUT);
+      
       try {
         await axios.get(`${API_BASE}/api/health`, { 
-          timeout: WAKEUP_TIMEOUT,
+          signal: controller.signal,
           silent: true // Prevent excessive logging
         });
+        clearTimeout(timeoutId);
         return true;
       } catch (error) {
+        clearTimeout(timeoutId);
+        
+        if (error.name === 'CanceledError' || error.code === 'ECONNABORTED') {
+          console.log(`Wake-up attempt ${attempt} timed out (10s), retrying...`);
+        }
+        
         if (attempt === WAKEUP_MAX_RETRIES) {
           console.warn('Backend wake-up failed after retries:', error.message);
           return false;
         }
-        // Exponential backoff: 2s, 4s, 8s
-        const delay = 2000 * Math.pow(2, attempt - 1);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        // Short delay between retries (2 seconds)
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
     return false;
@@ -47,12 +57,17 @@ export const startKeepAlive = () => {
   
   // Ping the server every 5 minutes to keep it warm
   keepAliveInterval = setInterval(async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    
     try {
       await axios.get(`${API_BASE}/api/health`, { 
-        timeout: 8000,
+        signal: controller.signal,
         silent: true
       });
+      clearTimeout(timeoutId);
     } catch (error) {
+      clearTimeout(timeoutId);
       // Silent fail - server may be sleeping
     }
   }, 5 * 60 * 1000); // 5 minutes
@@ -125,7 +140,7 @@ const isPublicEndpoint = (url) => {
 
 export const api = axios.create({
   baseURL: API_BASE ? `${API_BASE}/api` : '/api',
-  timeout: 60000 // 60 seconds - accommodate Render cold starts
+  timeout: 10000 // 10 seconds - fail fast
 });
 
 // Dedicated API instance for file uploads with longer timeout
@@ -219,6 +234,15 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
+  // Add AbortController for timeout handling (unless custom timeout specified)
+  if (!config.signal && !config.disableAbort) {
+    const controller = new AbortController();
+    config.signal = controller.signal;
+    config.abortController = controller;
+    const timeout = config.timeout || 10000; // Default 10 seconds
+    config.timeoutId = setTimeout(() => controller.abort(), timeout);
+  }
+
   if (config.skipTransform) return config;
   if (config.data && !(config.data instanceof FormData)) {
     config.data = transformKeys(config.data, camelToSnake);
@@ -258,6 +282,11 @@ function sanitizeUrlsInObject(obj) {
 // Handle 401 errors gracefully (prevent console spam and auto-logout)
 api.interceptors.response.use(
   (response) => {
+    // Clear timeout on success
+    if (response.config?.timeoutId) {
+      clearTimeout(response.config.timeoutId);
+    }
+    
     if (response.config?.skipTransform) {
       // Still sanitize URLs even with skipTransform
       if (response.data && !(response.data instanceof Blob) && !(response.data instanceof ArrayBuffer)) {
@@ -273,23 +302,32 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
+    // Clear timeout on error
+    if (error.config?.timeoutId) {
+      clearTimeout(error.config.timeoutId);
+    }
+    
     const config = error.config;
     
-    // Retry logic for transient network errors
-    if (!config && error.request) {
-      // Network error - retry with exponential backoff
+    // Retry logic for timeout errors and network errors
+    if ((error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) && !config?.disableRetry) {
       const retryCount = config?.__retryCount || 0;
       const maxRetries = 2;
       
       if (retryCount < maxRetries) {
         config.__retryCount = retryCount + 1;
-        const delay = 1000 * Math.pow(2, retryCount); // 1s, 2s, 4s
+        const delay = 1000 * Math.pow(2, retryCount); // 1s, 2s
         
         console.log(`Retrying request after ${delay}ms (attempt ${retryCount + 1}/${maxRetries}):`, config.url);
         
         await new Promise(resolve => setTimeout(resolve, delay));
         return api(config);
       }
+    }
+    
+    // Handle abort errors as user-friendly timeouts
+    if (error.code === 'ECONNABORTED' || error.name === 'CanceledError') {
+      error.userMessage = 'Request timed out. Please check your connection and try again.';
     }
     
     if (error.response && error.response.status === 401) {
