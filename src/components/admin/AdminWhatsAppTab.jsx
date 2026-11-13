@@ -124,23 +124,16 @@ export default function AdminWhatsAppTab() {
     }
 
     setLoading(true);
+    
     try {
-      const payload = {
-        reminderType: form.reminderType,
-        message: form.message,
-        customerIds: selectedCustomers,
-        scheduledAt: form.scheduledAt || new Date().toISOString(),
-        productId: form.productId || null
-      };
-
-      // Log message before sending to backend
-      console.log('[WhatsApp] Message BEFORE API call:', payload.message);
-      console.log('[WhatsApp] Message contains emojis:', /[🥜✨💰🏷️🌿🌱🛒]/.test(payload.message));
-
-      // Check for duplicate reminders
+      // Check for duplicate reminders first (quick check)
       if (form.reminderType === 'Product' && form.productId) {
         try {
-          const { data: duplicateCheck } = await api.post('/admin/whatsapp/check-duplicates', payload);
+          const { data: duplicateCheck } = await api.post('/admin/whatsapp/check-duplicates', {
+            reminderType: form.reminderType,
+            customerIds: selectedCustomers,
+            productId: form.productId
+          });
           if (duplicateCheck.hasDuplicates && duplicateCheck.duplicateCount > 0) {
             if (!window.confirm(`${duplicateCheck.duplicateCount} customers already received this product reminder recently. Continue anyway?`)) {
               setLoading(false);
@@ -152,37 +145,65 @@ export default function AdminWhatsAppTab() {
         }
       }
 
-      // Sending WhatsApp message
-      const { data } = await api.post('/admin/whatsapp/send', payload);
-      console.log('[WhatsApp] Backend response:', data);
-      showToast(data.message);
-
-      if (data.success) {
-        // Check if backend returns links, otherwise construct them
-        const links = data.whatsappLinks || [];
-
-        console.log('[WhatsApp] WhatsApp links:', links);
-
-        if (links.length > 0) {
-          // WhatsApp links require separate tab (technical limitation of WhatsApp Web)
-          // This is an unavoidable third-party exception
-          links.forEach((link, index) => {
-            console.log(`[WhatsApp] Opening link ${index + 1}:`, link);
-            setTimeout(() => window.open(link, '_blank'), index * 500);
-          });
-        } else {
-          // Fallback: Just reset form and show success
-          showToast('Reminder created successfully');
+      // Get customer data for WhatsApp links (this is what we need for opening WhatsApp)
+      const customerData = customers.filter(c => selectedCustomers.includes(c.id));
+      
+      // Generate WhatsApp links directly in frontend (no need to wait for backend)
+      const whatsappLinks = [];
+      
+      for (const customer of customerData) {
+        const phoneNumber = customer.phone;
+        if (!phoneNumber) continue;
+        
+        // Normalize phone number for WhatsApp (add 91 for Indian numbers if not present)
+        let normalizedPhone = phoneNumber.replace(/\D/g, '');
+        if (normalizedPhone.length === 10 && !normalizedPhone.startsWith('91')) {
+          normalizedPhone = '91' + normalizedPhone;
         }
-
-        setForm({ reminderType: 'Custom', message: '', scheduledAt: '', customerIds: [], productId: '', customerSelectionType: 'Manually selected' });
-        setSelectedCustomers([]);
-        setShowPreview(false);
-        loadReminders();
+        
+        // Encode message for WhatsApp
+        const encodedMessage = encodeURIComponent(form.message);
+        const whatsappLink = `https://wa.me/${normalizedPhone}?text=${encodedMessage}`;
+        whatsappLinks.push(whatsappLink);
       }
+
+      // Open WhatsApp windows immediately
+      if (whatsappLinks.length > 0) {
+        whatsappLinks.forEach((link, index) => {
+          setTimeout(() => {
+            const opened = window.open(link, '_blank');
+            if (!opened) {
+              showToast('Popup blocked! Please allow popups for WhatsApp or click the link manually.');
+            }
+          }, index * 500);
+        });
+        showToast(`Opening WhatsApp for ${whatsappLinks.length} customer(s)...`);
+      } else {
+        showToast('No valid customer phone numbers found');
+      }
+
+      // Save reminder to backend in background (non-blocking)
+      api.post('/admin/whatsapp/send', {
+        reminderType: form.reminderType,
+        message: form.message,
+        customerIds: selectedCustomers,
+        scheduledAt: form.scheduledAt || new Date().toISOString(),
+        productId: form.productId || null
+      }).then(({ data }) => {
+        console.log('[WhatsApp] Reminder saved to backend:', data);
+        loadReminders();
+      }).catch(err => {
+        console.warn('[WhatsApp] Failed to save reminder to backend (WhatsApp already opened):', err);
+      });
+
+      // Reset form
+      setForm({ reminderType: 'Custom', message: '', scheduledAt: '', customerIds: [], productId: '', customerSelectionType: 'Manually selected' });
+      setSelectedCustomers([]);
+      setShowPreview(false);
+      
     } catch (err) {
       console.error('[WhatsApp] Error:', err);
-      showToast(err?.response?.data?.message || 'Failed to create reminder');
+      showToast(err?.response?.data?.message || err?.userMessage || 'Failed to send WhatsApp message');
     } finally {
       setLoading(false);
     }
