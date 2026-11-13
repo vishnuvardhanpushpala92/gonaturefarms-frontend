@@ -241,7 +241,30 @@ export default function AdminWhatsAppTab() {
                   const productId = e.target.value;
                   setForm({ ...form, productId });
                   if (selectedProduct) {
-                    const productInfo = `🌿 ${selectedProduct.name}\n\n${selectedProduct.description || 'Fresh from Go Nature Farms.'}\n\n💰 Price: ₹${selectedProduct.price}${selectedProduct.mrp ? `\nMRP: ₹${selectedProduct.mrp}` : ''}\n\n🌱 Fresh • Natural • Quality Assured\n\nGo Nature Farms\n\n🛒 Shop Now:\nhttps://gonaturefarms-frontend.vercel.app/products/${selectedProduct.id}`;
+                    // Generate premium product showcase message
+                    let productInfo = `══════════════════════════════════\n`;
+                    productInfo += `🌿 Go Nature Farms\n`;
+                    productInfo += `══════════════════════════════════\n`;
+                    productInfo += `Farm-fresh organic products delivered to your door.\n\n`;
+                    
+                    if (selectedProduct.imgUrl) {
+                      productInfo += `📸 Product Image:\n`;
+                      productInfo += `${selectedProduct.imgUrl}\n\n`;
+                    }
+                    
+                    productInfo += `✨ Introducing: ${selectedProduct.name}\n\n`;
+                    productInfo += `${selectedProduct.description || 'Fresh from Go Nature Farms.'}\n\n`;
+                    productInfo += `💰 Price: ₹${selectedProduct.price}\n`;
+                    if (selectedProduct.mrp) {
+                      productInfo += `🏷️ MRP: ₹${selectedProduct.mrp}\n`;
+                    }
+                    productInfo += `\n🌱 Fresh • Natural • Quality Assured\n\n`;
+                    productInfo += `══════════════════════════════════\n`;
+                    productInfo += `🌿 Go Nature Farms\n`;
+                    productInfo += `══════════════════════════════════\n\n`;
+                    productInfo += `🛒 Shop Now:\n`;
+                    productInfo += `https://gonaturefarms-frontend.vercel.app/products/${selectedProduct.id}`;
+                    
                     setForm(prev => ({ ...prev, message: productInfo }));
                     loadCustomersByProduct(productId);
                   }
