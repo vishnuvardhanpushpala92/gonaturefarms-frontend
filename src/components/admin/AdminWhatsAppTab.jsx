@@ -251,17 +251,14 @@ export default function AdminWhatsAppTab() {
                   const productId = e.target.value;
                   setForm({ ...form, productId });
                   if (selectedProduct) {
-                    // Generate premium product showcase message
+                    // Generate premium product showcase message (no product image URL)
                     let productInfo = `══════════════════════════════════\n`;
                     productInfo += `🌿 Go Nature Farms\n`;
                     productInfo += `══════════════════════════════════\n`;
                     productInfo += `Farm-fresh organic products delivered to your door.\n\n`;
-                    
-                    if (selectedProduct.imgUrl) {
-                      productInfo += `📸 Product Image:\n`;
-                      productInfo += `${selectedProduct.imgUrl}\n\n`;
-                    }
-                    
+
+                    // No product image URL in text
+
                     productInfo += `✨ Introducing: ${selectedProduct.name}\n\n`;
                     productInfo += `${selectedProduct.description || 'Fresh from Go Nature Farms.'}\n\n`;
                     productInfo += `💰 Price: ₹${selectedProduct.price}\n`;
@@ -273,8 +270,8 @@ export default function AdminWhatsAppTab() {
                     productInfo += `🌿 Go Nature Farms\n`;
                     productInfo += `══════════════════════════════════\n\n`;
                     productInfo += `🛒 Shop Now:\n`;
-                    productInfo += `https://gonaturefarms-frontend.vercel.app/products/${selectedProduct.id}`;
-                    
+                    productInfo += `https://gonaturefarms-frontend.vercel.app/`;
+
                     setForm(prev => ({ ...prev, message: productInfo }));
                     loadCustomersByProduct(productId);
                   }
