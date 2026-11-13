@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../context/ToastContext.jsx';
 import api from '../api/client';
@@ -8,7 +8,6 @@ export default function ForgotPasswordPage() {
   const showToast = useToast();
   const [step, setStep] = useState(1); // 1: email/phone, 2: reset password
   const [loading, setLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState(null);
   const [form, setForm] = useState({
     username: '',
     securityAnswer: '',
@@ -16,30 +15,6 @@ export default function ForgotPasswordPage() {
     confirmPassword: ''
   });
   const [securityQuestion, setSecurityQuestion] = useState('');
-
-  // Load Cloudflare Turnstile script
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
-    
-    // Initialize Turnstile widget when it loads
-    window.onloadTurnstileCallback = () => {
-      console.log('Turnstile loaded');
-    };
-
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
-
-  // Handle CAPTCHA success
-  const onCaptchaSuccess = (token) => {
-    setCaptchaToken(token);
-    console.log('CAPTCHA token received');
-  };
 
   // Normalize phone number: remove spaces and country code
   const normalizePhone = (phone) => {
@@ -50,22 +25,12 @@ export default function ForgotPasswordPage() {
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    
-    // Validate CAPTCHA
-    if (!captchaToken) {
-      showToast('Please complete the CAPTCHA verification');
-      return;
-    }
-    
     setLoading(true);
 
     try {
       // Normalize the identifier if it's a phone number
       const normalizedIdentifier = normalizePhone(form.username);
-      const { data } = await api.post('/auth/forgot-password/verify', { 
-        identifier: normalizedIdentifier,
-        captchaToken: captchaToken 
-      });
+      const { data } = await api.post('/auth/forgot-password/verify', { identifier: normalizedIdentifier });
       if (data.success && data.securityQuestion) {
         setSecurityQuestion(data.securityQuestion);
         setStep(2);
@@ -78,11 +43,6 @@ export default function ForgotPasswordPage() {
       // Backend already returns field-specific errors - pass them through
       const errorMessage = err?.response?.data?.message || 'If an account exists, you will receive instructions to reset your password.';
       showToast(errorMessage);
-      // Reset CAPTCHA on error
-      setCaptchaToken(null);
-      if (window.turnstile) {
-        window.turnstile.reset();
-      }
     } finally {
       setLoading(false);
     }
@@ -200,17 +160,7 @@ export default function ForgotPasswordPage() {
                   />
                 </div>
 
-                <div className="form-group">
-                  <label>Security Verification</label>
-                  <div 
-                    className="cf-turnstile" 
-                    data-sitekey={import.meta.env.VITE_CAPTCHA_SITE_KEY || 'your-site-key'}
-                    data-callback="onCaptchaSuccess"
-                    data-theme="light"
-                  ></div>
-                </div>
-
-                <button type="submit" className="auth-button" disabled={loading || !captchaToken}>
+                <button type="submit" className="auth-button" disabled={loading}>
                   {loading ? 'Finding account...' : 'Find Account'}
                 </button>
               </form>
