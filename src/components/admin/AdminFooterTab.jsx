@@ -20,6 +20,7 @@ export default function AdminFooterTab() {
   const [ticketFilter, setTicketFilter] = useState({ status: '', category: '', search: '' });
   const [previewMode, setPreviewMode] = useState('desktop');
   const [draftSaved, setDraftSaved] = useState(false);
+  const [policies, setPolicies] = useState([]);
 
   useEffect(() => {
     setForm(settings);
@@ -28,7 +29,17 @@ export default function AdminFooterTab() {
     loadSocialMediaLinks();
     loadFaqCategories();
     loadTickets();
+    loadPolicies();
   }, [settings]);
+
+  const loadPolicies = async () => {
+    try {
+      const { data } = await api.get('/admin/policies');
+      setPolicies(data.policies || []);
+    } catch (err) {
+      console.error('Failed to load policies:', err);
+    }
+  };
 
   const loadTickets = async () => {
     try {
@@ -236,6 +247,23 @@ export default function AdminFooterTab() {
     setForm(settings);
     localStorage.removeItem('footerDraft');
     showToast('Footer reset to last published version');
+  };
+
+  const editPolicy = (policy) => {
+    const newContent = prompt('Edit policy content:', policy.content);
+    if (newContent !== null) {
+      updatePolicy(policy.id, { ...policy, content: newContent });
+    }
+  };
+
+  const updatePolicy = async (id, policy) => {
+    try {
+      await api.put('/admin/policies', policy);
+      showToast('Policy updated successfully');
+      loadPolicies();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to update policy');
+    }
   };
 
   const reorderLink = async (id, newSortOrder) => {
@@ -835,6 +863,32 @@ export default function AdminFooterTab() {
             {form.footer_text || '© 2024 Go Nature Farms. All rights reserved.'}
           </div>
         </div>
+      </div>
+
+      <div className="admin-card">
+        <h3 style={{ marginBottom: 12 }}>Policies Management</h3>
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Policy Type</th>
+              <th>Title</th>
+              <th>Last Updated</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {policies.map(policy => (
+              <tr key={policy.id}>
+                <td>{policy.policyType}</td>
+                <td>{policy.title}</td>
+                <td>{new Date(policy.lastUpdated).toLocaleDateString()}</td>
+                <td>
+                  <button className="btn" onClick={() => editPolicy(policy)}>Edit</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
