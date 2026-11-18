@@ -114,6 +114,7 @@ const PUBLIC_ENDPOINTS = [
   '/admin/settings/public',
   '/admin/slides',
   '/admin/faqs',
+  '/admin/faqs/categories',
   '/admin/scroll-content',
   '/footer-links',
   '/testimonials',
