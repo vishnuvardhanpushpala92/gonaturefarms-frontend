@@ -15,13 +15,24 @@ export default function AdminFooterTab() {
   const [saving, setSaving] = useState(false);
   const [supportSettings, setSupportSettings] = useState({});
   const [socialMediaLinks, setSocialMediaLinks] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     setForm(settings);
     loadFooterLinks();
     loadSupportSettings();
     loadSocialMediaLinks();
+    loadFaqCategories();
   }, [settings]);
+
+  const loadFaqCategories = async () => {
+    try {
+      const { data } = await api.get('/admin/faqs/categories');
+      setCategories(data.categories || []);
+    } catch (err) {
+      console.error('Failed to load FAQ categories:', err);
+    }
+  };
 
   const loadSupportSettings = async () => {
     try {
@@ -152,6 +163,32 @@ export default function AdminFooterTab() {
       loadSocialMediaLinks();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to delete link');
+    }
+  };
+
+  const addFaqCategory = async () => {
+    if (!newLink.name.trim()) {
+      showToast('Please enter category name');
+      return;
+    }
+    try {
+      await api.post('/admin/faqs/categories', { name: newLink.name, description: '', sortOrder: 0, enabled: true });
+      showToast('FAQ category added');
+      setNewLink({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0, enabled: true, openInNewTab: false, columnHeading: '' });
+      loadFaqCategories();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to add category');
+    }
+  };
+
+  const deleteFaqCategory = async (id) => {
+    if (!window.confirm('Delete this FAQ category?')) return;
+    try {
+      await api.delete(`/admin/faqs/categories/${id}`);
+      showToast('FAQ category deleted');
+      loadFaqCategories();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to delete category');
     }
   };
 
@@ -524,6 +561,30 @@ export default function AdminFooterTab() {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div className="admin-card">
+        <h3 style={{ marginBottom: 12 }}>FAQ Management</h3>
+        <div className="fg">
+          <label>Add FAQ Category</label>
+          <input
+            type="text"
+            value={newLink.name}
+            onChange={(e) => setNewLink({ ...newLink, name: e.target.value })}
+            placeholder="Category name (e.g., Orders & Payments)"
+            style={{ marginBottom: 8 }}
+          />
+          <button className="btn btn-primary" onClick={addFaqCategory}>Add Category</button>
+        </div>
+        <div style={{ marginTop: 16 }}>
+          <h4>Categories</h4>
+          {categories && categories.map(cat => (
+            <div key={cat.id} style={{ padding: '8px 0', borderBottom: '1px solid #eee' }}>
+              {cat.name} - {cat.enabled ? 'Enabled' : 'Disabled'}
+              <button className="btn-d" style={{ marginLeft: 10 }} onClick={() => deleteFaqCategory(cat.id)}>Delete</button>
+            </div>
+          ))}
         </div>
       </div>
     </div>
