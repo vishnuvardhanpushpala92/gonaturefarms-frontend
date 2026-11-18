@@ -98,6 +98,15 @@ export default function AdminFooterTab() {
     setNewLink({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0, enabled: true, openInNewTab: false, columnHeading: '' });
   };
 
+  const reorderLink = async (id, newSortOrder) => {
+    try {
+      await api.put(`/footer-links/${id}/reorder`, newSortOrder);
+      loadFooterLinks();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to reorder link');
+    }
+  };
+
   const quickLinks = footerLinks.filter(l => l.category === 'QUICK_LINKS');
   const customerCareLinks = footerLinks.filter(l => l.category === 'CUSTOMER_CARE');
 
@@ -246,17 +255,21 @@ export default function AdminFooterTab() {
               <tr>
                 <th>Link Name</th>
                 <th>URL</th>
+                <th>Enabled</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {quickLinks.map(link => (
+              {quickLinks.map((link, index) => (
                 <tr key={link.id}>
                   <td>{link.name}</td>
                   <td>{link.url}</td>
+                  <td>{link.enabled ? '✓' : '✗'}</td>
                   <td>
                     <button className="btn-e" onClick={() => editLink(link)}>Edit</button>
                     <button className="btn-d" onClick={() => deleteLink(link.id)}>Delete</button>
+                    {index > 0 && <button className="btn-e" onClick={() => reorderLink(link.id, index - 1)}>↑</button>}
+                    {index < quickLinks.length - 1 && <button className="btn-e" onClick={() => reorderLink(link.id, index + 1)}>↓</button>}
                   </td>
                 </tr>
               ))}
@@ -328,17 +341,21 @@ export default function AdminFooterTab() {
               <tr>
                 <th>Link Name</th>
                 <th>URL</th>
+                <th>Enabled</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {customerCareLinks.map(link => (
+              {customerCareLinks.map((link, index) => (
                 <tr key={link.id}>
                   <td>{link.name}</td>
                   <td>{link.url}</td>
+                  <td>{link.enabled ? '✓' : '✗'}</td>
                   <td>
                     <button className="btn-e" onClick={() => editLink(link)}>Edit</button>
                     <button className="btn-d" onClick={() => deleteLink(link.id)}>Delete</button>
+                    {index > 0 && <button className="btn-e" onClick={() => reorderLink(link.id, index - 1)}>↑</button>}
+                    {index < customerCareLinks.length - 1 && <button className="btn-e" onClick={() => reorderLink(link.id, index + 1)}>↓</button>}
                   </td>
                 </tr>
               ))}
