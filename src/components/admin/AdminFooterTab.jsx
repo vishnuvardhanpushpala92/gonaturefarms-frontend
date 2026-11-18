@@ -43,7 +43,7 @@ export default function AdminFooterTab() {
 
   const loadTickets = async () => {
     try {
-      const { data } = await api.get('/admin/support/tickets');
+      const { data } = await api.get('/support/admin/tickets');
       setTickets(data.tickets || []);
     } catch (err) {
       console.error('Failed to load tickets:', err);
@@ -219,7 +219,7 @@ export default function AdminFooterTab() {
 
   const updateTicketStatus = async (id, status) => {
     try {
-      await api.put(`/admin/support/tickets/${id}`, { status });
+      await api.put(`/support/admin/tickets/${id}`, { status });
       showToast('Ticket status updated');
       loadTickets();
     } catch (err) {
