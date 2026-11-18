@@ -16,6 +16,8 @@ export default function AdminFooterTab() {
   const [supportSettings, setSupportSettings] = useState({});
   const [socialMediaLinks, setSocialMediaLinks] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [tickets, setTickets] = useState([]);
+  const [ticketFilter, setTicketFilter] = useState({ status: '', category: '', search: '' });
 
   useEffect(() => {
     setForm(settings);
@@ -23,7 +25,17 @@ export default function AdminFooterTab() {
     loadSupportSettings();
     loadSocialMediaLinks();
     loadFaqCategories();
+    loadTickets();
   }, [settings]);
+
+  const loadTickets = async () => {
+    try {
+      const { data } = await api.get('/admin/support/tickets');
+      setTickets(data.tickets || []);
+    } catch (err) {
+      console.error('Failed to load tickets:', err);
+    }
+  };
 
   const loadFaqCategories = async () => {
     try {
@@ -189,6 +201,16 @@ export default function AdminFooterTab() {
       loadFaqCategories();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to delete category');
+    }
+  };
+
+  const updateTicketStatus = async (id, status) => {
+    try {
+      await api.put(`/admin/support/tickets/${id}`, { status });
+      showToast('Ticket status updated');
+      loadTickets();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to update ticket');
     }
   };
 
@@ -586,6 +608,93 @@ export default function AdminFooterTab() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="admin-card">
+        <h3 style={{ marginBottom: 12 }}>Support Tickets</h3>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          <input
+            type="text"
+            placeholder="Search by ticket number, customer, order ID"
+            value={ticketFilter.search}
+            onChange={(e) => setTicketFilter({ ...ticketFilter, search: e.target.value })}
+            style={{ flex: 1, minWidth: 200 }}
+          />
+          <select
+            value={ticketFilter.status}
+            onChange={(e) => setTicketFilter({ ...ticketFilter, status: e.target.value })}
+          >
+            <option value="">All Status</option>
+            <option value="open">Open</option>
+            <option value="in_progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <select
+            value={ticketFilter.category}
+            onChange={(e) => setTicketFilter({ ...ticketFilter, category: e.target.value })}
+          >
+            <option value="">All Categories</option>
+            <option value="order">Order Issue</option>
+            <option value="payment">Payment Issue</option>
+            <option value="product">Product Quality</option>
+            <option value="shipping">Shipping/Delivery</option>
+            <option value="refund">Refund Request</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Ticket #</th>
+              <th>Customer</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tickets.filter(t => {
+              if (ticketFilter.status && t.status !== ticketFilter.status) return false;
+              if (ticketFilter.category && t.category !== ticketFilter.category) return false;
+              if (ticketFilter.search) {
+                const search = ticketFilter.search.toLowerCase();
+                return (t.ticketNumber || '').toLowerCase().includes(search) ||
+                       (t.userId || '').toString().includes(search) ||
+                       (t.orderId || '').toString().includes(search);
+              }
+              return true;
+            }).map(ticket => (
+              <tr key={ticket.id}>
+                <td>{ticket.ticketNumber || `#${ticket.id}`}</td>
+                <td>{ticket.userId}</td>
+                <td>{ticket.category || 'N/A'}</td>
+                <td>
+                  <span style={{
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    fontSize: 12,
+                    background: ticket.status === 'open' ? '#ffebee' :
+                               ticket.status === 'in_progress' ? '#fff3e0' :
+                               ticket.status === 'resolved' ? '#e8f5e9' : '#ffebee',
+                    color: ticket.status === 'open' ? '#c62828' :
+                           ticket.status === 'in_progress' ? '#ef6c00' :
+                           ticket.status === 'resolved' ? '#2e7d32' : '#c62828'
+                  }}>
+                    {ticket.status.replace('_', ' ').toUpperCase()}
+                  </span>
+                </td>
+                <td>{new Date(ticket.createdAt).toLocaleDateString()}</td>
+                <td>
+                  <button className="btn" onClick={() => updateTicketStatus(ticket.id, 'in_progress')}>In Progress</button>
+                  <button className="btn" onClick={() => updateTicketStatus(ticket.id, 'resolved')}>Resolve</button>
+                  <button className="btn-d" onClick={() => updateTicketStatus(ticket.id, 'rejected')}>Reject</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
