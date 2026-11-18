@@ -18,6 +18,8 @@ export default function AdminFooterTab() {
   const [categories, setCategories] = useState([]);
   const [tickets, setTickets] = useState([]);
   const [ticketFilter, setTicketFilter] = useState({ status: '', category: '', search: '' });
+  const [previewMode, setPreviewMode] = useState('desktop');
+  const [draftSaved, setDraftSaved] = useState(false);
 
   useEffect(() => {
     setForm(settings);
@@ -212,6 +214,28 @@ export default function AdminFooterTab() {
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to update ticket');
     }
+  };
+
+  const saveDraft = () => {
+    localStorage.setItem('footerDraft', JSON.stringify(form));
+    setDraftSaved(true);
+    setTimeout(() => setDraftSaved(false), 3000);
+  };
+
+  const publishChanges = async () => {
+    try {
+      await api.put('/admin/settings', form, { skipTransform: true });
+      showToast('Footer published successfully');
+      reload();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to publish footer');
+    }
+  };
+
+  const resetChanges = () => {
+    setForm(settings);
+    localStorage.removeItem('footerDraft');
+    showToast('Footer reset to last published version');
   };
 
   const reorderLink = async (id, newSortOrder) => {
@@ -695,6 +719,122 @@ export default function AdminFooterTab() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="admin-card">
+        <h3 style={{ marginBottom: 12 }}>Footer Live Preview</h3>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          <button
+            className={previewMode === 'mobile' ? 'btn btn-primary' : 'btn'}
+            onClick={() => setPreviewMode('mobile')}
+          >
+            Mobile
+          </button>
+          <button
+            className={previewMode === 'tablet' ? 'btn btn-primary' : 'btn'}
+            onClick={() => setPreviewMode('tablet')}
+          >
+            Tablet
+          </button>
+          <button
+            className={previewMode === 'desktop' ? 'btn btn-primary' : 'btn'}
+            onClick={() => setPreviewMode('desktop')}
+          >
+            Desktop
+          </button>
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <button className="btn" onClick={saveDraft}>Save Draft</button>
+          <button className="btn btn-primary" onClick={publishChanges}>Publish</button>
+          <button className="btn-d" onClick={resetChanges}>Reset</button>
+        </div>
+        {draftSaved && <div style={{ color: 'green', marginBottom: 8 }}>Draft saved successfully!</div>}
+        <div
+          style={{
+            border: '1px solid #ddd',
+            borderRadius: 8,
+            padding: 20,
+            background: '#f5f5f5',
+            width: previewMode === 'mobile' ? '375px' : previewMode === 'tablet' ? '768px' : '100%',
+            maxWidth: '100%',
+            margin: '0 auto'
+          }}
+        >
+          <div
+            style={{
+              background: form.ftr_bg || '#1a5d1a',
+              color: form.ftr_text || '#ffffff',
+              padding: '40px 20px',
+              display: 'grid',
+              gridTemplateColumns: previewMode === 'mobile' ? '1fr' : previewMode === 'tablet' ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+              gap: '20px'
+            }}
+          >
+            <div>
+              <h4 style={{ marginBottom: 12 }}>{form.site_name || 'Go Nature Farms'}</h4>
+              <p style={{ fontSize: 14, lineHeight: 1.6 }}>{form.footer_desc || 'Farm-fresh organic products delivered to your door.'}</p>
+              <p style={{ fontSize: 14, marginTop: 8 }}>{form.footer_phone || '+91 9182526xxx'}</p>
+              <p style={{ fontSize: 14 }}>{form.store_location || 'Hyderabad, India'}</p>
+            </div>
+            <div>
+              <h5 style={{ marginBottom: 12 }}>Quick Links</h5>
+              {footerLinks.filter(l => l.category === 'QUICK_LINKS' && l.enabled).slice(0, 5).map(link => (
+                <div key={link.id} style={{ marginBottom: 8 }}>
+                  <a
+                    href={link.url}
+                    target={link.openInNewTab ? '_blank' : '_self'}
+                    rel={link.openInNewTab ? 'noopener noreferrer' : ''}
+                    style={{ color: 'inherit', textDecoration: 'none', fontSize: 14 }}
+                  >
+                    {link.name}
+                  </a>
+                </div>
+              ))}
+            </div>
+            <div>
+              <h5 style={{ marginBottom: 12 }}>Customer Care</h5>
+              {footerLinks.filter(l => l.category === 'CUSTOMER_CARE' && l.enabled).slice(0, 5).map(link => (
+                <div key={link.id} style={{ marginBottom: 8 }}>
+                  <a
+                    href={link.url}
+                    target={link.openInNewTab ? '_blank' : '_self'}
+                    rel={link.openInNewTab ? 'noopener noreferrer' : ''}
+                    style={{ color: 'inherit', textDecoration: 'none', fontSize: 14 }}
+                  >
+                    {link.name}
+                  </a>
+                </div>
+              ))}
+            </div>
+            <div>
+              <h5 style={{ marginBottom: 12 }}>Connect</h5>
+              {socialMediaLinks.filter(l => l.enabled).slice(0, 4).map(link => (
+                <div key={link.id} style={{ marginBottom: 8 }}>
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'inherit', textDecoration: 'none', fontSize: 14 }}
+                  >
+                    {link.platform}
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div
+            style={{
+              background: form.ftr_bg || '#1a5d1a',
+              color: form.ftr_text || '#ffffff',
+              padding: '20px',
+              textAlign: 'center',
+              fontSize: 12,
+              borderTop: '1px solid rgba(255,255,255,0.1)'
+            }}
+          >
+            {form.footer_text || '© 2024 Go Nature Farms. All rights reserved.'}
+          </div>
+        </div>
       </div>
     </div>
   );
