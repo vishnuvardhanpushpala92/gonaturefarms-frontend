@@ -11,7 +11,7 @@ export default function AdminFooterTab() {
   const [footerLinks, setFooterLinks] = useState([]);
   const [loadingLinks, setLoadingLinks] = useState(false);
   const [editingLink, setEditingLink] = useState(null);
-  const [newLink, setNewLink] = useState({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0 });
+  const [newLink, setNewLink] = useState({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0, enabled: true, openInNewTab: false, columnHeading: '' });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function AdminFooterTab() {
     try {
       await api.post('/footer-links', newLink);
       showToast('Footer link added successfully');
-      setNewLink({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0 });
+      setNewLink({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0, enabled: true, openInNewTab: false, columnHeading: '' });
       loadFooterLinks();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to add footer link');
@@ -63,7 +63,7 @@ export default function AdminFooterTab() {
 
   const editLink = (link) => {
     setEditingLink(link.id);
-    setNewLink({ name: link.name, url: link.url, category: link.category, sortOrder: link.sortOrder });
+    setNewLink({ name: link.name, url: link.url, category: link.category, sortOrder: link.sortOrder, enabled: link.enabled, openInNewTab: link.openInNewTab, columnHeading: link.columnHeading });
   };
 
   const updateLink = async () => {
@@ -75,7 +75,7 @@ export default function AdminFooterTab() {
       await api.put(`/footer-links/${editingLink}`, newLink);
       showToast('Footer link updated successfully');
       setEditingLink(null);
-      setNewLink({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0 });
+      setNewLink({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0, enabled: true, openInNewTab: false, columnHeading: '' });
       loadFooterLinks();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to update footer link');
@@ -95,7 +95,7 @@ export default function AdminFooterTab() {
 
   const cancelEdit = () => {
     setEditingLink(null);
-    setNewLink({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0 });
+    setNewLink({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0, enabled: true, openInNewTab: false, columnHeading: '' });
   };
 
   const quickLinks = footerLinks.filter(l => l.category === 'QUICK_LINKS');
@@ -203,6 +203,33 @@ export default function AdminFooterTab() {
               style={{ flex: 1 }}
             />
           </div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <input
+              type="text"
+              value={newLink.columnHeading}
+              onChange={(e) => setNewLink({ ...newLink, columnHeading: e.target.value })}
+              placeholder="Column Heading (optional)"
+              style={{ flex: 1 }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 16, marginBottom: 8 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={newLink.enabled}
+                onChange={(e) => setNewLink({ ...newLink, enabled: e.target.checked })}
+              />
+              Enabled
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={newLink.openInNewTab}
+                onChange={(e) => setNewLink({ ...newLink, openInNewTab: e.target.checked })}
+              />
+              Open in New Tab
+            </label>
+          </div>
           {editingLink ? (
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="btn btn-primary" onClick={updateLink}>Update</button>
@@ -257,6 +284,33 @@ export default function AdminFooterTab() {
               placeholder="URL (e.g., /#about)"
               style={{ flex: 1 }}
             />
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <input
+              type="text"
+              value={newLink.columnHeading}
+              onChange={(e) => setNewLink({ ...newLink, columnHeading: e.target.value })}
+              placeholder="Column Heading (optional)"
+              style={{ flex: 1 }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 16, marginBottom: 8 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={newLink.enabled}
+                onChange={(e) => setNewLink({ ...newLink, enabled: e.target.checked })}
+              />
+              Enabled
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={newLink.openInNewTab}
+                onChange={(e) => setNewLink({ ...newLink, openInNewTab: e.target.checked })}
+              />
+              Open in New Tab
+            </label>
           </div>
           {editingLink ? (
             <div style={{ display: 'flex', gap: 8 }}>
