@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['logo.jpeg', 'image.png'],
+      includeAssets: ['logo.jpeg', 'image.png', 'icons/*.png'],
       manifest: {
         name: 'Go Nature Farms',
         short_name: 'Go Nature',
@@ -20,19 +20,19 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: '/image.png',
+            src: '/icons/icon-192x192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: '/image.png',
+            src: '/icons/icon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: '/image.png',
+            src: '/icons/icon-192x192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'maskable'
