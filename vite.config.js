@@ -10,7 +10,7 @@ export default defineConfig({
       includeAssets: ['logo.jpeg', 'image.png', 'icons/*.png'],
       manifest: {
         name: 'Go Nature Farms',
-        short_name: 'Go Nature',
+        short_name: 'Go Nature Farms',
         description: 'Farm-fresh organic products delivered to your door.',
         theme_color: '#2e7d32',
         background_color: '#ffffff',
