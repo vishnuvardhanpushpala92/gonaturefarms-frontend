@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSite } from '../context/SiteContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import PWAInstallButton from './PWAInstallButton.jsx';
 
 export default function Header({ search, onSearch, onOpenCart, blinkLogin, blinkCart }) {
   const { settings } = useSite();
@@ -13,50 +14,6 @@ export default function Header({ search, onSearch, onOpenCart, blinkLogin, blink
   const isAdminPage = location.pathname.startsWith('/admin');
   const headerFontSize = settings.hdr_font_size || '16';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallButton, setShowInstallButton] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
-
-  useEffect(() => {
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window.MSStream);
-    setIsIOS(isIOSDevice);
-
-    // Check if app is already installed (running in standalone mode)
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-      setIsInstalled(true);
-    }
-
-    const handler = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallButton(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handler);
-    window.addEventListener('appinstalled', () => {
-      setDeferredPrompt(null);
-      setShowInstallButton(false);
-      setIsInstalled(true);
-    });
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
-      window.removeEventListener('appinstalled', () => {});
-    };
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setIsInstalled(true);
-      }
-      setDeferredPrompt(null);
-      setShowInstallButton(false);
-    }
-  };
 
   const getImageUrl = (imgUrl) => {
     if (!imgUrl) return '';
@@ -160,6 +117,7 @@ export default function Header({ search, onSearch, onOpenCart, blinkLogin, blink
           <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zm10 0a2 2 0 11-4 0 2 2 0 014 0zm-9.83-5.25l.564-1.682a2 2 0 011.896-1.364h11.11a2 2 0 011.896 1.364l.564 1.682M5 17h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
           <span>Track Order</span>
         </button>
+        <PWAInstallButton />
         {isAuthenticated ? (
           <button className="hbtn" onClick={() => navigate('/dashboard')}>
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
@@ -206,6 +164,7 @@ export default function Header({ search, onSearch, onOpenCart, blinkLogin, blink
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zm10 0a2 2 0 11-4 0 2 2 0 014 0zm-9.83-5.25l.564-1.682a2 2 0 011.896-1.364h11.11a2 2 0 011.896 1.364l.564 1.682M5 17h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
             <span>Track Order</span>
           </button>
+          <PWAInstallButton />
           {isAuthenticated ? (
             <button className="hbtn" onClick={() => navigate('/dashboard')} style={{ width: '100%', justifyContent: 'flex-start', padding: '12px' }}>
               <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
