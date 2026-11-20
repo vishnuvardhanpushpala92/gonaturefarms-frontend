@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSite } from '../context/SiteContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
@@ -13,6 +13,50 @@ export default function Header({ search, onSearch, onOpenCart, blinkLogin, blink
   const isAdminPage = location.pathname.startsWith('/admin');
   const headerFontSize = settings.hdr_font_size || '16';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window.MSStream);
+    setIsIOS(isIOSDevice);
+
+    // Check if app is already installed (running in standalone mode)
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+      setIsInstalled(true);
+    }
+
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallButton(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('appinstalled', () => {
+      setDeferredPrompt(null);
+      setShowInstallButton(false);
+      setIsInstalled(true);
+    });
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('appinstalled', () => {});
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setIsInstalled(true);
+      }
+      setDeferredPrompt(null);
+      setShowInstallButton(false);
+    }
+  };
 
   const getImageUrl = (imgUrl) => {
     if (!imgUrl) return '';

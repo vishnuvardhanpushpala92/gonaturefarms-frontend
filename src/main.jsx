@@ -11,6 +11,14 @@ import { ThemeProvider } from './context/ThemeContext.jsx';
 import AdminSessionTimer from './components/admin/AdminSessionTimer.jsx';
 import AdminLockOverlay from './components/admin/AdminLockOverlay.jsx';
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.warn('SW registration failed:', err);
+    });
+  });
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
     <ThemeProvider>
