@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api/client';
 import { useToast } from '../../context/ToastContext.jsx';
+import { useSite } from '../../context/SiteContext.jsx';
 
 const EMPTY = { customerName: '', quote: '', rating: 5, avatarUrl: '', enabled: true, sortOrder: 0 };
 
 export default function AdminTestimonialsTab() {
   const showToast = useToast();
+  const { invalidateCache } = useSite();
   const [testimonials, setTestimonials] = useState([]);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY);
@@ -46,6 +48,7 @@ export default function AdminTestimonialsTab() {
       if (data.success) {
         resetForm();
         load();
+        invalidateCache();
       }
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to save testimonial');
@@ -56,7 +59,10 @@ export default function AdminTestimonialsTab() {
     try {
       const { data } = await api.put(`/testimonials/admin/${id}/toggle`);
       showToast(data.message);
-      if (data.success) load();
+      if (data.success) {
+        load();
+        invalidateCache();
+      }
     } catch (err) {
       showToast('Failed to toggle testimonial status');
     }
@@ -67,7 +73,10 @@ export default function AdminTestimonialsTab() {
     try {
       const { data } = await api.delete(`/testimonials/admin/${id}`);
       showToast(data.message);
-      if (data.success) load();
+      if (data.success) {
+        load();
+        invalidateCache();
+      }
     } catch (err) {
       showToast('Failed to delete testimonial');
     }

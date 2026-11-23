@@ -5,7 +5,7 @@ import { useSite } from '../../context/SiteContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 
 export default function AdminContentTab() {
-  const { slides, faqs, zones, blocks, reload } = useSite();
+  const { slides, faqs, zones, blocks, reload, invalidateCache } = useSite();
   const showToast = useToast();
 
   const [slideForm, setSlideForm] = useState({ desktopImage: '', tabletImage: '', mobileImage: '', caption: '', subText: '' });
@@ -131,7 +131,9 @@ export default function AdminContentTab() {
         setDesktopFile(null);
         setTabletFile(null);
         setMobileFile(null);
-        reload(); 
+        reload();
+        invalidateCache(); 
+        invalidateCache();
       }
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to add slide');
@@ -242,7 +244,8 @@ export default function AdminContentTab() {
         setDesktopFile(null);
         setTabletFile(null);
         setMobileFile(null);
-        reload(); 
+        reload();
+        invalidateCache(); 
       }
     } catch (err) {
       // Handle 404 error - slide was deleted or doesn't exist
@@ -254,6 +257,7 @@ export default function AdminContentTab() {
         setTabletFile(null);
         setMobileFile(null);
         reload();
+        invalidateCache();
       } else {
         showToast(err?.response?.data?.message || 'Failed to update slide');
       }
@@ -284,7 +288,7 @@ export default function AdminContentTab() {
     try {
       const { data } = await api.post('/admin/faqs', faqForm);
       showToast(data.message || 'FAQ added successfully');
-      if (data.success) { setFaqForm({ question: '', answer: '' }); loadAdminFaqs(); }
+      if (data.success) { setFaqForm({ question: '', answer: '' }); loadAdminFaqs(); invalidateCache(); }
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to add FAQ');
     }
@@ -352,7 +356,8 @@ export default function AdminContentTab() {
       if (data.success) { 
         setBlockForm({ title: '', content: '', icon: '', customIcon: '', style: 'info', backgroundColor: '#f8fafb', textColor: '#2d5a27' }); 
         loadAdminBlocks();
-        reload(); 
+        reload();
+        invalidateCache(); 
       }
     } catch (err) {
       showToast(err?.userMessage || err?.response?.data?.message || 'Failed to add feature');
@@ -390,6 +395,7 @@ export default function AdminContentTab() {
         setEditingBlock(null);
         loadAdminBlocks();
         reload();
+        invalidateCache();
       }
     } catch (err) {
       showToast(err?.userMessage || err?.response?.data?.message || 'Failed to update feature');
