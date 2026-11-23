@@ -247,6 +247,7 @@ export default function TransactionPage() {
         } else {
           setPayment((p) => ({ ...p, paymentStatus: data.paymentStatus || 'VerificationPending' }));
           setStep('pending');
+          showToast('Payment details submitted successfully! Your bill has been generated. Our team will verify your payment and update the status.');
         }
       } else {
         showToast(data.message || 'Could not submit payment confirmation');
@@ -594,7 +595,7 @@ export default function TransactionPage() {
             <div style={{ fontWeight: 700, fontSize: '0.85rem', color: green, marginBottom: 6 }}>Payment Instructions</div>
             <ol style={{ margin: 0, paddingLeft: 18, fontSize: '0.82rem', color: '#374151', lineHeight: 1.7 }}>
               <li>Open PhonePe, Google Pay, Paytm or another UPI application.</li>
-              <li>Scan the Go Nature Farms QR code or use <strong>SCAN TO PAY</strong>.</li>
+              <li>Scan the Go Nature Farms QR code with your UPI application.</li>
               <li>Check the <strong>Go Nature Farms</strong> merchant name.</li>
               <li>Check the amount before paying.</li>
               <li>Complete the payment in your UPI application.</li>
@@ -609,8 +610,7 @@ export default function TransactionPage() {
           <div style={{ textAlign: 'left', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
             <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#92400e', marginBottom: 4 }}>Payment Verification Notice:</div>
             <p style={{ margin: 0, fontSize: '0.8rem', color: '#78350f', lineHeight: 1.6 }}>
-              If your payment is successful, our team will verify the transaction details and update your payment status after confirming receipt of the amount.
-              Your bill will be generated after you submit the transaction ID. Please wait for admin verification.
+              <strong>NOTE:</strong> Our team will verify your payment and update the payment status.
             </p>
           </div>
 
