@@ -48,7 +48,7 @@ if (typeof document !== 'undefined' && !document.getElementById('shimmer-styles'
 }
 
 export default function VideoGallery({ onOpenCart }) {
-  const { videos: initialVideos, loaded, backendDown } = useSite();
+  const { videos: initialVideos, loaded, backendDown, layout } = useSite();
   const [mounted, setMounted] = useState(false);
   const carouselRef = useRef(null);
   const videoRefs = useRef({});
@@ -282,6 +282,8 @@ export default function VideoGallery({ onOpenCart }) {
       </section>
     );
   }
+
+  if (layout?.showVideos === false) return null;
 
   return (
     <section className="section video-section last-section">

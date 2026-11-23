@@ -2,7 +2,8 @@ import React from 'react';
 import { useSite } from '../context/SiteContext.jsx';
 
 export default function ScrollingBlocks() {
-  const { blocks } = useSite();
+  const { blocks, layout } = useSite();
+  if (layout?.showFeatures === false) return null;
 
   const displayBlocks = blocks.slice(0, 6);
 

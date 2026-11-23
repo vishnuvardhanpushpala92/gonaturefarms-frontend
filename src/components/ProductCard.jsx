@@ -2,6 +2,7 @@ import React, { useState, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
+import { useSite } from '../context/SiteContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import api from '../api/client';
 import { getOptimizedProductImageUrl, getImageDimensions } from '../utils/imageOptimizer.js';
@@ -14,6 +15,7 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
   const navigate = useNavigate();
   const { isAdmin, isAuthenticated } = useAuth();
   const { addItem } = useCart();
+  const { layout } = useSite();
   const showToast = useToast();
   const isFuture = product.status === 'future';
 
@@ -136,7 +138,10 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
           loading="lazy"
           width="400"
           height="400"
-          style={{ aspectRatio: getImageDimensions('1/1', 400) }}
+          style={{
+            aspectRatio: getImageDimensions(layout?.productImageAspectRatio || '1/1', 400),
+            objectFit: layout?.productImageFit || 'cover'
+          }}
           onError={(e) => {
             console.error('Image load error:', product.img_url || product.imgUrl, e);
             e.target.style.display = 'none';

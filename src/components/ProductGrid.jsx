@@ -161,7 +161,11 @@ export default function ProductGrid({ search, onOpenReviews, onOpenCart }) {
   if (!showProducts) return null;
 
   return (
-    <div className="section first-section last-section" style={{ padding: `${layout?.sectionSpacing || 48}px 0` }}>
+    <div className="section first-section last-section" style={{
+      padding: `${layout?.sectionSpacing || 48}px 0`,
+      ...(layout?.sectionWidth === 'contained' ? { maxWidth: 1200, margin: '0 auto', width: '100%' } : {}),
+      ...(layout?.sectionWidth === 'narrow' ? { maxWidth: 900, margin: '0 auto', width: '100%' } : {})
+    }}>
       <div className="section-head reveal">
         <h2>Fresh Products <span></span></h2>
       </div>

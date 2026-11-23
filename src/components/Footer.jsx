@@ -3,7 +3,7 @@ import { useSite } from '../context/SiteContext.jsx';
 import { useLocation } from 'react-router-dom';
 
 export default function Footer({ onOpenSupport }) {
-  const { settings, footerLinks, testimonials: initialTestimonials, loaded } = useSite();
+  const { settings, footerLinks, testimonials: initialTestimonials, loaded, layout } = useSite();
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
 
@@ -99,7 +99,7 @@ export default function Footer({ onOpenSupport }) {
       padding: 0
     }}>
       {/* Testimonials Section - Integrated at top of footer */}
-      {testimonials.length > 0 && (
+      {testimonials.length > 0 && layout?.showTestimonials !== false && (
         <div className="customer-testimonials-section" style={{ margin: 0, padding: '60px 20px' }}>
           <div className="customer-testimonials-container">
             <div className="customer-testimonials-header">
