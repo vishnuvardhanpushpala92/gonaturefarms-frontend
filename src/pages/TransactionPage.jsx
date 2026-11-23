@@ -223,32 +223,6 @@ export default function TransactionPage() {
     }
   };
 
-  // ── Open UPI app (mobile intent / desktop → QR only) ────────────────
-  const [desktopPayHint, setDesktopPayHint] = useState(false);
-  const isMobileDevice = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-  const payUsingUpi = () => {
-    if (!payment?.upiLink || !payment.upiLink.startsWith('upi://')) {
-      showToast('Payment link unavailable — please scan the QR code with your UPI app.');
-      return;
-    }
-    if (!payment.total || payment.total <= 0) {
-      showToast('Invalid order amount — please go back and try again.');
-      return;
-    }
-    if (!isMobileDevice()) {
-      // Desktop: UPI intents only work on phones — point user to the QR code.
-      setDesktopPayHint(true);
-      return;
-    }
-    // Must run inside the click handler (popup/intent restrictions).
-    window.location.href = payment.upiLink;
-    // If no UPI app intercepts the intent, the page stays put — tell the user the fallback.
-    setTimeout(() => {
-      showToast(`If the UPI app did not open, scan the QR code or pay ₹${payment.total.toFixed(2)} to ${payment.upiId || 'the merchant UPI ID'}.`);
-    }, 1500);
-  };
-
   // ── Customer submits UPI Transaction ID → verification pending ──────
   const validUtr = (v) => {
     const t = (v || '').trim();
@@ -406,6 +380,9 @@ export default function TransactionPage() {
         <div style={{ textAlign: 'center', marginBottom: 16 }}>
           <div style={{ fontSize: '2.6rem' }}>🧾</div>
           <h1 style={{ fontSize: '1.4rem', color: green, margin: '8px 0 4px' }}>Order Submitted</h1>
+          <p style={{ color: '#6b7280', margin: '0 0 8px' }}>
+            Your bill has been generated successfully. Our team will verify your payment and update your payment status after confirming the transaction.
+          </p>
           <p style={{ color: '#6b7280', margin: 0 }}>
             Payment verification is pending. This page updates automatically once our team verifies your payment.
           </p>
@@ -560,19 +537,9 @@ export default function TransactionPage() {
           )}
 
           <p style={{ fontSize: '0.9rem', color: '#374151', margin: '0 0 16px' }}>
-            <strong>Scan & Pay:</strong> Open Google Pay, PhonePe, Paytm or any UPI app and scan the QR code,
-            or tap the button below on your phone.
+            <strong>Scan & Pay:</strong> Open PhonePe, Google Pay, Paytm or any UPI app on your phone
+            and scan the QR code above to pay the exact order amount.
           </p>
-
-          <button
-            onClick={payUsingUpi}
-            style={{
-              width: '100%', padding: '14px', background: green, color: '#fff', border: 'none',
-              borderRadius: 10, fontSize: '1rem', fontWeight: 600, cursor: 'pointer', marginBottom: 12
-            }}
-          >
-            SCAN TO PAY ₹{payment.total.toFixed(2)}
-          </button>
 
           {/* SECTION B – Mandatory Transaction ID */}
           <div style={{ textAlign: 'left', marginBottom: 14 }}>
@@ -638,27 +605,13 @@ export default function TransactionPage() {
             </ol>
           </div>
 
-          {/* Important note */}
+          {/* Payment Verification Notice */}
           <div style={{ textAlign: 'left', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
-            <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#92400e', marginBottom: 4 }}>NOTE:</div>
+            <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#92400e', marginBottom: 4 }}>Payment Verification Notice:</div>
             <p style={{ margin: 0, fontSize: '0.8rem', color: '#78350f', lineHeight: 1.6 }}>
-              <strong> A WhatsApp payment confirmation will be sent only after our team verifies that the payment has been received.</strong>
+              If your payment is successful, our team will verify the transaction details and update your payment status after confirming receipt of the amount.
+              Your bill will be generated after you submit the transaction ID. Please wait for admin verification.
             </p>
-          </div>
-
-          {desktopPayHint && (
-            <div style={{ textAlign: 'left', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '12px 14px', marginBottom: 12, fontSize: '0.82rem', color: '#1e40af' }}>
-              You are on a desktop device — UPI apps open on phones. Please scan the QR code above
-              with Google Pay, PhonePe, Paytm or any UPI app on your mobile phone.
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
-            {['GPay', 'PhonePe', 'Paytm', 'BHIM'].map((app) => (
-              <span key={app} style={{ fontSize: '0.75rem', background: '#f0fdf4', color: green, border: '1px solid #bbf7d0', padding: '4px 10px', borderRadius: 20 }}>
-                {app}
-              </span>
-            ))}
           </div>
 
           {/* SECTION E – PAYMENT DONE */}
