@@ -37,6 +37,9 @@ export default function TransactionPage() {
   const [deliveryCharge, setDeliveryCharge] = useState(0);
   const [loadingDeliveryCharge, setLoadingDeliveryCharge] = useState(false);
   const [payment, setPayment] = useState(null); // {orderId,total,upiUri,upiId,payeeName,qrDataUrl}
+  const [utr, setUtr] = useState('');
+  const [utrError, setUtrError] = useState('');
+  const utrBlink = `@keyframes utrBlink{0%,100%{border-color:#dc2626;box-shadow:0 0 0 0 rgba(220,38,38,.35)}50%{border-color:#f97316;box-shadow:0 0 0 4px rgba(249,115,22,.18)}}`;
   const [upiConfig, setUpiConfig] = useState(null); // {upiEnabled, upiId, payeeName, qrImageUrl, configured, configError}
   const [configLoading, setConfigLoading] = useState(true);
   const [placedOrder, setPlacedOrder] = useState(null);
@@ -202,6 +205,9 @@ export default function TransactionPage() {
           discount: parseFloat(data.discount) || 0,
           paymentStatus: data.paymentStatus
         });
+        // Restore previously entered UTR if customer went back and returned
+        setUtr(sessionStorage.getItem(`gnf_utr_${data.orderId}`) || '');
+        setUtrError('');
         if (data.paymentStatus === 'Paid') {
           handlePaid(data.orderId, parseFloat(data.total));
         } else {
@@ -243,12 +249,24 @@ export default function TransactionPage() {
     }, 1500);
   };
 
-  // ── Customer confirms they paid → verification pending ──────────────
+  // ── Customer submits UPI Transaction ID → verification pending ──────
+  const validUtr = (v) => {
+    const t = (v || '').trim();
+    if (!t) return 'UPI Transaction ID is required';
+    if (t.length < 6 || t.length > 50) return 'Transaction ID must be 6–50 characters';
+    if (!/^[A-Za-z0-9]+$/.test(t)) return 'Transaction ID contains invalid characters';
+    if (/test|demo|fake|sample|example|abcd|xxxx/i.test(t)) return 'Please enter the real transaction ID from your UPI app';
+    return '';
+  };
+
   const confirmPaid = async () => {
     if (!payment?.orderId) return;
+    const err = validUtr(utr);
+    setUtrError(err);
+    if (err) return;
     setConfirming(true);
     try {
-      const { data } = await api.post(`/payments/${payment.orderId}/confirm`);
+      const { data } = await api.post(`/payments/${payment.orderId}/confirm`, null, { params: { utr: utr.trim() } });
       if (data.success) {
         if (data.paymentStatus === 'Paid') {
           handlePaid(payment.orderId, payment.total);
@@ -456,6 +474,12 @@ export default function TransactionPage() {
                 <span style={{ color: '#6b7280' }}>Payment Status</span>
                 <span style={{ color: '#92400e', fontWeight: 600 }}>Awaiting verification</span>
               </div>
+              {utr.trim() && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                  <span style={{ color: '#6b7280' }}>UPI Transaction ID / UTR</span>
+                  <span style={{ fontWeight: 600, fontFamily: 'monospace' }}>{utr.trim()}</span>
+                </div>
+              )}
             </div>
 
             <p style={{ fontSize: '0.78rem', color: '#6b7280', borderTop: '1px dashed #d1d5db', marginTop: 14, paddingTop: 10, lineHeight: 1.5 }}>
@@ -550,16 +574,67 @@ export default function TransactionPage() {
             SCAN TO PAY ₹{payment.total.toFixed(2)}
           </button>
 
-          {/* Payment Instructions */}
+          {/* SECTION B – Mandatory Transaction ID */}
+          <div style={{ textAlign: 'left', marginBottom: 14 }}>
+            <label style={{ display: 'block', fontWeight: 700, fontSize: '0.9rem', color: '#dc2626', marginBottom: 6 }}>
+              ENTER YOUR UPI TRANSACTION ID <span style={{ fontSize: '0.7rem', background: '#dc2626', color: '#fff', padding: '2px 8px', borderRadius: 4, verticalAlign: 'middle' }}>MANDATORY</span>
+            </label>
+            <input
+              type="text"
+              inputMode="text"
+              autoComplete="off"
+              value={utr}
+              onChange={(e) => {
+                const v = e.target.value;
+                setUtr(v);
+                setUtrError('');
+                if (payment?.orderId) sessionStorage.setItem(`gnf_utr_${payment.orderId}`, v);
+              }}
+              placeholder="Enter your 12-digit UPI transaction reference number"
+              style={{
+                width: '100%', padding: '12px', fontSize: '1rem', borderRadius: 10,
+                border: '2px solid #dc2626', outline: 'none', boxSizing: 'border-box',
+                animation: 'utrBlink 1.6s ease-in-out infinite'
+              }}
+            />
+            <style>{utrBlink}</style>
+            {utrError && <div style={{ color: '#dc2626', fontSize: '0.78rem', marginTop: 4 }}>{utrError}</div>}
+            {!utrError && utr.trim() && !validUtr(utr) && (
+              <div style={{ color: '#16a34a', fontSize: '0.78rem', marginTop: 4 }}>✓ Looks valid</div>
+            )}
+          </div>
+
+          {/* SECTION C – Instructional images */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+            {[
+              { src: '/transaction-id-demo-1.svg', name: 'PhonePe', desc: 'History → tap payment → UTR' },
+              { src: '/transaction-id-demo-2.svg', name: 'Google Pay', desc: 'Activity → tap payment → UPI ref' }
+            ].map((img) => (
+              <a key={img.name} href={img.src} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
+                  <img src={img.src} alt={`${img.name} – where to find UPI Transaction ID`} style={{ width: '100%', height: 'auto', display: 'block' }} />
+                  <div style={{ padding: '8px 10px', textAlign: 'center' }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.8rem', color: green }}>{img.name}</div>
+                    <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>{img.desc}</div>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+
+          {/* SECTION D – Payment instructions */}
           <div style={{ textAlign: 'left', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
             <div style={{ fontWeight: 700, fontSize: '0.85rem', color: green, marginBottom: 6 }}>Payment Instructions</div>
             <ol style={{ margin: 0, paddingLeft: 18, fontSize: '0.82rem', color: '#374151', lineHeight: 1.7 }}>
-              <li>Click the <strong>SCAN TO PAY</strong> button.</li>
-              <li>Select your preferred UPI application.</li>
-              <li>Check that the displayed amount matches your order total.</li>
+              <li>Open PhonePe, Google Pay, Paytm or another UPI application.</li>
+              <li>Scan the Go Nature Farms QR code or use <strong>SCAN TO PAY</strong>.</li>
+              <li>Check the <strong>Go Nature Farms</strong> merchant name.</li>
+              <li>Check the amount before paying.</li>
               <li>Complete the payment in your UPI application.</li>
               <li>Return to the Go Nature Farms website.</li>
-              <li>Click <strong>I HAVE PAID</strong> only after completing the payment.</li>
+              <li>Find the UPI Transaction ID in your payment history.</li>
+              <li>Enter the Transaction ID in the mandatory field above.</li>
+              <li>Click <strong>PAYMENT DONE</strong>.</li>
             </ol>
           </div>
 
@@ -567,8 +642,6 @@ export default function TransactionPage() {
           <div style={{ textAlign: 'left', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
             <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#92400e', marginBottom: 4 }}>NOTE:</div>
             <p style={{ margin: 0, fontSize: '0.8rem', color: '#78350f', lineHeight: 1.6 }}>
-              If your payment is successfully completed, our team will verify it and contact you with an update.
-              If you do not hear from us, please wait while our team verifies your payment.
               <strong> A WhatsApp payment confirmation will be sent only after our team verifies that the payment has been received.</strong>
             </p>
           </div>
@@ -588,16 +661,17 @@ export default function TransactionPage() {
             ))}
           </div>
 
+          {/* SECTION E – PAYMENT DONE */}
           <button
             onClick={confirmPaid}
-            disabled={confirming}
+            disabled={confirming || !!validUtr(utr)}
             className="btn btn-primary"
-            style={{ width: '100%', padding: '13px', opacity: confirming ? 0.6 : 1, fontWeight: 700 }}
+            style={{ width: '100%', padding: '14px', opacity: confirming || validUtr(utr) ? 0.6 : 1, fontWeight: 700, fontSize: '1rem' }}
           >
-            {confirming ? 'Submitting…' : 'I HAVE PAID'}
+            {confirming ? 'Submitting…' : 'PAYMENT DONE'}
           </button>
           <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: 10 }}>
-            Clicking this does not confirm payment — our team verifies every UPI payment manually before your order is confirmed.
+            Enter your UPI Transaction ID above to enable this button. Our team verifies every payment manually.
           </p>
         </div>
       </div>
