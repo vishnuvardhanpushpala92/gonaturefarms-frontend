@@ -95,8 +95,8 @@ export function SiteProvider({ children }) {
         const parsed = JSON.parse(cachedData);
         const cacheAge = Date.now() - parsed.timestamp;
 
-        // Use cache if it's less than 5 minutes old
-        if (cacheAge < 5 * 60 * 1000) {
+        // Use cache if it's less than 30 seconds old (reduced from 5 minutes for real-time updates)
+        if (cacheAge < 30 * 1000) {
           setSettings(parsed.settings || {});
           setSlides(parsed.slides || []);
           setBlocks(parsed.blocks || []);
@@ -220,11 +220,32 @@ export function SiteProvider({ children }) {
   const updateSettings = useCallback(async (newSettings) => {
     try {
       await api.put('/admin/settings', newSettings, { skipTransform: true });
+      // Clear cache immediately after admin save
+      safeLocalStorage.removeItem('gnf_homepage_cache');
       await loadAll();
     } catch (error) {
       console.error('Failed to update settings:', error);
       throw error;
     }
+  }, [loadAll]);
+
+  // Centralized cache invalidation function - call this after any admin save operation
+  const invalidateCache = useCallback(() => {
+    safeLocalStorage.removeItem('gnf_homepage_cache');
+    console.log('Cache invalidated - will fetch fresh data on next request');
+  }, []);
+
+  // Periodic cache refresh - fetch fresh data every 2 minutes on customer site
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!loadCalledRef.current) {
+        loadAll().catch(err => {
+          console.error('Periodic refresh failed:', err);
+        });
+      }
+    }, 2 * 60 * 1000); // 2 minutes
+
+    return () => clearInterval(interval);
   }, [loadAll]);
 
   useEffect(() => {
@@ -236,7 +257,7 @@ export function SiteProvider({ children }) {
   }, []);
 
   return (
-    <SiteContext.Provider value={{ settings, slides, faqs, zones, blocks, footerLinks, testimonials, videos, products, layout, loaded, error, showTimeoutMessage, backendDown, reload: loadAll, retry: retryLoad, updateSettings }}>
+    <SiteContext.Provider value={{ settings, slides, faqs, zones, blocks, footerLinks, testimonials, videos, products, layout, loaded, error, showTimeoutMessage, backendDown, reload: loadAll, retry: retryLoad, updateSettings, invalidateCache }}>
       {children}
     </SiteContext.Provider>
   );

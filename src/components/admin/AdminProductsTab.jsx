@@ -2,11 +2,13 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import api from '../../api/client';
 import { useToast } from '../../context/ToastContext.jsx';
+import { useSite } from '../../context/SiteContext.jsx';
 
 const EMPTY = { name: '', description: '', price: '', mrp: '', gst: '', hsn: '', cat: '', imgUrl: '', additionalImages: [], status: 'current' };
 
 export default function AdminProductsTab() {
   const showToast = useToast();
+  const { invalidateCache } = useSite();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [editing, setEditing] = useState(null);
@@ -172,7 +174,8 @@ export default function AdminProductsTab() {
     try {
       const { data } = await api.post('/products/add-demo-variants');
       showToast(data.message || 'Demo variants added successfully');
-      load(); // Reload products to show updated variants
+      load();
+      invalidateCache();
     } catch (err) {
       showToast(err?.userMessage || err?.response?.data?.message || 'Failed to add demo variants');
     } finally {
@@ -189,7 +192,8 @@ export default function AdminProductsTab() {
     try {
       const { data } = await api.post('/products/remove-demo-variants');
       showToast(data.message || 'Demo variants removed successfully');
-      load(); // Reload products to show updated variants
+      load();
+      invalidateCache();
     } catch (err) {
       showToast(err?.userMessage || err?.response?.data?.message || 'Failed to remove demo variants');
     } finally {
@@ -246,12 +250,10 @@ export default function AdminProductsTab() {
         ? (await api.put(`/products/${editing}`, payload)).data
         : (await api.post('/products', payload)).data;
       showToast(data.message);
-      if (data.success) { resetForm(); load(); }
-      // Clear homepage cache so new products appear immediately
-      try {
-        localStorage.removeItem('gnf_homepage_cache');
-      } catch (e) {
-        console.warn('Failed to clear cache:', e);
+      if (data.success) { 
+        resetForm(); 
+        load(); 
+        invalidateCache();
       }
     } catch (err) {
       showToast(err?.response?.data?.message || 'Save failed');
@@ -264,12 +266,7 @@ export default function AdminProductsTab() {
       const { data } = await api.delete(`/products/${p.id}`);
       showToast(data.message || 'Product deleted successfully');
       load();
-      // Clear homepage cache so changes appear immediately
-      try {
-        localStorage.removeItem('gnf_homepage_cache');
-      } catch (e) {
-        console.warn('Failed to clear cache:', e);
-      }
+      invalidateCache();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to delete product');
     }
@@ -282,6 +279,7 @@ export default function AdminProductsTab() {
       showToast(data.message || 'Category added successfully');
       setNewCat('');
       load();
+      invalidateCache();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to add category');
     }

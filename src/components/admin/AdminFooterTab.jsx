@@ -5,7 +5,7 @@ import { useSite } from '../../context/SiteContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 
 export default function AdminFooterTab() {
-  const { settings, reload } = useSite();
+  const { settings, reload, invalidateCache } = useSite();
   const showToast = useToast();
   const [form, setForm] = useState(settings);
   const [footerLinks, setFooterLinks] = useState([]);
@@ -96,6 +96,7 @@ export default function AdminFooterTab() {
     try {
       await api.put('/admin/settings', form, { skipTransform: true });
       await reload();
+      invalidateCache();
       showToast('Footer settings saved successfully');
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to save footer settings');
@@ -114,6 +115,7 @@ export default function AdminFooterTab() {
       showToast('Footer link added successfully');
       setNewLink({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0, enabled: true, openInNewTab: false, columnHeading: '' });
       loadFooterLinks();
+      invalidateCache();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to add footer link');
     }
@@ -135,6 +137,7 @@ export default function AdminFooterTab() {
       setEditingLink(null);
       setNewLink({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0, enabled: true, openInNewTab: false, columnHeading: '' });
       loadFooterLinks();
+      invalidateCache();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to update footer link');
     }
@@ -146,6 +149,7 @@ export default function AdminFooterTab() {
       await api.delete(`/footer-links/${id}`);
       showToast('Footer link deleted successfully');
       loadFooterLinks();
+      invalidateCache();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to delete footer link');
     }
@@ -160,6 +164,7 @@ export default function AdminFooterTab() {
     try {
       await api.put('/admin/support-settings', supportSettings);
       showToast('Support settings saved successfully');
+      invalidateCache();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to save support settings');
     }
@@ -175,6 +180,7 @@ export default function AdminFooterTab() {
       showToast('Social media link added');
       setNewLink({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0, enabled: true, openInNewTab: false, columnHeading: '' });
       loadSocialMediaLinks();
+      invalidateCache();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to add link');
     }
@@ -186,6 +192,7 @@ export default function AdminFooterTab() {
       await api.delete(`/admin/social-media/${id}`);
       showToast('Social media link deleted');
       loadSocialMediaLinks();
+      invalidateCache();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to delete link');
     }
@@ -201,6 +208,7 @@ export default function AdminFooterTab() {
       showToast('FAQ category added');
       setNewLink({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0, enabled: true, openInNewTab: false, columnHeading: '' });
       loadFaqCategories();
+      invalidateCache();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to add category');
     }
@@ -212,6 +220,7 @@ export default function AdminFooterTab() {
       await api.delete(`/admin/faqs/categories/${id}`);
       showToast('FAQ category deleted');
       loadFaqCategories();
+      invalidateCache();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to delete category');
     }
@@ -238,6 +247,7 @@ export default function AdminFooterTab() {
       await api.put('/admin/settings', form, { skipTransform: true });
       showToast('Footer published successfully');
       reload();
+      invalidateCache();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to publish footer');
     }
@@ -261,6 +271,7 @@ export default function AdminFooterTab() {
       await api.put('/admin/policies', policy);
       showToast('Policy updated successfully');
       loadPolicies();
+      invalidateCache();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to update policy');
     }
@@ -270,6 +281,7 @@ export default function AdminFooterTab() {
     try {
       await api.put(`/footer-links/${id}/reorder`, newSortOrder);
       loadFooterLinks();
+      invalidateCache();
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to reorder link');
     }

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import api, { uploadApi } from '../../api/client';
 import { useToast } from '../../context/ToastContext.jsx';
+import { useSite } from '../../context/SiteContext.jsx';
 
 const EMPTY = { title: '', productId: '', posterUrl: '', enabled: true, sortOrder: '', orientation: 'landscape' };
 
 export default function AdminVideosTab() {
   const showToast = useToast();
+  const { invalidateCache } = useSite();
   const [videos, setVideos] = useState([]);
   const [products, setProducts] = useState([]);
   const [productSearch, setProductSearch] = useState('');
@@ -103,6 +105,7 @@ export default function AdminVideosTab() {
       if (data.success) {
         resetForm();
         load();
+        invalidateCache();
       }
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to save video');
@@ -115,7 +118,10 @@ export default function AdminVideosTab() {
     try {
       const { data } = await api.put(`/videos/admin/${id}/toggle`);
       showToast(data.message);
-      if (data.success) load();
+      if (data.success) {
+        load();
+        invalidateCache();
+      }
     } catch (err) {
       showToast('Failed to toggle video status');
     }
@@ -125,7 +131,10 @@ export default function AdminVideosTab() {
     try {
       const { data } = await api.put(`/videos/admin/${id}/approve`);
       showToast(data.message);
-      if (data.success) load();
+      if (data.success) {
+        load();
+        invalidateCache();
+      }
     } catch (err) {
       showToast('Failed to approve video');
     }
@@ -136,7 +145,10 @@ export default function AdminVideosTab() {
     try {
       const { data } = await api.put(`/videos/admin/${id}/reject`);
       showToast(data.message);
-      if (data.success) load();
+      if (data.success) {
+        load();
+        invalidateCache();
+      }
     } catch (err) {
       showToast('Failed to reject video');
     }
@@ -147,7 +159,10 @@ export default function AdminVideosTab() {
     try {
       const { data } = await api.delete(`/videos/admin/${id}`);
       showToast(data.message);
-      if (data.success) load();
+      if (data.success) {
+        load();
+        invalidateCache();
+      }
     } catch (err) {
       showToast('Failed to delete video');
     }

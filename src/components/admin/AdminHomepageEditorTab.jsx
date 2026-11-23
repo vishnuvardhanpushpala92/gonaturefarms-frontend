@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/client';
+import { useSite } from '../../context/SiteContext.jsx';
 
 export default function AdminHomepageEditorTab() {
+  const { invalidateCache } = useSite();
   const [layout, setLayout] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,6 +44,7 @@ export default function AdminHomepageEditorTab() {
       if (data.success) {
         alert(data.message);
         loadLayout();
+        invalidateCache();
       }
     } catch (err) {
       alert('Failed to save: ' + (err?.response?.data?.message || err?.message));
@@ -58,6 +61,7 @@ export default function AdminHomepageEditorTab() {
       if (data.success) {
         alert(data.message);
         loadLayout();
+        invalidateCache();
       }
     } catch (err) {
       alert('Failed to reset: ' + (err?.response?.data?.message || err?.message));
