@@ -217,10 +217,30 @@ export default function TransactionPage() {
     }
   };
 
-  // ── Open UPI app (mobile intent / desktop fallback to QR) ───────────
+  // ── Open UPI app (mobile intent / desktop → QR only) ────────────────
+  const [desktopPayHint, setDesktopPayHint] = useState(false);
+  const isMobileDevice = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
   const payUsingUpi = () => {
-    if (!payment?.upiLink) return;
+    if (!payment?.upiLink || !payment.upiLink.startsWith('upi://')) {
+      showToast('Payment link unavailable — please scan the QR code with your UPI app.');
+      return;
+    }
+    if (!payment.total || payment.total <= 0) {
+      showToast('Invalid order amount — please go back and try again.');
+      return;
+    }
+    if (!isMobileDevice()) {
+      // Desktop: UPI intents only work on phones — point user to the QR code.
+      setDesktopPayHint(true);
+      return;
+    }
+    // Must run inside the click handler (popup/intent restrictions).
     window.location.href = payment.upiLink;
+    // If no UPI app intercepts the intent, the page stays put — tell the user the fallback.
+    setTimeout(() => {
+      showToast(`If the UPI app did not open, scan the QR code or pay ₹${payment.total.toFixed(2)} to ${payment.upiId || 'the merchant UPI ID'}.`);
+    }, 1500);
   };
 
   // ── Customer confirms they paid → verification pending ──────────────
@@ -440,7 +460,7 @@ export default function TransactionPage() {
 
             <p style={{ fontSize: '0.78rem', color: '#6b7280', borderTop: '1px dashed #d1d5db', marginTop: 14, paddingTop: 10, lineHeight: 1.5 }}>
               <strong>NOTE:</strong> Your UPI payment will be verified by the Go Nature Farms team.
-              Once confirmed, our team will contact you with your order update.
+              A WhatsApp payment confirmation will be sent only after our team verifies that the payment has been received.
             </p>
           </div>
         </div>
@@ -549,8 +569,16 @@ export default function TransactionPage() {
             <p style={{ margin: 0, fontSize: '0.8rem', color: '#78350f', lineHeight: 1.6 }}>
               If your payment is successfully completed, our team will verify it and contact you with an update.
               If you do not hear from us, please wait while our team verifies your payment.
+              <strong> A WhatsApp payment confirmation will be sent only after our team verifies that the payment has been received.</strong>
             </p>
           </div>
+
+          {desktopPayHint && (
+            <div style={{ textAlign: 'left', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '12px 14px', marginBottom: 12, fontSize: '0.82rem', color: '#1e40af' }}>
+              You are on a desktop device — UPI apps open on phones. Please scan the QR code above
+              with Google Pay, PhonePe, Paytm or any UPI app on your mobile phone.
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
             {['GPay', 'PhonePe', 'Paytm', 'BHIM'].map((app) => (
