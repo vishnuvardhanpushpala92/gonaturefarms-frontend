@@ -35,8 +35,13 @@ export default function AdminHomepageEditorTab() {
   const handleSave = async (publish = false) => {
     try {
       setSaving(true);
+      // Strip entity-only fields the request DTO doesn't accept
+      const {
+        id, isPublished, isDraft, createdAt, updatedAt, createdBy, updatedBy,
+        ...layoutFields
+      } = layout;
       const payload = {
-        ...layout,
+        ...layoutFields,
         publish,
         saveAsDraft: !publish
       };
