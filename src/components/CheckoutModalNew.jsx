@@ -8,7 +8,7 @@ import { ensureHttps } from '../context/SiteContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client.js';
 
-export default function CheckoutModal({ open, onClose }) {
+export default function CheckoutModal({ open, onClose, prefill }) {
   const { items, totals, clearCart } = useCart();
   const { user } = useAuth();
   const { settings } = useSite();
@@ -36,6 +36,24 @@ export default function CheckoutModal({ open, onClose }) {
   const deliveryChargeBelow = parseFloat(settings.delivery_charge_below || 50);
   const subtotalWithGst = totals.subtotal + totals.gstAmount;
   const grandTotal = Math.max(0, subtotalWithGst + deliveryCharge);
+
+  useEffect(() => {
+    if (open && prefill) {
+      setForm((f) => ({
+        ...f,
+        customerName: prefill.customerName || f.customerName,
+        phone: prefill.phone || f.phone,
+        email: prefill.email || f.email,
+        address: prefill.address || f.address,
+        area: prefill.area || f.area,
+        city: prefill.city || f.city,
+        state: prefill.state || f.state,
+        pincode: prefill.pincode || f.pincode
+      }));
+      if (prefill.pincode) fetchDeliveryCharge(prefill.pincode);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, prefill]);
 
   useEffect(() => {
     if (open && user) {

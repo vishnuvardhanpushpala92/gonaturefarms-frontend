@@ -4,7 +4,7 @@ import CartDrawer from './components/CartDrawer.jsx';
 import FloatingCart from './components/FloatingCart.jsx';
 import SupportModal from './components/SupportModal.jsx';
 import ReviewModal from './components/ReviewModal.jsx';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Header from './components/Header.jsx';
 import HomePage from './pages/HomePage.jsx';
 import { useAuth } from './context/AuthContext.jsx';
@@ -30,6 +30,18 @@ function MainLayout({ children, showHeader = true }) {
   const [blinkCart, setBlinkCart] = useState(false);
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const [checkoutPrefill, setCheckoutPrefill] = useState(null);
+
+  // Allow other pages (e.g. payment screen "Edit Address") to reopen checkout
+  React.useEffect(() => {
+    if (location.state?.openCheckout) {
+      setCheckoutPrefill(location.state?.checkoutPrefill || null);
+      setCheckoutOpen(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, navigate]);
 
   const handleOpenCart = () => {
     if (!isAuthenticated) {
@@ -66,7 +78,7 @@ function MainLayout({ children, showHeader = true }) {
         {childrenWithProps}
       </div>
       <CartDrawer open={cartOpen} onClose={handleCartClose} onCheckout={() => { handleCartClose(); setCheckoutOpen(true); }} />
-      <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
+      <CheckoutModal open={checkoutOpen} onClose={() => { setCheckoutOpen(false); setCheckoutPrefill(null); }} prefill={checkoutPrefill} />
       <SupportModal open={supportOpen} onClose={() => setSupportOpen(false)} />
       <ReviewModal product={reviewProduct} onClose={() => setReviewProduct(null)} />
       <FloatingCart onClick={handleOpenCart} blinkCart={blinkCart} />

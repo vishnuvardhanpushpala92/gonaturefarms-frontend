@@ -168,6 +168,10 @@ export default function TransactionPage() {
           payeeName: data.payeeName,
           qrImageUrl: data.qrImageUrl || '',
           qrDataUrl: data.qrDataUrl,
+          subtotal: parseFloat(data.subtotal) || 0,
+          gstAmount: parseFloat(data.gstAmount) || 0,
+          deliveryCharge: parseFloat(data.deliveryCharge) || 0,
+          discount: parseFloat(data.discount) || 0,
           paymentStatus: data.paymentStatus
         });
         if (data.paymentStatus === 'Paid') {
@@ -319,32 +323,107 @@ export default function TransactionPage() {
     );
   }
 
-  // ── PENDING VERIFICATION SCREEN ─────────────────────────────────────
+  // Back from payment → reopen checkout/address step with current details
+  const backToCheckout = () => {
+    navigate('/', { state: { openCheckout: true, checkoutPrefill: form } });
+  };
+
+  // ── PENDING VERIFICATION + BILL ─────────────────────────────────────
   if (step === 'pending' && payment) {
+    const billSubtotal = payment.subtotal ?? subtotalWithGst;
+    const billGst = payment.gstAmount ?? totals.gstAmount;
+    const billDelivery = payment.deliveryCharge ?? deliveryCharge;
+    const billDiscount = payment.discount ?? discount;
+    const billTotal = payment.total;
     return (
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px' }}>
-        <div style={{ ...card, textAlign: 'center', padding: '40px 20px' }}>
-          <div style={{ fontSize: '3rem', marginBottom: 12 }}>⏳</div>
-          <h1 style={{ fontSize: '1.4rem', color: '#92400e', margin: '0 0 8px' }}>PAYMENT VERIFICATION PENDING</h1>
-          <p style={{ color: '#6b7280', margin: '0 0 6px' }}>
-            Order ID: <strong>{payment.orderId}</strong>
+        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+          <div style={{ fontSize: '2.6rem' }}>🧾</div>
+          <h1 style={{ fontSize: '1.4rem', color: green, margin: '8px 0 4px' }}>Order Submitted</h1>
+          <p style={{ color: '#6b7280', margin: 0 }}>
+            Payment verification is pending. This page updates automatically once our team verifies your payment.
           </p>
-          <p style={{ color: '#6b7280', margin: '0 0 20px' }}>
-            Amount: <strong>₹{payment.total.toFixed(2)}</strong> · Method: <strong>UPI</strong>
-          </p>
-          <p style={{ color: '#374151', margin: '0 0 24px', lineHeight: 1.6 }}>
-            We have received your payment confirmation. Our team is verifying the payment
-            in our UPI account and will confirm your order shortly.
-            This page updates automatically once verified.
-          </p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <button className="btn btn-primary" onClick={() => navigate('/tracking')} style={{ padding: '12px 24px' }}>
-              Track My Order
-            </button>
-            <button className="btn btn-secondary" onClick={() => navigate('/')} style={{ padding: '12px 24px' }}>
-              Continue Shopping
-            </button>
+        </div>
+
+        {/* Bill / Invoice */}
+        <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
+          <div style={{ background: green, color: '#fff', padding: '18px 20px', textAlign: 'center' }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: 0.5 }}>GO NATURE FARMS</div>
+            <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>Farm-fresh organic products</div>
           </div>
+          <div style={{ padding: '16px 20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 16px', fontSize: '0.85rem', marginBottom: 14 }}>
+              <div><span style={{ color: '#6b7280' }}>Order No:</span> <strong>{payment.orderId}</strong></div>
+              <div><span style={{ color: '#6b7280' }}>Order Date:</span> <strong>{new Date().toLocaleDateString('en-IN')}</strong></div>
+              <div><span style={{ color: '#6b7280' }}>Customer:</span> <strong>{form.customerName}</strong></div>
+              <div><span style={{ color: '#6b7280' }}>Phone:</span> <strong>{form.phone}</strong></div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <span style={{ color: '#6b7280' }}>Delivery Address:</span>{' '}
+                <strong>{form.address}{form.area ? `, ${form.area}` : ''}, {form.city}, {form.state} - {form.pincode}</strong>
+              </div>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', marginBottom: 12 }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #e5e7eb', textAlign: 'left' }}>
+                  <th style={{ padding: '6px 4px' }}>Item</th>
+                  <th style={{ padding: '6px 4px', textAlign: 'center' }}>Qty</th>
+                  <th style={{ padding: '6px 4px', textAlign: 'right' }}>Price</th>
+                  <th style={{ padding: '6px 4px', textAlign: 'right' }}>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item, i) => (
+                  <tr key={`${item.id}-${item.variantId || i}`} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '8px 4px' }}>
+                      {item.name}
+                      {item.variantName && <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{item.variantName}</div>}
+                    </td>
+                    <td style={{ padding: '8px 4px', textAlign: 'center' }}>{item.qty}</td>
+                    <td style={{ padding: '8px 4px', textAlign: 'right' }}>₹{Number(item.price).toFixed(2)}</td>
+                    <td style={{ padding: '8px 4px', textAlign: 'right', fontWeight: 600 }}>₹{(item.price * item.qty).toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div style={{ borderTop: '1px dashed #d1d5db', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 5, fontSize: '0.88rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Subtotal</span><span>₹{billSubtotal.toFixed(2)}</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>GST</span><span>₹{billGst.toFixed(2)}</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Delivery</span><span>{billDelivery === 0 ? 'FREE' : `₹${billDelivery.toFixed(2)}`}</span>
+              </div>
+              {billDiscount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a' }}>
+                  <span>Discount</span><span>-₹{billDiscount.toFixed(2)}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.05rem', color: green, borderTop: '1px solid #e5e7eb', paddingTop: 8, marginTop: 4 }}>
+                <span>Total</span><span>₹{billTotal.toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                <span style={{ color: '#6b7280' }}>Payment Method</span><span>UPI</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                <span style={{ color: '#6b7280' }}>Payment Status</span>
+                <span style={{ color: '#92400e', fontWeight: 600 }}>Awaiting verification</span>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '0.78rem', color: '#6b7280', borderTop: '1px dashed #d1d5db', marginTop: 14, paddingTop: 10, lineHeight: 1.5 }}>
+              <strong>NOTE:</strong> Your UPI payment will be verified by the Go Nature Farms team.
+              Once confirmed, our team will contact you with your order update.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', marginTop: 16 }}>
+          <button className="btn btn-primary" onClick={() => navigate('/tracking')} style={{ padding: '12px 24px' }}>
+            Track My Order
+          </button>
+          <button className="btn btn-secondary" onClick={() => navigate('/')} style={{ padding: '12px 24px' }}>
+            Continue Shopping
+          </button>
         </div>
       </div>
     );
@@ -380,8 +459,8 @@ export default function TransactionPage() {
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <h1 style={{ fontSize: '1.4rem', color: green, margin: 0 }}>UPI Payment</h1>
-          <button onClick={() => setStep('summary')} style={{ padding: '8px 16px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem' }}>
-            ← Back
+          <button onClick={backToCheckout} style={{ padding: '8px 16px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem' }}>
+            ← Edit Address
           </button>
         </div>
 
@@ -420,8 +499,30 @@ export default function TransactionPage() {
               borderRadius: 10, fontSize: '1rem', fontWeight: 600, cursor: 'pointer', marginBottom: 12
             }}
           >
-            PAY ₹{payment.total.toFixed(2)} USING UPI
+            SCAN TO PAY ₹{payment.total.toFixed(2)}
           </button>
+
+          {/* Payment Instructions */}
+          <div style={{ textAlign: 'left', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: green, marginBottom: 6 }}>Payment Instructions</div>
+            <ol style={{ margin: 0, paddingLeft: 18, fontSize: '0.82rem', color: '#374151', lineHeight: 1.7 }}>
+              <li>Click the <strong>SCAN TO PAY</strong> button.</li>
+              <li>Select your preferred UPI application.</li>
+              <li>Check that the displayed amount matches your order total.</li>
+              <li>Complete the payment in your UPI application.</li>
+              <li>Return to the Go Nature Farms website.</li>
+              <li>Click <strong>I HAVE PAID</strong> only after completing the payment.</li>
+            </ol>
+          </div>
+
+          {/* Important note */}
+          <div style={{ textAlign: 'left', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#92400e', marginBottom: 4 }}>NOTE:</div>
+            <p style={{ margin: 0, fontSize: '0.8rem', color: '#78350f', lineHeight: 1.6 }}>
+              If your payment is successfully completed, our team will verify it and contact you with an update.
+              If you do not hear from us, please wait while our team verifies your payment.
+            </p>
+          </div>
 
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
             {['GPay', 'PhonePe', 'Paytm', 'BHIM'].map((app) => (
@@ -434,13 +535,13 @@ export default function TransactionPage() {
           <button
             onClick={confirmPaid}
             disabled={confirming}
-            className="btn btn-secondary"
-            style={{ width: '100%', padding: '12px', opacity: confirming ? 0.6 : 1 }}
+            className="btn btn-primary"
+            style={{ width: '100%', padding: '13px', opacity: confirming ? 0.6 : 1, fontWeight: 700 }}
           >
-            {confirming ? 'Submitting…' : 'I HAVE COMPLETED PAYMENT'}
+            {confirming ? 'Submitting…' : 'I HAVE PAID'}
           </button>
           <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: 10 }}>
-            Your order will be verified by our team before confirmation. Please pay the exact amount shown.
+            Clicking this does not confirm payment — our team verifies every UPI payment manually before your order is confirmed.
           </p>
         </div>
       </div>
@@ -485,9 +586,24 @@ export default function TransactionPage() {
         ))}
       </div>
 
-      {/* Customer Details */}
+      {/* Customer Details — confirmed at checkout; edit via Back/Edit Address */}
       <div style={card}>
-        <h3 style={h3}>Customer Details</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <h3 style={{ ...h3, margin: 0 }}>Customer Details</h3>
+          {orderData && (
+            <button type="button" onClick={backToCheckout} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
+              Edit Address
+            </button>
+          )}
+        </div>
+        {orderData ? (
+          <div style={{ fontSize: '0.9rem', lineHeight: 1.7 }}>
+            <div><strong>{form.customerName}</strong></div>
+            <div>{form.phone} · {form.email}</div>
+            <div>{form.address}{form.area ? `, ${form.area}` : ''}, {form.city}, {form.state} - {form.pincode}</div>
+          </div>
+        ) : (
+        <>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div><label style={labelStyle}>Name</label><input style={inputStyle} value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} /></div>
           <div><label style={labelStyle}>Phone</label><input style={inputStyle} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
@@ -507,6 +623,8 @@ export default function TransactionPage() {
           <div><label style={labelStyle}>City</label><input style={inputStyle} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></div>
           <div><label style={labelStyle}>State</label><input style={inputStyle} value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} /></div>
         </div>
+        </>
+        )}
       </div>
 
       {/* Totals + Coupon */}
