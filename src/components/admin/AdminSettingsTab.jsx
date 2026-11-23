@@ -8,7 +8,7 @@ import UpiQrManager from './UpiQrManager.jsx';
 
 const FIELDS = [
   ['site_name', 'Site Name'], ['tagline', 'Tagline'], ['footer_text', 'Footer Text'],
-  ['upi_id', 'UPI ID'], ['store_location', 'Store Location'],
+  ['upi_id', 'UPI ID'], ['upi_payee_name', 'Merchant UPI Display Name'], ['upi_enabled', 'UPI Payments Enabled'], ['store_location', 'Store Location'],
   ['upi_scanner_url', 'UPI Scanner Image URL'],
   ['hdr_bg', 'Header Background'], ['hdr_text', 'Header Text Color'],
   ['hdr_font_size', 'Header Font Size (px)'], ['ftr_bg', 'Footer Background'], ['ftr_text', 'Footer Text Color'],
@@ -124,7 +124,16 @@ export default function AdminSettingsTab() {
           {FIELDS.map(([key, label]) => (
             <div className="fg" key={key}>
               <label>{label}</label>
-              {key === 'payment_instructions' || key === 'footer_desc' ? (
+              {key === 'upi_enabled' ? (
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 400 }}>
+                  <input
+                    type="checkbox"
+                    checked={!(form[key] === 'false' || form[key] === '0' || form[key] === 'no')}
+                    onChange={(e) => setForm({ ...form, [key]: e.target.checked ? 'true' : 'false' })}
+                  />
+                  Allow customers to pay via UPI
+                </label>
+              ) : key === 'payment_instructions' || key === 'footer_desc' ? (
                 <textarea value={form[key] || ''} onChange={(e) => setForm({ ...form, [key]: e.target.value })} />
               ) : key === 'hdr_bg' || key === 'hdr_text' || key === 'ftr_bg' || key === 'ftr_text' ? (
                 <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>

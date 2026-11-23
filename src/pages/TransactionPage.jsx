@@ -37,9 +37,37 @@ export default function TransactionPage() {
   const [deliveryCharge, setDeliveryCharge] = useState(0);
   const [loadingDeliveryCharge, setLoadingDeliveryCharge] = useState(false);
   const [payment, setPayment] = useState(null); // {orderId,total,upiUri,upiId,payeeName,qrDataUrl}
+  const [upiConfig, setUpiConfig] = useState(null); // {upiEnabled, upiId, payeeName, qrImageUrl, configured, configError}
+  const [configLoading, setConfigLoading] = useState(true);
   const [placedOrder, setPlacedOrder] = useState(null);
   const idemKeyRef = useRef(newIdempotencyKey());
   const pollRef = useRef(null);
+
+  // Fetch public UPI configuration once
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await api.get('/payments/config');
+        if (!cancelled && data.success) {
+          setUpiConfig({
+            upiEnabled: data.upiEnabled !== false,
+            upiId: data.upiId || '',
+            payeeName: data.payeeName || '',
+            qrImageUrl: data.qrImageUrl || '',
+            paymentInstructions: data.paymentInstructions || '',
+            configured: !!data.configured,
+            configError: data.configError || ''
+          });
+        }
+      } catch (err) {
+        if (!cancelled) setUpiConfig({ configured: false, configError: 'Could not load payment configuration' });
+      } finally {
+        if (!cancelled) setConfigLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const freeDeliveryAbove = parseFloat(settings.free_delivery_above || 500);
   const subtotalWithGst = totals.subtotal + totals.gstAmount;
@@ -661,11 +689,20 @@ export default function TransactionPage() {
         </div>
       </div>
 
+      {/* UPI configuration status */}
+      {!configLoading && upiConfig && !upiConfig.configured && (
+        <div style={{ background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 10, padding: '12px 14px', marginBottom: 16, fontSize: '0.85rem', color: '#92400e' }}>
+          {upiConfig.upiEnabled === false
+            ? 'UPI payments are currently disabled. Please contact the store.'
+            : (upiConfig.configError || 'UPI payments are not configured yet. Please contact the store.')}
+        </div>
+      )}
+
       <button
         onClick={proceedToPayment}
-        disabled={placing || !!pincodeError}
+        disabled={placing || !!pincodeError || configLoading || (upiConfig && !upiConfig.configured)}
         className="btn btn-primary btn-block"
-        style={{ padding: '14px', fontSize: '1rem', fontWeight: 700, opacity: placing || pincodeError ? 0.6 : 1 }}
+        style={{ padding: '14px', fontSize: '1rem', fontWeight: 700, opacity: placing || pincodeError || (upiConfig && !upiConfig.configured) ? 0.6 : 1 }}
       >
         {placing ? 'Creating order…' : 'PROCEED TO UPI PAYMENT'}
       </button>
