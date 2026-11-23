@@ -83,12 +83,36 @@ function MainLayout({ children, showHeader = true }) {
       <ReviewModal product={reviewProduct} onClose={() => setReviewProduct(null)} />
       <FloatingCart onClick={handleOpenCart} blinkCart={blinkCart} />
       <button
-        className="btn-wa"
-        style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 999, borderRadius: '50%', width: 54, height: 54 }}
+        className="btn-support-fab"
+        style={{
+          position: 'fixed',
+          bottom: 170, // above FloatingCart (bottom:100 + 54px height + 16px gap)
+          right: 20,
+          zIndex: 999,
+          borderRadius: '50%',
+          width: 54,
+          height: 54,
+          backgroundColor: '#16a34a',
+          color: 'white',
+          border: 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          transition: 'transform 0.2s, box-shadow 0.2s'
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.25)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)'; }}
         onClick={() => setSupportOpen(true)}
         title="Contact Support"
+        aria-label="Contact Support"
       >
-        💬
+        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 18v-6a9 9 0 0118 0v6" />
+          <path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3v5z" />
+          <path d="M3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3v5z" />
+        </svg>
       </button>
     </>
   );
