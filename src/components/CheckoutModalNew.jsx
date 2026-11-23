@@ -26,8 +26,7 @@ export default function CheckoutModal({ open, onClose }) {
   const [changeCount, setChangeCount] = useState(0);
   const [form, setForm] = useState({
     customerName: user?.name || '', phone: user?.phone || '', email: user?.email || '',
-    address: '', area: '', city: '', state: '', pincode: '', paymentMethod: 'UPI',
-    paymentUtr: ''
+    address: '', area: '', city: '', state: '', pincode: ''
   });
   const [pincodeError, setPincodeError] = useState('');
   const [deliveryCharge, setDeliveryCharge] = useState(0);
@@ -358,7 +357,7 @@ export default function CheckoutModal({ open, onClose }) {
               }
             });
             onClose();
-          }}>Continue to Payment</button>
+          }}>Proceed to UPI Payment</button>
         </form>
     </Modal>
   );

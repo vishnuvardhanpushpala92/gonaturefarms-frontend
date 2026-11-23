@@ -4,6 +4,7 @@ import api from '../../api/client';
 import { useSite } from '../../context/SiteContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 import { ensureHttps } from '../../context/SiteContext.jsx';
+import UpiQrManager from './UpiQrManager.jsx';
 
 const FIELDS = [
   ['site_name', 'Site Name'], ['tagline', 'Tagline'], ['footer_text', 'Footer Text'],
@@ -116,6 +117,7 @@ export default function AdminSettingsTab() {
 
   return (
     <div>
+      <UpiQrManager />
       <div className="admin-card">
         <h3 style={{ marginBottom: 12 }}>Site Settings</h3>
         <form onSubmit={saveSettings}>

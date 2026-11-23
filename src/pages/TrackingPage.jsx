@@ -7,6 +7,7 @@ import api from '../api/client';
 const STATUS_STEPS = ['Placed', 'Confirmed', 'Processing', 'Packed', 'Shipped', 'OutForDelivery', 'Delivered'];
 
 const STATUS_LABELS = {
+  'Pending': 'Awaiting Payment',
   'Placed': 'Order Placed',
   'Confirmed': 'Order Confirmed',
   'Processing': 'Processing',
@@ -16,6 +17,15 @@ const STATUS_LABELS = {
   'Delivered': 'Delivered',
   'PaymentVerificationPending': 'Payment Verification',
   'Cancelled': 'Cancelled'
+};
+
+const PAYMENT_LABELS = {
+  'Pending': 'Pending',
+  'VerificationPending': 'Verification Pending',
+  'Paid': 'Paid',
+  'Failed': 'Failed',
+  'Cancelled': 'Cancelled',
+  'Refunded': 'Refunded'
 };
 
 export default function TrackingPage() {
@@ -385,7 +395,7 @@ export default function TrackingPage() {
                   <div className="bill-row">
                     <span>Payment Status:</span>
                     <strong className={selectedOrder.paymentStatus.toLowerCase()}>
-                      {selectedOrder.paymentStatus}
+                      {PAYMENT_LABELS[selectedOrder.paymentStatus] || selectedOrder.paymentStatus}
                     </strong>
                   </div>
                   <div className="bill-row">

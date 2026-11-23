@@ -7,6 +7,7 @@ import api from '../api/client';
 const STATUS_STEPS = ['Placed', 'Confirmed', 'Processing', 'Packed', 'Shipped', 'OutForDelivery', 'Delivered'];
 
 const STATUS_LABELS = {
+  'Pending': 'Awaiting Payment',
   'Placed': 'Order Placed',
   'Confirmed': 'Order Confirmed',
   'Processing': 'Processing',

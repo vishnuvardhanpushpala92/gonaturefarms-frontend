@@ -3,10 +3,11 @@ import { useEffect, useState, Fragment } from 'react';
 import api from '../../api/client';
 import { useToast } from '../../context/ToastContext.jsx';
 
-const STATUSES = ['Placed', 'Confirmed', 'Processing', 'Packed', 'Shipped', 'OutForDelivery', 'Delivered', 'Cancelled', 'PaymentVerificationPending'];
-const PAYMENT_STATUSES = ['Pending', 'Paid', 'Failed', 'Refunded'];
+const STATUSES = ['Pending', 'Placed', 'Confirmed', 'Processing', 'Packed', 'Shipped', 'OutForDelivery', 'Delivered', 'Cancelled', 'PaymentVerificationPending'];
+const PAYMENT_STATUSES = ['Pending', 'VerificationPending', 'Paid', 'Failed', 'Cancelled', 'Refunded'];
 
 const STATUS_LABELS = {
+  'Pending': 'Pending (Unpaid)',
   'Placed': 'Order Placed',
   'Confirmed': 'Confirmed',
   'Processing': 'Processing',
@@ -16,6 +17,15 @@ const STATUS_LABELS = {
   'Delivered': 'Delivered',
   'Cancelled': 'Cancelled',
   'PaymentVerificationPending': 'Payment Verification'
+};
+
+const PAYMENT_LABELS = {
+  'Pending': 'Pending',
+  'VerificationPending': 'Verification Pending',
+  'Paid': 'Paid',
+  'Failed': 'Failed',
+  'Cancelled': 'Cancelled',
+  'Refunded': 'Refunded'
 };
 
 export default function AdminOrdersTab() {
@@ -116,7 +126,7 @@ export default function AdminOrdersTab() {
       </div>
 
       <table className="data-table">
-        <thead><tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Payment</th><th>Transaction ID</th><th></th></tr></thead>
+        <thead><tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Payment</th><th>Payment Ref</th><th></th></tr></thead>
         <tbody>
           {orders.map((o) => (
             <Fragment key={o.orderId}>
@@ -131,10 +141,10 @@ export default function AdminOrdersTab() {
                 </td>
                 <td>
                   <select value={o.paymentStatus} onChange={(e) => updateOrder(o.orderId, { paymentStatus: e.target.value })}>
-                    {PAYMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    {PAYMENT_STATUSES.map((s) => <option key={s} value={s}>{PAYMENT_LABELS[s] || s}</option>)}
                   </select>
                 </td>
-                <td>{o.paymentUtr || '-'}</td>
+                <td>{o.paymentUtr || (o.paymentGateway === 'direct_upi' ? o.orderId : '-') || '-'}</td>
                 <td>
                   <button className="btn-e" onClick={() => setExpanded(expanded === o.orderId ? null : o.orderId)}>
                     {expanded === o.orderId ? 'Hide' : 'Details'}
@@ -177,8 +187,21 @@ export default function AdminOrdersTab() {
                       }}>
                         <h4 style={{ marginBottom: 12, color: '#92400e' }}>💳 Payment Verification Required</h4>
                         <div style={{ marginBottom: 8 }}>
-                          <strong>UTR:</strong> {o.paymentUtr || 'Not provided'}
+                          <strong>Order / UPI Reference:</strong> {o.orderId}
                         </div>
+                        <div style={{ marginBottom: 8 }}>
+                          <strong>Expected Amount:</strong> ₹{o.total}
+                        </div>
+                        {o.paymentUtr && (
+                          <div style={{ marginBottom: 8 }}>
+                            <strong>Customer UTR:</strong> {o.paymentUtr}
+                          </div>
+                        )}
+                        {o.paymentGateway === 'direct_upi' && (
+                          <div style={{ marginBottom: 8, fontSize: '.85rem', color: '#6b7280' }}>
+                            Customer paid via direct UPI link/QR. Check your UPI/bank app for a payment of ₹{o.total} with reference {o.orderId}, then approve or reject.
+                          </div>
+                        )}
                         {o.paymentScreenshotUrl && (
                           <div style={{ marginBottom: 12 }}>
                             <strong>Payment Screenshot:</strong>
@@ -227,6 +250,7 @@ export default function AdminOrdersTab() {
                         color: '#166534'
                       }}>
                         ✓ Payment verified by admin
+                        {o.paymentPaidAt && <span style={{ display: 'block', marginTop: 4 }}>Paid at: {new Date(o.paymentPaidAt).toLocaleString()}</span>}
                       </div>
                     )}
 
