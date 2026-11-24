@@ -16,7 +16,7 @@ export default function SupportModal({ open, onClose }) {
 
   useEffect(() => {
     if (!open) return;
-    api.get('/support-settings/public', { skipTransform: true })
+    api.get('/support-settings/public')
       .then(({ data }) => { if (data?.success) setSupport(data.settings || {}); })
       .catch(() => setSupport({}));
   }, [open]);

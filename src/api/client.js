@@ -112,6 +112,7 @@ const PUBLIC_ENDPOINTS = [
   '/products/categories',
   '/videos',
   '/admin/settings/public',
+  '/support-settings/public',
   '/admin/slides',
   '/admin/faqs',
   '/admin/faqs/categories',
