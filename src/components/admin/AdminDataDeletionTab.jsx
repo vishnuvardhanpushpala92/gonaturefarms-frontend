@@ -27,7 +27,12 @@ export default function AdminDataDeletionTab() {
 
   const loadMeta = () => {
     api.get('/admin/data/categories').then(({ data }) => {
-      if (data?.data) { setCategories(data.data.categories || {}); setCounts(data.data.counts || {}); }
+      // Backend returns arrays so snake_case keys are never transformed.
+      const cats = {};
+      (data?.categories || []).forEach((c) => { cats[c.key] = c.label; });
+      const cnts = {};
+      (data?.counts || []).forEach((c) => { cnts[c.key] = c.count; });
+      setCategories(cats); setCounts(cnts);
     }).catch(() => {});
     api.get('/admin/data/audit').then(({ data }) => setAudit(data?.audit || [])).catch(() => {});
   };
