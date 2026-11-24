@@ -18,6 +18,7 @@ export default function AdminDataDeletionTab() {
   const [confirmation, setConfirmation] = useState('');
   const [step, setStep] = useState('select'); // 'select' | 'credentials'
   const [deleting, setDeleting] = useState(false);
+  const [view, setView] = useState('export'); // 'export' | 'delete' | 'reset' | 'history'
   // Export state
   const [expSelected, setExpSelected] = useState({});
   const [expFrom, setExpFrom] = useState('');
@@ -108,11 +109,23 @@ export default function AdminDataDeletionTab() {
     </div>
   );
 
+  const tabBtn = (key, label) => (
+    <button key={key} className={view === key ? 'btn btn-primary' : 'btn btn-secondary'}
+      style={{ marginRight: 8, marginBottom: 8 }} onClick={() => setView(key)}>{label}</button>
+  );
+
   return (
     <div>
-      <h3>Dashboard Data Management</h3>
+      <h3>Data Deletion &amp; Export</h3>
+      <div style={{ marginBottom: 14 }}>
+        {tabBtn('export', 'Export Data')}
+        {tabBtn('delete', 'Delete Selected Data')}
+        {tabBtn('reset', 'Complete Business Reset')}
+        {tabBtn('history', 'Operation History')}
+      </div>
 
       {/* ── Export ── */}
+      {view === 'export' && (
       <div className="admin-card">
         <h4 style={{ marginBottom: 4 }}>Export Dashboard Data to Excel</h4>
         <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: 12 }}>
@@ -129,25 +142,41 @@ export default function AdminDataDeletionTab() {
           <button className="btn btn-secondary" disabled={exporting} onClick={runBackup}>Download JSON Backup</button>
         </div>
       </div>
+      )}
 
-      {/* ── Permanent wipe ── */}
+      {/* ── Delete Selected / Complete Reset ── */}
+      {(view === 'delete' || view === 'reset') && (
       <div className="admin-card" style={{ marginTop: 16 }}>
-        <h4 style={{ marginBottom: 4, color: '#dc2626' }}>Permanent Business Data Management</h4>
+        <h4 style={{ marginBottom: 4, color: '#dc2626' }}>
+          {view === 'reset' ? 'Complete Business Data Reset' : 'Permanent Business Data Management'}
+        </h4>
         <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: 12 }}>
           ⚠️ Deletion is permanent and cannot be undone. Admin accounts, passwords, site settings,
           support settings, homepage layout, product categories and audit logs are never deleted.
+          {view === 'reset' && ' All business datasets below are pre-selected — this wipes all operational data.'}
         </p>
         {step === 'select' ? (
           <>
+            {view === 'reset' && selectedKeys.length === 0 && (() => {
+              const all = {}; Object.keys(categories).forEach((k) => all[k] = true); setSelected(all); return null;
+            })()}
             {catList(selected, categories, setSelected, true)}
             <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <button className="btn btn-danger" disabled={selectedKeys.length === 0}
-                onClick={() => { if (selKeys(selected).length === Object.keys(categories).length) { if (window.confirm('You selected ALL business data — this is a complete reset. Continue?')) setStep('credentials'); } else setStep('credentials'); }}>
-                Delete Selected ({totalRecords} records)
+                onClick={() => {
+                  const isAll = selKeys(selected).length === Object.keys(categories).length;
+                  if (view === 'reset' || isAll) {
+                    if (!window.confirm('COMPLETE BUSINESS RESET — all selected business data will be permanently deleted. Continue?')) return;
+                  }
+                  setStep('credentials');
+                }}>
+                {view === 'reset' ? 'Reset All Business Data' : 'Delete Selected'} ({totalRecords} records)
               </button>
-              <button className="btn btn-secondary" onClick={() => {
-                const all = {}; Object.keys(categories).forEach((k) => all[k] = true); setSelected(all);
-              }}>Select All (Full Reset)</button>
+              {view === 'delete' && (
+                <button className="btn btn-secondary" onClick={() => {
+                  const all = {}; Object.keys(categories).forEach((k) => all[k] = true); setSelected(all); setView('reset');
+                }}>Select All (Full Reset)</button>
+              )}
               {selectedKeys.length > 0 && (
                 <span style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
                   {selectedKeys.map((k) => categories[k]).join(', ')}
@@ -177,25 +206,43 @@ export default function AdminDataDeletionTab() {
           </div>
         )}
       </div>
+      )}
 
-      {/* ── Audit history ── */}
-      {audit.length > 0 && (
-        <div className="admin-card" style={{ marginTop: 16 }}>
-          <h4 style={{ marginBottom: 8 }}>Operation History</h4>
-          <table className="data-table">
-            <thead><tr><th>When</th><th>Admin</th><th>Action</th><th>Details</th></tr></thead>
-            <tbody>
-              {audit.slice(0, 20).map((a) => (
+      {/* ── Operation history ── */}
+      {view === 'history' && (
+      <div className="admin-card">
+        <h4 style={{ marginBottom: 8 }}>Operation History</h4>
+        {audit.length === 0 ? <p style={{ color: 'var(--muted)' }}>No operations recorded yet.</p> : (
+        <table className="data-table">
+          <thead><tr><th>When</th><th>Admin</th><th>Operation</th><th>Categories / Records</th><th>Result</th></tr></thead>
+          <tbody>
+            {audit.slice(0, 50).map((a) => {
+              let detail = a.details || '';
+              let result = 'Success';
+              try {
+                const parsed = JSON.parse(detail);
+                if (parsed.categories) detail = parsed.categories.join(', ');
+                if (parsed.deleted_counts) {
+                  const total = Object.values(parsed.deleted_counts).reduce((s, n) => s + (Number(n) || 0), 0);
+                  detail += ` — ${total} records`;
+                }
+              } catch { /* plain-text details */ }
+              if (a.action === 'DATA_EXPORT') result = 'Exported';
+              if (a.action === 'DATA_BACKUP') result = 'Backup created';
+              return (
                 <tr key={a.id}>
                   <td>{a.created_at ? new Date(a.created_at).toLocaleString() : '—'}</td>
                   <td>{a.admin_name || a.admin_id || '—'}</td>
                   <td>{a.action}</td>
-                  <td style={{ fontSize: '0.8rem', maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.details}</td>
+                  <td style={{ fontSize: '0.8rem' }}>{detail}</td>
+                  <td>{result}</td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              );
+            })}
+          </tbody>
+        </table>
+        )}
+      </div>
       )}
     </div>
   );
