@@ -16,6 +16,7 @@ import AdminVideosTab from '../components/admin/AdminVideosTab.jsx';
 import AdminTestimonialsTab from '../components/admin/AdminTestimonialsTab.jsx';
 import AdminWhatsAppTab from '../components/admin/AdminWhatsAppTab.jsx';
 import AdminDataDeletionTab from '../components/admin/AdminDataDeletionTab.jsx';
+import AdminComplaintsInbox from '../components/admin/AdminComplaintsInbox.jsx';
 import AdminReturnsTab from '../components/admin/AdminReturnsTab.jsx';
 import AdminHomepageEditorTab from '../components/admin/AdminHomepageEditorTab.jsx';
 import AdminSessionTimer from '../components/admin/AdminSessionTimer.jsx';
@@ -28,6 +29,7 @@ const TABS = [
   { key: 'orders', label: 'Orders' },
   { key: 'coupons', label: 'Coupons' },
   { key: 'support', label: 'Support' },
+  { key: 'complaints', label: 'Customer Complaints' },
   { key: 'content', label: 'Content' },
   { key: 'testimonials', label: 'Testimonials' },
   { key: 'footer', label: 'Footer' },
@@ -184,6 +186,7 @@ export default function AdminPage() {
       {tab === 'homepage-editor' && <AdminHomepageEditorTab />}
       {tab === 'settings' && <AdminSettingsTab />}
       {tab === 'data-deletion' && <AdminDataDeletionTab />}
+      {tab === 'complaints' && <AdminComplaintsInbox />}
 
       <FloatingCart onClick={() => setCartOpen(true)} />
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }} />

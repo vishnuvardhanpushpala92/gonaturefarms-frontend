@@ -7,7 +7,11 @@ export default function FlowerBlast() {
   const hasShownRef = useRef(false);
 
   useEffect(() => {
-    // Only show once per session
+    // Show once per browser session — survives SPA route changes and remounts
+    try {
+      if (sessionStorage.getItem('gnf_flower_blast_shown') === '1') return;
+      sessionStorage.setItem('gnf_flower_blast_shown', '1');
+    } catch { /* storage blocked — fall through and show once per mount */ }
     if (hasShownRef.current) return;
     hasShownRef.current = true;
 

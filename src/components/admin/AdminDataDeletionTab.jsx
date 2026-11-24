@@ -1,190 +1,118 @@
-import React, { useState } from 'react';
-import { useAuth } from '../../context/AuthContext.jsx';
-import { useToast } from '../../context/ToastContext.jsx';
+import React, { useState, useEffect } from 'react';
 import api from '../../api/client.js';
+import { useToast } from '../../context/ToastContext.jsx';
 
 export default function AdminDataDeletionTab() {
-  const { adminLogin, logout } = useAuth();
   const showToast = useToast();
-  
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  const [showCredentialPrompt, setShowCredentialPrompt] = useState(false);
-  const [deleteType, setDeleteType] = useState('');
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [categories, setCategories] = useState({});
+  const [counts, setCounts] = useState({});
+  const [selected, setSelected] = useState({});
+  const [password, setPassword] = useState('');
+  const [step, setStep] = useState('select'); // 'select' | 'confirm' | 'credentials'
   const [deleting, setDeleting] = useState(false);
 
-  const handleDeleteType = (type) => {
-    setDeleteType(type);
-    setShowCredentialPrompt(true);
+  useEffect(() => {
+    api.get('/admin/data/categories')
+      .then(({ data }) => {
+        if (data?.data) {
+          setCategories(data.data.categories || {});
+          setCounts(data.data.counts || {});
+        }
+      })
+      .catch(() => showToast('Failed to load data categories'));
+  }, []);
+
+  const toggle = (key) => setSelected({ ...selected, [key]: !selected[key] });
+
+  const selectedKeys = Object.keys(selected).filter((k) => selected[k]);
+  const totalRecords = selectedKeys.reduce((sum, k) => sum + (counts[k] || 0), 0);
+
+  const proceed = () => {
+    if (selectedKeys.length === 0) {
+      showToast('Select at least one data category');
+      return;
+    }
+    setStep('credentials');
   };
 
-  const handleCredentialSubmit = async (e) => {
-    e.preventDefault();
+  const deleteData = async () => {
     setDeleting(true);
-    
     try {
-      // Verify admin credentials
-      const result = await adminLogin(credentials.username, credentials.password);
-      if (result.success) {
-        // Proceed with deletion
-        await performDeletion();
+      const { data } = await api.post('/admin/data/delete', {
+        password,
+        categories: selectedKeys
+      });
+      if (data?.success !== false) {
+        showToast(data?.message || 'Data deleted successfully');
+        setStep('select');
+        setSelected({});
+        setPassword('');
+        // Refresh counts
+        const { data: refreshed } = await api.get('/admin/data/categories');
+        if (refreshed?.data) setCounts(refreshed.data.counts || {});
       } else {
-        showToast('Invalid admin credentials');
-        setCredentials({ username: '', password: '' });
+        showToast(data?.message || 'Deletion failed');
       }
     } catch (err) {
-      showToast(err?.userMessage || err?.response?.data?.message || 'Invalid credentials');
-      setCredentials({ username: '', password: '' });
+      showToast(err?.response?.data?.message || err?.userMessage || 'Deletion failed');
+      setPassword('');
     } finally {
       setDeleting(false);
     }
   };
 
-  const performDeletion = async () => {
-    try {
-      let endpoint = '';
-      let message = '';
-      
-      switch (deleteType) {
-        case 'users':
-          endpoint = '/admin/data/users';
-          message = 'All users deleted successfully';
-          break;
-        case 'orders':
-          endpoint = '/admin/data/orders';
-          message = 'All orders deleted successfully';
-          break;
-        case 'all':
-          endpoint = '/admin/data/all';
-          message = 'All data deleted successfully';
-          break;
-        default:
-          showToast('Invalid deletion type');
-          return;
-      }
-      
-      const { data } = await api.delete(endpoint);
-      if (data.success) {
-        showToast(message);
-        setShowCredentialPrompt(false);
-        setShowDeleteConfirmation(false);
-        setDeleteType('');
-        setCredentials({ username: '', password: '' });
-      } else {
-        showToast(data.message || 'Deletion failed');
-      }
-    } catch (err) {
-      showToast(err?.userMessage || err?.response?.data?.message || 'Deletion failed');
-    }
-  };
-
-  const cancelOperation = () => {
-    setShowDeleteConfirmation(false);
-    setShowCredentialPrompt(false);
-    setDeleteType('');
-    setCredentials({ username: '', password: '' });
-  };
-
-  if (showCredentialPrompt) {
+  if (step === 'credentials') {
     return (
-      <div>
-        <h3>Admin Credential Verification</h3>
-        <p style={{ color: 'var(--muted)', marginBottom: 20 }}>
-          Please enter your admin credentials to confirm deletion of {deleteType === 'all' ? 'ALL DATA' : deleteType}.
-        </p>
-        <form onSubmit={handleCredentialSubmit}>
-          <div className="fg">
-            <label>Admin Username</label>
-            <input 
-              required 
-              value={credentials.username} 
-              onChange={(e) => setCredentials({ ...credentials, username: e.target.value })} 
-              placeholder="Enter admin username"
-            />
-          </div>
-          <div className="fg">
-            <label>Admin Password</label>
-            <input 
-              required 
-              type="password" 
-              value={credentials.password} 
-              onChange={(e) => setCredentials({ ...credentials, password: e.target.value })} 
-              placeholder="Enter admin password"
-            />
-          </div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-            <button type="submit" className="btn btn-danger" disabled={deleting}>
-              {deleting ? 'Verifying...' : 'Confirm & Delete'}
-            </button>
-            <button type="button" className="btn btn-secondary" onClick={cancelOperation}>
-              Cancel
-            </button>
-          </div>
-        </form>
+      <div className="admin-card" style={{ maxWidth: 480 }}>
+        <h3>Confirm Permanent Deletion</h3>
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: 12, marginBottom: 16 }}>
+          <p style={{ margin: '0 0 8px', fontWeight: 600, color: '#dc2626' }}>⚠️ This action is IRREVERSIBLE</p>
+          <p style={{ margin: 0, fontSize: '0.85rem' }}>
+            You are about to permanently delete <strong>{totalRecords}</strong> records from:{' '}
+            {selectedKeys.map((k) => categories[k]).join(', ')}.
+          </p>
+          <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: 'var(--muted)' }}>
+            Users, orders, products, settings and admin accounts are never deleted by this tool.
+          </p>
+        </div>
+        <div className="fg">
+          <label>Admin Password (verified on server)</label>
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your admin password" autoComplete="current-password" />
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          <button className="btn btn-danger" disabled={deleting || !password} onClick={deleteData}>
+            {deleting ? 'Deleting…' : 'Permanently Delete'}
+          </button>
+          <button className="btn btn-secondary" onClick={() => { setStep('select'); setPassword(''); }}>Cancel</button>
+        </div>
       </div>
     );
   }
 
   return (
     <div>
-      <h3>Global Data Deletion</h3>
-      <p style={{ color: 'var(--muted)', marginBottom: 24 }}>
-        ⚠️ Warning: These actions are irreversible. Please be careful before proceeding.
+      <h3>Data Management</h3>
+      <p style={{ color: 'var(--muted)', marginBottom: 16 }}>
+        Select business data categories to permanently delete. Admin password verification is required.
+        Users, orders, products, settings and admin accounts cannot be deleted here.
       </p>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16 }}>
-        <div style={{ 
-          padding: 20, 
-          border: '2px solid var(--border)', 
-          borderRadius: 8,
-          background: '#fff'
-        }}>
-          <h4 style={{ marginBottom: 8, color: '#dc2626' }}>Delete All Users</h4>
-          <p style={{ fontSize: '.85rem', color: 'var(--muted)', marginBottom: 16 }}>
-            Remove all customer accounts and their data. This action cannot be undone.
-          </p>
-          <button 
-            className="btn btn-danger btn-block" 
-            onClick={() => handleDeleteType('users')}
-          >
-            Delete Users
+      <div className="admin-card">
+        {Object.entries(categories).map(([key, label]) => (
+          <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
+            <input type="checkbox" checked={!!selected[key]} onChange={() => toggle(key)} />
+            <span style={{ flex: 1 }}>{label}</span>
+            <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{counts[key] ?? '…'} records</span>
+          </label>
+        ))}
+        <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button className="btn btn-danger" disabled={selectedKeys.length === 0} onClick={proceed}>
+            Delete Selected ({totalRecords} records)
           </button>
-        </div>
-
-        <div style={{ 
-          padding: 20, 
-          border: '2px solid var(--border)', 
-          borderRadius: 8,
-          background: '#fff'
-        }}>
-          <h4 style={{ marginBottom: 8, color: '#dc2626' }}>Delete All Orders</h4>
-          <p style={{ fontSize: '.85rem', color: 'var(--muted)', marginBottom: 16 }}>
-            Remove all order history and related data. This action cannot be undone.
-          </p>
-          <button 
-            className="btn btn-danger btn-block" 
-            onClick={() => handleDeleteType('orders')}
-          >
-            Delete Orders
-          </button>
-        </div>
-
-        <div style={{ 
-          padding: 20, 
-          border: '2px solid #dc2626', 
-          borderRadius: 8,
-          background: '#fef2f2'
-        }}>
-          <h4 style={{ marginBottom: 8, color: '#dc2626' }}>⚠️ Delete All Data</h4>
-          <p style={{ fontSize: '.85rem', color: 'var(--muted)', marginBottom: 16 }}>
-            <strong>WARNING:</strong> This will delete ALL data including users, orders, etc. This is irreversible!
-          </p>
-          <button 
-            className="btn btn-danger btn-block" 
-            onClick={() => handleDeleteType('all')}
-          >
-            Delete Everything
-          </button>
+          {selectedKeys.length > 0 && (
+            <span style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
+              {selectedKeys.map((k) => categories[k]).join(', ')}
+            </span>
+          )}
         </div>
       </div>
     </div>

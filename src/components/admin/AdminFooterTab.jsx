@@ -1,7 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import api from '../../api/client';
-import AdminComplaintsInbox from './AdminComplaintsInbox.jsx';
 import { useSite } from '../../context/SiteContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 
@@ -14,7 +13,6 @@ export default function AdminFooterTab() {
   const [editingLink, setEditingLink] = useState(null);
   const [newLink, setNewLink] = useState({ name: '', url: '', category: 'QUICK_LINKS', sortOrder: 0, enabled: true, openInNewTab: false, columnHeading: '' });
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState('settings');
   const [supportSettings, setSupportSettings] = useState({});
   const [socialMediaLinks, setSocialMediaLinks] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -292,19 +290,8 @@ export default function AdminFooterTab() {
   const quickLinks = footerLinks.filter(l => l.category === 'QUICK_LINKS');
   const customerCareLinks = footerLinks.filter(l => l.category === 'CUSTOMER_CARE');
 
-  const tabBtn = (key, label) => (
-    <button key={key} className={activeTab === key ? 'btn btn-primary' : 'btn btn-secondary'}
-      style={{ marginRight: 8 }} onClick={() => setActiveTab(key)}>{label}</button>
-  );
-
   return (
     <div>
-      <div style={{ marginBottom: 14 }}>
-        {tabBtn('settings', 'Support Settings')}
-        {tabBtn('complaints', 'Customer Complaints Inbox')}
-      </div>
-      {activeTab === 'complaints' ? <AdminComplaintsInbox /> : (
-      <>
       <div className="admin-card">
         <h3 style={{ marginBottom: 12 }}>Footer Content & Colors</h3>
         <form onSubmit={saveSettings}>
@@ -915,8 +902,6 @@ export default function AdminFooterTab() {
           </tbody>
         </table>
       </div>
-      </>
-      )}
     </div>
   );
 }

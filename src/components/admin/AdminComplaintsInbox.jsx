@@ -77,6 +77,18 @@ export default function AdminComplaintsInbox() {
     }
   };
 
+  const removeComplaint = async (t) => {
+    if (!window.confirm(`Permanently delete complaint ${t.ticket_number || `#${t.id}`}?\n\nThis cannot be undone.`)) return;
+    try {
+      await api.delete(`/support/${t.id}`);
+      showToast('Complaint deleted');
+      if (selected?.id === t.id) setSelected(null);
+      load();
+    } catch (e) {
+      showToast(e?.userMessage || 'Failed to delete complaint');
+    }
+  };
+
   const d = selected?.data || {};
 
   return (
@@ -121,7 +133,10 @@ export default function AdminComplaintsInbox() {
                   <td>{t.category || d.category || '—'}</td>
                   <td>{t.created_at ? new Date(t.created_at).toLocaleString() : '—'}</td>
                   <td><span className={`badge badge-${t.status}`}>{STATUS_LABEL[t.status] || t.status}</span></td>
-                  <td><button className="btn-e" onClick={() => openDetail(t)}>View</button></td>
+                  <td>
+                    <button className="btn-e" onClick={() => openDetail(t)}>View</button>{' '}
+                    <button className="btn-d" onClick={() => removeComplaint(t)}>Delete</button>
+                  </td>
                 </tr>
               ))}
             </tbody>
