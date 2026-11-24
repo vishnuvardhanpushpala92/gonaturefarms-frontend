@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSite } from '../context/SiteContext.jsx';
 import { useLocation } from 'react-router-dom';
+import SupportModal from './SupportModal.jsx';
 
 export default function Footer({ onOpenSupport }) {
+  const [localSupportOpen, setLocalSupportOpen] = useState(false);
+  // Prefer the parent's handler; fall back to opening the shared SupportModal locally
+  const openSupport = onOpenSupport || (() => setLocalSupportOpen(true));
   const { settings, footerLinks, testimonials: initialTestimonials, loaded, layout } = useSite();
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
@@ -62,7 +66,7 @@ export default function Footer({ onOpenSupport }) {
     
     // Handle special actions
     if (url === 'support') {
-      onOpenSupport();
+      openSupport();
       return;
     }
     
@@ -193,7 +197,7 @@ export default function Footer({ onOpenSupport }) {
           ) : (
             // Default customer care links if none are added
             <>
-              <a href="#" onClick={(e) => { e.preventDefault(); onOpenSupport(); }}>Contact Support</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); openSupport(); }}>Contact Support</a>
               <a href="#faq">FAQ</a>
             </>
           )}
@@ -207,6 +211,7 @@ export default function Footer({ onOpenSupport }) {
       <div className="footer-bottom">
         <span>{settings.footer_text || `© ${new Date().getFullYear()} Go Nature Farms. All rights reserved.`}</span>
       </div>
+      {!onOpenSupport && <SupportModal open={localSupportOpen} onClose={() => setLocalSupportOpen(false)} />}
     </footer>
   );
 }
