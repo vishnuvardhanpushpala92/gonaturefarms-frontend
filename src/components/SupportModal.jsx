@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from './Modal.jsx';
 import { useSite } from '../context/SiteContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -12,6 +12,14 @@ export default function SupportModal({ open, onClose }) {
   const showToast = useToast();
   const [fields, setFields] = useState({});
   const [busy, setBusy] = useState(false);
+  const [support, setSupport] = useState(null);
+
+  useEffect(() => {
+    if (!open) return;
+    api.get('/support-settings/public', { skipTransform: true })
+      .then(({ data }) => { if (data?.success) setSupport(data.settings || {}); })
+      .catch(() => setSupport({}));
+  }, [open]);
 
   let schema = [];
   try {
@@ -39,6 +47,43 @@ export default function SupportModal({ open, onClose }) {
 
   return (
     <Modal open={open} onClose={onClose} title="Contact Support" subtitle="We'll get back to you soon">
+      {/* Saved support contact methods */}
+      {support && (support.supportPhone || support.whatsappNumber || support.supportEmail || support.businessHours || support.responseInfo) && (
+        <div style={{ marginBottom: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {support.supportPhone && (
+            <a href={`tel:${support.supportPhone}`} className="btn btn-secondary" style={{ textAlign: 'center', textDecoration: 'none' }}>
+              📞 Call {support.supportPhone}
+            </a>
+          )}
+          {support.whatsappNumber && (
+            <a
+              href={`https://wa.me/${`${support.whatsappCountryCode || '91'}${support.whatsappNumber}`.replace(/\D/g, '')}`}
+              target="_blank" rel="noreferrer" className="btn btn-secondary" style={{ textAlign: 'center', textDecoration: 'none', background: '#25D366', color: '#fff', border: 'none' }}
+            >
+              💬 WhatsApp {support.whatsappNumber}
+            </a>
+          )}
+          {support.supportEmail && (
+            <a href={`mailto:${support.supportEmail}`} className="btn btn-secondary" style={{ textAlign: 'center', textDecoration: 'none' }}>
+              ✉️ {support.supportEmail}
+            </a>
+          )}
+          {support.businessHours && (
+            <p style={{ fontSize: '0.8rem', color: 'var(--muted)', margin: 0 }}>🕐 {support.businessHours}</p>
+          )}
+          {support.responseInfo && (
+            <p style={{ fontSize: '0.8rem', color: 'var(--muted)', margin: 0 }}>{support.responseInfo}</p>
+          )}
+        </div>
+      )}
+      {support === null && (
+        <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>Loading support details…</p>
+      )}
+      {support && !(support.supportPhone || support.whatsappNumber || support.supportEmail || support.businessHours || support.responseInfo) && (
+        <p style={{ fontSize: '0.82rem', color: 'var(--muted)', marginBottom: 10 }}>
+          You can reach our support team using the form below.
+        </p>
+      )}
       <form onSubmit={submit}>
         {schema.map((f) => (
           <div className="fg" key={f.key}>
