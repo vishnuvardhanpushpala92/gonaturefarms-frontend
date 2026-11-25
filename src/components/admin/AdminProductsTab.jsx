@@ -177,8 +177,8 @@ export default function AdminProductsTab() {
   };
 
   const addAdditionalImageEntry = () => {
-    if (form.additionalImages.length >= 12) {
-      showToast('Maximum 12 additional images per product');
+    if (form.additionalImages.length >= 15) {
+      showToast('Maximum 15 additional images per product');
       return;
     }
     setForm({ ...form, additionalImages: [...form.additionalImages, ''] });

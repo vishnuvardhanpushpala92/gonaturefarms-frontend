@@ -23,10 +23,24 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
   const [displayPrice, setDisplayPrice] = useState(product.price);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [imgIndex, setImgIndex] = useState(0);
+  const touchX = React.useRef(null);
 
   const openLightbox = (index) => {
     setLightboxIndex(index);
     setIsLightboxOpen(true);
+  };
+
+  // Manual slider: main image first, wrap-around, no auto-rotation
+  const goImage = (dir) => {
+    setImgIndex((i) => (i + dir + allImages.length) % allImages.length);
+  };
+  const onTouchStart = (e) => { touchX.current = e.touches[0].clientX; };
+  const onTouchEnd = (e) => {
+    if (touchX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchX.current;
+    if (Math.abs(dx) > 40) goImage(dx < 0 ? 1 : -1);
+    touchX.current = null;
   };
 
   const closeLightbox = () => {
@@ -48,6 +62,9 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
       setDisplayPrice(product.variants[0].price);
     }
   }, [product.id, hasVariants]);
+
+  // Reset gallery to main image when the product changes
+  React.useEffect(() => { setImgIndex(0); }, [product.id]);
 
   // Initialize with first variant if available (only on mount or when product.id changes)
   React.useEffect(() => {
@@ -131,9 +148,11 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
 
   return (
     <div className={`pcard${isFuture ? ' pcard-future' : ''}`} style={{ overflow: 'visible', zIndex: 10 }}>
-      <div className="pcard-img" onClick={() => openLightbox(0)} style={{ cursor: 'pointer' }}>
+      <div className="pcard-img" style={{ cursor: 'pointer', position: 'relative' }}
+           onClick={() => openLightbox(imgIndex)}
+           onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         <img
-          src={getImageUrl(product.img_url || product.imgUrl, true)}
+          src={getImageUrl(allImages[imgIndex] || product.img_url || product.imgUrl, true)}
           alt={product.name}
           loading="lazy"
           width="400"
@@ -153,18 +172,30 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
           }}
         />
         {allImages.length > 1 && (
-          <div style={{
-            position: 'absolute',
-            bottom: 8,
-            right: 8,
-            background: 'rgba(0,0,0,0.6)',
-            color: '#fff',
-            padding: '2px 8px',
-            borderRadius: 12,
-            fontSize: '0.7rem'
-          }}>
-            {allImages.length} photos
-          </div>
+          <>
+            <button type="button" aria-label="Previous image"
+              onClick={(e) => { e.stopPropagation(); goImage(-1); }}
+              style={{ position: 'absolute', left: 6, top: '50%', transform: 'translateY(-50%)',
+                width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)',
+                color: '#fff', fontSize: 16, cursor: 'pointer', lineHeight: 1 }}>‹</button>
+            <button type="button" aria-label="Next image"
+              onClick={(e) => { e.stopPropagation(); goImage(1); }}
+              style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
+                width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)',
+                color: '#fff', fontSize: 16, cursor: 'pointer', lineHeight: 1 }}>›</button>
+            <div style={{
+              position: 'absolute',
+              bottom: 8,
+              right: 8,
+              background: 'rgba(0,0,0,0.6)',
+              color: '#fff',
+              padding: '2px 8px',
+              borderRadius: 12,
+              fontSize: '0.7rem'
+            }}>
+              {imgIndex + 1}/{allImages.length}
+            </div>
+          </>
         )}
       </div>
       <div className="pcard-body">
