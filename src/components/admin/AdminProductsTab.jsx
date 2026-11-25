@@ -4,7 +4,7 @@ import api from '../../api/client';
 import { useToast } from '../../context/ToastContext.jsx';
 import { useSite } from '../../context/SiteContext.jsx';
 
-const EMPTY = { name: '', description: '', price: '', mrp: '', gst: '', hsn: '', cat: '', imgUrl: '', additionalImages: [], status: 'current' };
+const EMPTY = { name: '', description: '', price: '', mrp: '', gst: '', hsn: '', cat: '', imgUrl: '', additionalImages: [], status: 'current', returnPolicy: 'RETURNABLE' };
 
 export default function AdminProductsTab() {
   const showToast = useToast();
@@ -70,6 +70,7 @@ export default function AdminProductsTab() {
     setForm({
       name: p.name, description: p.description || '', price: p.price, mrp: p.mrp, gst: p.gst,
       hsn: p.hsn || '', cat: p.cat || '', imgUrl: p.imgUrl || '', status: p.status,
+      returnPolicy: p.returnPolicy || (p.returnEligible === false ? 'NON_RETURNABLE' : 'RETURNABLE'),
       additionalImages: p.additionalImages
         ? (typeof p.additionalImages === 'string' ? JSON.parse(p.additionalImages) : p.additionalImages)
         : []
@@ -410,6 +411,12 @@ export default function AdminProductsTab() {
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
               <option value="current">Current</option>
               <option value="future">Coming Soon</option>
+            </select>
+          </div>
+          <div className="fg"><label>Return Policy *</label>
+            <select value={form.returnPolicy} onChange={(e) => setForm({ ...form, returnPolicy: e.target.value })} required>
+              <option value="RETURNABLE">Returnable</option>
+              <option value="NON_RETURNABLE">Non-Returnable</option>
             </select>
           </div>
           

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from './Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../api/client';
@@ -27,6 +27,27 @@ export default function OrdersModal({ open, onClose }) {
   const [searched, setSearched] = useState(false);
   const [returnForm, setReturnForm] = useState({});
   const [showReturnForm, setShowReturnForm] = useState({});
+  const [productPolicies, setProductPolicies] = useState({});
+
+  // Load product return policies once for per-item eligibility checks
+  useEffect(() => {
+    if (!open || Object.keys(productPolicies).length) return;
+    api.get('/products', { skipTransform: true })
+      .then(({ data }) => {
+        const map = {};
+        (data?.products || data || []).forEach?.((p) => {
+          if (p && p.id != null) {
+            map[p.id] = p.return_policy || p.returnPolicy || (p.return_eligible === false || p.returnEligible === false ? 'NON_RETURNABLE' : 'RETURNABLE');
+          }
+        });
+        setProductPolicies(map);
+      })
+      .catch(() => {});
+  }, [open]);
+
+  const nonReturnableNames = (order) => (order.items || [])
+    .filter((i) => productPolicies[i.product_id ?? i.productId] === 'NON_RETURNABLE')
+    .map((i) => i.product_name || i.productName || 'item');
 
   const lookupByPhone = async (e) => {
     e.preventDefault();
@@ -303,13 +324,19 @@ export default function OrdersModal({ open, onClose }) {
                   >
                     📄 View Details
                   </button>
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => setShowReturnForm(prev => ({ ...prev, [o.orderId]: !prev[o.orderId] }))}
-                    style={{ fontSize: '.85rem' }}
-                  >
-                    🔄 Request Return
-                  </button>
+                  {nonReturnableNames(o).length === 0 ? (
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => setShowReturnForm(prev => ({ ...prev, [o.orderId]: !prev[o.orderId] }))}
+                      style={{ fontSize: '.85rem' }}
+                    >
+                      🔄 Request Return
+                    </button>
+                  ) : (
+                    <span style={{ fontSize: '.8rem', color: '#92400e' }}>
+                      ⚠️ Non-returnable: {nonReturnableNames(o).join(', ')}
+                    </span>
+                  )}
                   <button
                     className="btn btn-primary"
                     onClick={() => reorderOrder(o)}
@@ -321,7 +348,7 @@ export default function OrdersModal({ open, onClose }) {
               )}
 
               {/* Return Request Section */}
-              {o.status === 'Delivered' && !o.returnRequested && (
+              {o.status === 'Delivered' && !o.returnRequested && nonReturnableNames(o).length === 0 && (
                 <div style={{ marginTop: 12 }}>
                   <button
                     className="btn btn-secondary"
