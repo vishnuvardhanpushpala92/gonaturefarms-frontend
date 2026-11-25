@@ -135,7 +135,13 @@ export default function AdminProductsTab() {
     }
   };
 
-  const handleAdditionalImageUpload = async (e) => {
+  const setAdditionalImageAt = (index, url) => {
+    const list = [...form.additionalImages];
+    list[index] = url;
+    setForm({ ...form, additionalImages: list });
+  };
+
+  const handleAdditionalImageUpload = async (e, index) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -150,8 +156,12 @@ export default function AdminProductsTab() {
       });
 
       if (data.success && data.url) {
-        setForm({ ...form, additionalImages: [...form.additionalImages, data.url] });
-        showToast('Additional image uploaded successfully');
+        if (form.additionalImages.includes(data.url)) {
+          showToast('This image is already added');
+        } else {
+          setAdditionalImageAt(index, data.url);
+          showToast('Additional image uploaded successfully');
+        }
       } else {
         showToast(data.message || 'Failed to upload image');
       }
@@ -159,7 +169,26 @@ export default function AdminProductsTab() {
       showToast(err?.response?.data?.message || 'Failed to upload image');
     } finally {
       setUploading(false);
+      e.target.value = '';
     }
+  };
+
+  const addAdditionalImageEntry = () => {
+    setForm({ ...form, additionalImages: [...form.additionalImages, ''] });
+  };
+
+  const applyAdditionalImageUrl = (index, rawUrl) => {
+    const url = (rawUrl || '').trim();
+    if (!/^https?:\/\//i.test(url)) {
+      showToast('Enter a valid image URL (https://…)');
+      return;
+    }
+    if (form.additionalImages.some((u, i) => i !== index && u === url)) {
+      showToast('This image URL is already added');
+      return;
+    }
+    setAdditionalImageAt(index, url);
+    showToast('Image URL added');
   };
 
   const removeAdditionalImage = (index) => {
@@ -235,7 +264,7 @@ export default function AdminProductsTab() {
 
       const payload = {
         ...form,
-        additionalImages: JSON.stringify(form.additionalImages || []),
+        additionalImages: JSON.stringify((form.additionalImages || []).filter(Boolean)),
         variants: finalVariants.map(v => ({
           variantName: v.variantName,
           price: v.price ? parseFloat(v.price) : (v.mrp ? parseFloat(v.mrp) : 0),
@@ -362,50 +391,60 @@ export default function AdminProductsTab() {
           <div className="fg">
             <label>Additional Images (optional)</label>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleAdditionalImageUpload}
-                disabled={uploading}
-                style={{ flex: 1 }}
-              />
-              <button type="button" className="btn btn-secondary" onClick={handleAdditionalImageUpload} disabled={uploading}>
-                {uploading ? 'Uploading...' : 'Add Image'}
+              <button type="button" className="btn btn-secondary" onClick={addAdditionalImageEntry}>
+                + Add Image
               </button>
+              <span style={{ fontSize: '.78rem', color: 'var(--muted)' }}>Each entry accepts a file upload or an image URL.</span>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-              {form.additionalImages.map((imgUrl, index) => (
-                <div key={index} style={{ position: 'relative' }}>
-                  <img
-                    src={imgUrl}
-                    alt={`Additional ${index + 1}`}
-                    style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeAdditionalImage(index)}
-                    style={{
-                      position: 'absolute',
-                      top: -8,
-                      right: -8,
-                      background: '#ef4444',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: 20,
-                      height: 20,
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    ×
-                  </button>
+            {form.additionalImages.map((imgUrl, index) => (
+              <div key={index} style={{
+                display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap',
+                padding: '8px', border: '1px solid var(--border)', borderRadius: 8, marginBottom: 8
+              }}>
+                {imgUrl ? (
+                  <img src={imgUrl} alt={`Additional ${index + 1}`} style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 6 }} />
+                ) : (
+                  <div style={{ width: 56, height: 56, borderRadius: 6, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '.7rem' }}>No img</div>
+                )}
+                <div style={{ flex: 1, minWidth: 180 }}>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleAdditionalImageUpload(e, index)}
+                      disabled={uploading}
+                      style={{ fontSize: '.78rem', maxWidth: 200 }}
+                    />
+                    <span style={{ fontSize: '.75rem', color: 'var(--muted)' }}>OR</span>
+                    <input
+                      type="text"
+                      placeholder="Paste image URL (https://…)"
+                      defaultValue={imgUrl}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyAdditionalImageUrl(index, e.target.value); } }}
+                      style={{ flex: 1, minWidth: 160, fontSize: '.82rem' }}
+                    />
+                    <button type="button" className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '.78rem' }}
+                      onClick={(e) => applyAdditionalImageUrl(index, e.currentTarget.parentElement.querySelector('input[type="text"]').value)}>
+                      Set URL
+                    </button>
+                  </div>
                 </div>
-              ))}
-            </div>
+                <button
+                  type="button"
+                  onClick={() => removeAdditionalImage(index)}
+                  style={{
+                    background: '#ef4444', color: '#fff', border: 'none', borderRadius: '50%',
+                    width: 22, height: 22, cursor: 'pointer', fontSize: 13, flexShrink: 0
+                  }}
+                  title="Remove image"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            {form.additionalImages.length === 0 && (
+              <p style={{ fontSize: '.8rem', color: 'var(--muted)' }}>No additional images yet — click “+ Add Image”.</p>
+            )}
           </div>
           <div className="fg"><label>Status</label>
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
