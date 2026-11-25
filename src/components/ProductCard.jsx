@@ -171,6 +171,16 @@ export default function ProductCard({ product, onOpenReviews, onEdit, onDelete, 
         <span className="pcard-cat">{product.cat}</span>
         <div className="pcard-name">{product.name}</div>
         <div className="pcard-desc">{product.description}</div>
+        {(product.return_policy || product.returnPolicy) && (
+          <span style={{
+            display: 'inline-block', marginTop: 4, padding: '2px 8px', borderRadius: 10,
+            fontSize: '.68rem', fontWeight: 600,
+            background: (product.return_policy || product.returnPolicy) === 'NON_RETURNABLE' ? '#fee2e2' : '#dcfce7',
+            color: (product.return_policy || product.returnPolicy) === 'NON_RETURNABLE' ? '#b91c1c' : '#15803d'
+          }}>
+            {(product.return_policy || product.returnPolicy) === 'NON_RETURNABLE' ? 'Non-Returnable' : 'Returnable'}
+          </span>
+        )}
         
         {hasVariants && (
           <div style={{ marginBottom: 8 }}>

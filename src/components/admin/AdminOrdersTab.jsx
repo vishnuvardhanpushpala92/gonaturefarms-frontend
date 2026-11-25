@@ -2,6 +2,7 @@ import React from 'react';
 import { useEffect, useState, Fragment } from 'react';
 import api from '../../api/client';
 import { useToast } from '../../context/ToastContext.jsx';
+import AdminReturnPolicyPanel from './AdminReturnPolicyPanel.jsx';
 
 const STATUSES = ['Pending', 'Placed', 'Confirmed', 'Processing', 'Packed', 'Shipped', 'OutForDelivery', 'Delivered', 'Cancelled', 'PaymentVerificationPending'];
 const PAYMENT_STATUSES = ['Pending', 'VerificationPending', 'Paid', 'Failed', 'Cancelled', 'Refunded'];
@@ -117,6 +118,7 @@ export default function AdminOrdersTab() {
 
   return (
     <div>
+      <AdminReturnPolicyPanel />
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ padding: '8px 12px', border: '1px solid var(--border)', borderRadius: 6 }}>
           <option value="">All statuses</option>
