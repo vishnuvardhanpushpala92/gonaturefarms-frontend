@@ -69,11 +69,14 @@ export default function AdminProductsTab() {
     setEditing(p.id);
     setForm({
       name: p.name, description: p.description || '', price: p.price, mrp: p.mrp, gst: p.gst,
-      hsn: p.hsn || '', cat: p.cat || '', imgUrl: p.imgUrl || '', status: p.status,
+      hsn: p.hsn || '', cat: p.cat || '', imgUrl: p.imgUrl || p.img_url || '', status: p.status,
       returnPolicy: p.returnPolicy || (p.returnEligible === false ? 'NON_RETURNABLE' : 'RETURNABLE'),
-      additionalImages: p.additionalImages
-        ? (typeof p.additionalImages === 'string' ? JSON.parse(p.additionalImages) : p.additionalImages)
-        : []
+      additionalImages: (() => {
+        const raw = p.additionalImages ?? p.additional_images;
+        if (!raw) return [];
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+      })()
     });
     // Load variants for editing
     setVariants(p.variants || []);
@@ -174,6 +177,10 @@ export default function AdminProductsTab() {
   };
 
   const addAdditionalImageEntry = () => {
+    if (form.additionalImages.length >= 12) {
+      showToast('Maximum 12 additional images per product');
+      return;
+    }
     setForm({ ...form, additionalImages: [...form.additionalImages, ''] });
   };
 
