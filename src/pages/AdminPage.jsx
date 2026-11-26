@@ -20,6 +20,8 @@ import AdminComplaintsInbox from '../components/admin/AdminComplaintsInbox.jsx';
 import AdminReturnsTab from '../components/admin/AdminReturnsTab.jsx';
 import AdminHomepageEditorTab from '../components/admin/AdminHomepageEditorTab.jsx';
 import AdminSessionTimer from '../components/admin/AdminSessionTimer.jsx';
+import AdminNotificationsTab from '../components/admin/AdminNotificationsTab.jsx';
+import AdminNotificationBell from '../components/AdminNotificationBell.jsx';
 import FloatingCart from '../components/FloatingCart.jsx';
 import CartDrawer from '../components/CartDrawer.jsx';
 import CheckoutModal from '../components/CheckoutModalNew.jsx';
@@ -41,7 +43,8 @@ const TABS = [
   { key: 'users', label: 'Customers' },
   { key: 'videos', label: 'Videos' },
   { key: 'whatsapp', label: 'WhatsApp' },
-  { key: 'settings', label: 'Settings' }
+  { key: 'settings', label: 'Settings' },
+  { key: 'notifications', label: 'Notifications' }
 ];
 
 export default function AdminPage() {
@@ -155,6 +158,7 @@ export default function AdminPage() {
               Start Timer
             </button>
           )}
+          <AdminNotificationBell onOpenOrder={() => setTab('orders')} />
           <button className="btn btn-secondary" onClick={() => navigate('/')}>View Store</button>
           <button className="btn btn-danger" onClick={logout}>Logout</button>
         </div>
@@ -187,6 +191,7 @@ export default function AdminPage() {
       {tab === 'settings' && <AdminSettingsTab />}
       {tab === 'data-deletion' && <AdminDataDeletionTab />}
       {tab === 'complaints' && <AdminComplaintsInbox />}
+      {tab === 'notifications' && <AdminNotificationsTab onOpenOrder={() => setTab('orders')} />}
 
       <FloatingCart onClick={() => setCartOpen(true)} />
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }} />
